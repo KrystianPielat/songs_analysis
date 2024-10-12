@@ -1,0 +1,74 @@
+version: 1
+disable_existing_loggers: false
+formatters:
+  simple:
+    format: "%(levelname)s: %(message)s"
+  detailed:
+    format: "[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)s"
+    datefmt: "%Y-%m-%dT%H:%M:%S%z"
+  color:
+    "()": colorlog.ColoredFormatter
+    format: "%(log_color)s%(levelname)s: %(message)s"
+    log_colors:
+      DEBUG: bold_black
+      INFO: bold_green
+      WARNING: bold_yellow
+      ERROR: bold_red
+      CRITICAL: bold_purple
+
+filters:
+  info_only:
+    "()": classes.log.InfoFilter  # Referencing the custom filter class
+
+handlers:
+  stdout:
+    class: logging.StreamHandler
+    level: DEBUG  # Handles DEBUG and INFO, but NOT WARNING and above
+    formatter: color
+    stream: ext://sys.stdout
+    filters: [info_only]  # Filters out WARNING and above
+  # file:
+  #   class: logging.handlers.RotatingFileHandler
+  #   level: INFO  # File handler for all logs INFO and above
+  #   formatter: detailed
+  #   filename: log.log
+  #   maxBytes: 1000000
+  #   backupCount: 3
+  stderr:
+    class: logging.StreamHandler
+    level: WARNING  # Handles only WARNING and above
+    formatter: color
+    stream: ext://sys.stderr
+
+loggers:
+  root:
+    level: DEBUG  # The root logger will capture all logs starting from DEBUG
+    # handlers:
+    #   - file    # File logs for everything INFO and above
+
+  yt-dlp:
+    level: ERROR
+    handlers:
+      - stderr
+      # - file
+    propagate: false
+
+  classes.lyrics_manager:
+    level: WARNING
+    handlers:
+      - stdout
+      - stderr
+    propagate: false
+    
+  classes.playlist:
+    level: INFO
+    handlers:
+      - stdout
+      - stderr
+    propagate: false
+
+  classes.lyric_sources:
+    level: WARNING
+    handlers:
+      - stdout
+    propagate: false
