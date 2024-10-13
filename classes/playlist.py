@@ -43,17 +43,22 @@ class Playlist:
         tracks = self.spotify_manager.get_playlist_tracks(self.uri)
         
         for track in tracks:
+            # Check if the track has album information
+            if track.get('type') != 'track' or track.get('album') is None:
+                LOGGER.warning(f"Track {track.get('name', 'Unknown')} does not have album information. Skipping.")
+                continue
+    
             # Extract album release year
             album_release_year = Song._extract_album_release_year(track['album'])
-
+    
             # Get song duration in milliseconds
             duration_ms = track.get('duration_ms', None)
-
+    
             # Get the popularity and explicitly set it to None if it's 0 or not found
             popularity = track.get('popularity')
             if popularity == 0 or popularity is None:
                 popularity = None
-
+    
             song = Song(
                 id=track.get('id', None),
                 title=track.get('name', 'Unknown Title'),

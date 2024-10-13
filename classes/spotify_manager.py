@@ -20,4 +20,4 @@ class SpotifyManager:
         while results:
             tracks.extend(results['items'])
             results = self.client.next(results) if results['next'] else None
-        return [track['track'] for track in tracks]
+        return [track['track'] for track in tracks if track.get('track') is not None ]
