@@ -9,16 +9,23 @@ def gather_data_from_folders(playlists_dir: str):
     # Iterate over all subdirectories in the playlists directory
     for root, dirs, files in os.walk(playlists_dir):
         for file in files:
-            if file.endswith('.csv'):
+            if file.endswith('.csv') and '.ipynb' not in root:
                 csv_path = os.path.join(root, file)
-                df = pd.read_csv(csv_path)
+                
+                print(f"Loading CSV file: {csv_path}")  # Debugging statement to see the file being loaded
+                df = pd.read_csv(csv_path, index_col=None)
+
+                # Check if the 'Unnamed: 0' column exists, if so, print the issue and drop it
+                if 'Unnamed: 0' in df.columns:
+                    print(f"Found 'Unnamed: 0' in {file}, dropping the column")
+                    df = df.drop(columns=['Unnamed: 0'])
+
                 all_dataframes.append(df)
 
     # Concatenate all DataFrames
     combined_df = pd.concat(all_dataframes, ignore_index=True)
     
     return combined_df
-
 
 def apply_function_to_csvs(playlists_dir, modify_function):
     """

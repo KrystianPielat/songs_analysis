@@ -24,7 +24,7 @@ class LyricsManager:
             lyrics = provider.get_song_lyrics(artist, title)
             if lyrics:
                 LOGGER.info(f"Lyrics found by {provider.__class__.__name__} for '{title}' by {artist}.")
-                return LyricsManager._clean_lyrics(lyrics) if clean else lyrics
+                return LyricsManager._clean_lyrics(lyrics) if clean_lyrics else lyrics
             else:
                 LOGGER.info(f"Lyrics not found by {provider.__class__.__name__} for '{title}' by {artist}.")
         LOGGER.warning(f"Lyrics not found for '{title}' by {artist} using all available providers.")
