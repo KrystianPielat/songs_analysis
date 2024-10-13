@@ -3,11 +3,13 @@ import librosa
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
+from classes.feature_extractor import FeatureExtractor
 
-class AudioFeatureExtractor:
+
+class AudioFeatureExtractor(FeatureExtractor):
     """Class to handle the extraction of audio features from MP3 files."""
 
-    def extract_audio_features(self, audio_path):
+    def extract_features(self, audio_path):
         """Extracts audio features from a given audio file."""
         y, sr = librosa.load(audio_path, sr=None)
 
@@ -27,9 +29,9 @@ class AudioFeatureExtractor:
         features = np.hstack((mfccs, chroma, spectral_contrast, tempo, zcr))
         return features
 
-    def add_audio_features(self, df, audio_column='mp3_path'):
+    def add_features(self, df, audio_column='mp3_path'):
         """
-        Adds audio features to the given DataFrame if they don't already exist.
+        Adds audio features to the given DataFrame.
     
         Parameters:
         - df: DataFrame containing audio file paths.
@@ -59,18 +61,17 @@ class AudioFeatureExtractor:
     
         all_features = []
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Extracting Audio Features", unit="file"):
-            audio_path = row[audio_column]  # Ensure that the key matches the column name
+            audio_path = row[audio_column]
             try:
-                features = self.extract_audio_features(audio_path)
+                features = self.extract_features(audio_path)
                 all_features.append(features)
             except Exception as e:
-                # Handle any exceptions, e.g., if the file is missing or unreadable
                 print(f"Error processing file {audio_path}: {e}")
                 all_features.append([None] * 34)  # Add placeholder for failed extractions
     
         # Create DataFrame for missing features
         features_df = pd.DataFrame(all_features, columns=feature_columns)
     
-        # Merge only the missing features into the original DataFrame
+        # Merge the features into the original DataFrame
         df_with_features = pd.concat([df.reset_index(drop=True), features_df[missing_columns]], axis=1)
         return df_with_features

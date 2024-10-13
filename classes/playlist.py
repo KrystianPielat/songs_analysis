@@ -134,7 +134,7 @@ class Playlist:
     
                         # Extract audio features
                         audio_extractor = AudioFeatureExtractor()
-                        extracted_audio_features = audio_extractor.extract_audio_features(absolute_song_path)
+                        extracted_audio_features = audio_extractor.extract_features(absolute_song_path)
                         LOGGER.debug(f"Extracted audio features for {song.title}: {extracted_audio_features}")
     
                         # Check if data is valid before writing to CSV
