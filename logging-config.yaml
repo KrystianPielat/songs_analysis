@@ -66,9 +66,10 @@ loggers:
       - stdout
       - stderr
     propagate: false
-
-  classes.lyric_sources:
-    level: WARNING
+    
+  classes.model_pipeline:
+    level: INFO
     handlers:
       - stdout
+      - stderr 
     propagate: false
