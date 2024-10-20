@@ -92,6 +92,7 @@ class TextFeatureExtractor(FeatureExtractor):
 
         # TF-IDF Features
         tfidf_features = pd.DataFrame(self.tfidf.fit_transform(df[text_column]).toarray(), columns=self.tfidf.get_feature_names_out()).drop('lyrics', axis=1)
+        tfidf_features = tfidf_features.rename(columns={c: "tfidf_" + c for c in tfidf_features.columns})
         
         # Combine all features
         df_with_features = pd.concat([df.reset_index(drop=True), features_df, tfidf_features], axis=1)
