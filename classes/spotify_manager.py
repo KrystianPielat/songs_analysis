@@ -21,3 +21,7 @@ class SpotifyManager:
             tracks.extend(results['items'])
             results = self.client.next(results) if results['next'] else None
         return [track['track'] for track in tracks if track.get('track') is not None ]
+
+    def get_artist(self, artist_id):
+        """Fetches artist data from Spotify."""
+        return self.client.artist(artist_id)

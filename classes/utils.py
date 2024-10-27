@@ -9,7 +9,7 @@ def gather_data_from_folders(playlists_dir: str):
     # Iterate over all subdirectories in the playlists directory
     for root, dirs, files in os.walk(playlists_dir):
         for file in files:
-            if file.endswith('.csv') and '.ipynb' not in root:
+            if file.endswith('.csv') and '.ipynb' not in root and not file.startswith("_"):
                 csv_path = os.path.join(root, file)
                 
                 print(f"Loading CSV file: {csv_path}")  # Debugging statement to see the file being loaded
