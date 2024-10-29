@@ -5,22 +5,32 @@ import os
 from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 import logging
-LOGGER = logging.getLogger(__name__)
+from typing import Optional
 
+
+LOGGER = logging.getLogger(__name__)
 
 class LyricSource(ABC):
     """Abstract base class for a lyric source provider."""
 
     @abstractmethod
-    def get_song_lyrics(self, artist, title):
-        """Fetches the lyrics for the given song and artist."""
+    def get_song_lyrics(self, artist: str, title: str) -> Optional[str]:
+        """Fetches the lyrics for the given song and artist.
+
+        Args:
+            artist (str): The artist's name.
+            title (str): The song title.
+
+        Returns:
+            Optional[str]: The lyrics as a string, or None if not found.
+        """
         pass
+
 
 class MusixmatchSource(LyricSource):
     """Musixmatch lyrics provider implementation."""
 
-    def get_song_lyrics(self, artist, title):
-        """Fetches the lyrics for the given song and artist from Musixmatch."""
+    def get_song_lyrics(self, artist: str, title: str):
         search_url = f"https://www.musixmatch.com/search/{artist} {title}"
         try:
             search_page = requests.get(search_url)
@@ -37,7 +47,6 @@ class MusixmatchSource(LyricSource):
             return "Lyrics not found."  # Handle network or search issues
 
     def _scrape_lyrics(self, url):
-        """Scrapes lyrics from a specific Musixmatch song page."""
         try:
             song_page = requests.get(url)
             soup = BeautifulSoup(song_page.text, 'html.parser')
@@ -57,8 +66,7 @@ class GeniusLyricSource(LyricSource):
         self.base_url = "https://api.genius.com"
         self.headers = {'Authorization': f'Bearer {os.environ.get("GENIUS_API_TOKEN")}'}
     
-    def get_song_lyrics(self, artist, title):
-        """Fetches the lyrics for the given song and artist using the Genius API."""
+    def get_song_lyrics(self, artist: str, title: str):
         song_info = self._search_song(title, artist)
         if song_info:
             song_url = song_info['url']
@@ -67,7 +75,7 @@ class GeniusLyricSource(LyricSource):
             return lyrics
         return None
     
-    def _search_song(self, song_title, artist_name=None):
+    def _search_song(self, song_title: str, artist_name: Optional[str] = None) -> Optional[dict]:
         search_url = f"{self.base_url}/search"
         data = {'q': song_title}
         response = requests.get(search_url, headers=self.headers, params=data)
@@ -85,7 +93,7 @@ class GeniusLyricSource(LyricSource):
         return None
 
 
-    def _scrape_lyrics(self, url):
+    def _scrape_lyrics(self, url: str):
         page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
         lyrics_divs = soup.select("[data-lyrics-container=true]")
@@ -100,13 +108,13 @@ class GeniusLyricSource(LyricSource):
 class LetrasMusSource(LyricSource):
     """Letras.mus.br lyrics provider implementation."""
 
-    def get_song_lyrics(self, artist, title):
+    def get_song_lyrics(self, artist: str, title: str):
         url = f"https://www.letras.mus.br/{artist}/{title}"
         try:
             response = requests.get(url)
             response.raise_for_status()
         except requests.RequestException:
-            return ""  # Return empty if there's a network issue or 404
+            return ""
 
         soup = BeautifulSoup(response.text, "html.parser")
         lyric_box = soup.find("div", {"class": "cnt-letra p402_premium"})
@@ -135,7 +143,7 @@ class LetrasMusSource(LyricSource):
 class MakeItPersonalSource(LyricSource):
     """MakeItPersonal.co lyrics provider implementation."""
 
-    def get_song_lyrics(self, artist, title):
+    def get_song_lyrics(self, artist: str, title: str):
         pageurl = f"https://makeitpersonal.co/lyrics?artist={artist}&title={title}"
         try:
             lyrics = requests.get(pageurl).text.strip()
@@ -151,7 +159,7 @@ class MakeItPersonalSource(LyricSource):
 class FandomSource(LyricSource):
     """Fandom.com lyrics provider implementation."""
 
-    def get_song_lyrics(self, artist, title):
+    def get_song_lyrics(self, artist: str, title: str):
         wiki_url = "https://lyrics.fandom.com/wiki/"
         title = title.replace(" ", "_")
         artist = artist.replace(" ", "_")

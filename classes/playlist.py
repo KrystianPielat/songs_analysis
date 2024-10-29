@@ -12,7 +12,18 @@ from .youtube_downloader import YouTubeDownloader
 LOGGER = logging.getLogger(__name__)
 
 class Playlist:
-    def __init__(self, uri, spotify_manager, save_path=None):
+    """Class for managing a playlist of songs, fetching song data from Spotify, lyrics from various sources,
+    and downloading audio files from YouTube."""
+
+    def __init__(self, uri: str, spotify_manager: SpotifyManager, save_path: Optional[str] = None) -> None:
+        """
+        Initializes a Playlist instance with URI, Spotify manager, and optional save path.
+
+        Args:
+            uri (str): Spotify playlist URI.
+            spotify_manager (SpotifyManager): Instance of SpotifyManager for API interactions.
+            save_path (Optional[str], optional): Path to save the playlist data. Defaults to 'playlists'.
+        """
         self.uri = uri
         self.save_path = os.path.abspath(save_path) if save_path else os.path.abspath('playlists')
         self.songs = []
@@ -25,7 +36,9 @@ class Playlist:
         self._initialize_playlist()
         self._populate_songs()
 
-    def _initialize_playlist(self):
+    def _initialize_playlist(self) -> None:
+        """Fetches playlist metadata from Spotify and sets up storage paths."""
+
         playlist_data = self.spotify_manager.get_playlist(self.uri)
         self.playlist_name = playlist_data.get('name', 'Unknown Playlist')
         self.save_path = os.path.join(self.save_path, self.playlist_name)
@@ -35,7 +48,9 @@ class Playlist:
         self.total_tracks = playlist_data['tracks']['total']
         LOGGER.info(f"Found playlist: {self.playlist_name} with {self.total_tracks} tracks.")
 
-    def _populate_songs(self):
+    def _populate_songs(self) -> None:
+        """Populates the songs list with metadata from Spotify for each track in the playlist."""
+
         tracks = self.spotify_manager.get_playlist_tracks(self.uri)
         for track in tqdm(tracks, desc='Fetching songs info', unit='song'):
             if track.get('type') != 'track' or track.get('album') is None:
@@ -63,14 +78,13 @@ class Playlist:
             )
             self.songs.append(song)
 
-    def _clean_title(self, title, max_length=70):
-        """
-        Clean the song title by removing invalid characters and truncating if needed.
-        
-        Parameters:
+    def _clean_title(self, title: str, max_length: int = 70) -> str:
+        """Cleans the song title by removing invalid characters and truncating if needed.
+
+        Args:
             title (str): Original song title.
-            max_length (int): Maximum length of the cleaned title.
-        
+            max_length (int, optional): Maximum length of the cleaned title. Defaults to 70.
+
         Returns:
             str: Cleaned and truncated title.
         """
@@ -79,11 +93,10 @@ class Playlist:
         title = title[:max_length] if len(title) > max_length else title
         return title.lower()
 
-    def _generate_unique_mp3_path(self, title):
-        """
-        Generate a unique MP3 path for a given song title within the save directory.
+    def _generate_unique_mp3_path(self, title: str) -> str:
+        """Generates a unique MP3 file path for a given song title within the save directory.
 
-        Parameters:
+        Args:
             title (str): The cleaned song title.
 
         Returns:
@@ -97,7 +110,8 @@ class Playlist:
             counter += 1
         return mp3_file_path
 
-    def process_songs(self):
+    def process_songs(self) -> None:
+        """Processes each song by fetching or downloading missing data, then saves to CSV."""
         existing_songs = self._load_existing_songs()
         
         # Use headers from the first song's `to_csv_row()` to ensure all nested fields are included
@@ -124,7 +138,12 @@ class Playlist:
                     # Process and download new song if it's not in CSV
                     self._process_single_song(song, writer)
 
-    def _load_existing_songs(self):
+    def _load_existing_songs(self) -> Dict[Tuple[str, str], Optional[str]]:
+        """Loads existing songs from the CSV to avoid reprocessing.
+
+        Returns:
+            Dict[Tuple[str, str], Optional[str]]: Dictionary mapping (title, artist) to mp3_path.
+        """
         existing_songs = {}
         if os.path.exists(self.csv_file):
             with open(self.csv_file, mode='r', encoding='utf-8') as file:
@@ -133,7 +152,13 @@ class Playlist:
                     existing_songs[(row['title'], row['artist'])] = row.get('mp3_path')
         return existing_songs
 
-    def _process_single_song(self, song, writer):
+    def _process_single_song(self, song: Song, writer: csv.DictWriter) -> None:
+        """Processes a single song by fetching Spotify features, lyrics, and downloading audio.
+
+        Args:
+            song (Song): Song object containing song metadata.
+            writer (csv.DictWriter): CSV writer to save song data to file.
+        """
         self._fetch_spotify_features(song)
         self._fetch_lyrics(song)
         self._download_song(song)
@@ -142,8 +167,12 @@ class Playlist:
         writer.writerow(song.to_csv_row())
         LOGGER.info(f"Completed processing for song: {song.title} by {song.artist}")
 
-    def _fetch_spotify_features(self, song):
-        # features = self.spotify_manager.client.audio_features(song.id)
+    def _fetch_spotify_features(self, song: Song) -> None:
+        """Fetches Spotify audio features and assigns them to the Song object.
+
+        Args:
+            song (Song): Song object to which features will be assigned.
+        """
         features = self.spotify_manager.get_audio_features(song.id)
         if features:
             features = features[0]
@@ -163,10 +192,20 @@ class Playlist:
             )
             LOGGER.info(f"Fetched Spotify audio features for {song.title} by {song.artist}")
 
-    def _fetch_lyrics(self, song):
+    def _fetch_lyrics(self, song: Song) -> None:
+        """Fetches lyrics for a song using the LyricsManager.
+
+        Args:
+            song (Song): Song object to which lyrics will be assigned.
+        """
         song.lyrics = self.lyrics_manager.fetch_lyrics(song.artist, song.title, clean_title=True)
 
-    def _download_song(self, song):
+    def _download_song(self, song: Song) -> None:
+        """Downloads the song audio from YouTube and embeds album art.
+
+        Args:
+            song (Song): Song object for which the audio will be downloaded.
+        """
         # Generate unique file path using the cleaned title
         mp3_file_path = self._generate_unique_mp3_path(song.title)
         

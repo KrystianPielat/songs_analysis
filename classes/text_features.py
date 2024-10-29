@@ -22,19 +22,35 @@ nltk.download('punkt_tab')
 class TextFeatureExtractor(FeatureExtractor):
     """Class to handle the extraction of text features from song lyrics."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initializes the TextFeatureExtractor with sentiment and TF-IDF analyzers."""
         self.sid = SentimentIntensityAnalyzer()
         self.d = cmudict.dict()
         self.tfidf = TfidfVectorizer(max_features=500, stop_words="english")
 
-    def syllable_count(self, word):
+    def syllable_count(self, word: str) -> int:
+        """Calculates the syllable count for a given word.
+
+        Args:
+            word (str): The word to calculate syllables for.
+
+        Returns:
+            int: The syllable count of the word.
+        """
         if word.lower() in self.d:
             return len([y for y in self.d[word.lower()][0] if y[-1].isdigit()])
         else:
             return len(re.findall(r'[aeiouy]+', word.lower())) or 1
 
-    def extract_features(self, lyrics):
-        """Extract features from a single text input."""
+    def extract_features(self, lyrics: str) -> List[float]:
+        """Extracts various text features from a single lyrics string.
+
+        Args:
+            lyrics (str): The song lyrics.
+
+        Returns:
+            List[float]: A list of extracted text features.
+        """
         word_count = len(lyrics.split())
         unique_word_count = len(set(lyrics.split()))
         avg_word_length = sum(len(word) for word in lyrics.split()) / word_count if word_count > 0 else 0
@@ -63,16 +79,15 @@ class TextFeatureExtractor(FeatureExtractor):
             average_syllables_per_word
         ]
 
-    def add_features(self, df, text_column='lyrics'):
-        """
-        Adds text features to the given DataFrame.
-    
-        Parameters:
-        - df: DataFrame containing lyrics.
-        - text_column: Name of the column containing lyrics.
-    
+    def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics') -> pd.DataFrame:
+        """Adds extracted text features and TF-IDF features to a DataFrame.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing lyrics.
+            text_column (str, optional): Name of the column containing lyrics. Defaults to 'lyrics'.
+
         Returns:
-        - DataFrame: The original DataFrame with added text features.
+            pd.DataFrame: The original DataFrame with additional text features.
         """
         feature_columns = [
             'word_count', 'unique_word_count', 'avg_word_length', 'syllable_count',

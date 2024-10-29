@@ -9,11 +9,21 @@ from typing import Optional
 LOGGER = logging.getLogger(__name__)
 
 class YouTubeDownloader:
-    def __init__(self):
+    """Class to handle searching, downloading, and processing YouTube audio."""
+
+    def __init__(self) -> None:
+        """Initializes the YouTubeDownloader."""
         pass
 
     def search_youtube(self, query: str) -> Optional[str]:
-        """Search for a YouTube video and return the best URL match."""
+        """Searches for a YouTube video based on a query and returns the best URL match.
+
+        Args:
+            query (str): The search query to find a YouTube video.
+
+        Returns:
+            Optional[str]: URL of the best match video, or None if no results found.
+        """
         try:
             from youtube_search import YoutubeSearch
             results = YoutubeSearch(query, max_results=1).to_dict()
@@ -25,7 +35,15 @@ class YouTubeDownloader:
             return None
 
     def download_audio(self, url: str, output_path: str) -> bool:
-        """Download audio from YouTube URL."""
+        """Downloads audio from a YouTube URL and saves it as an MP3 file.
+
+        Args:
+            url (str): The URL of the YouTube video to download.
+            output_path (str): The file path to save the downloaded audio.
+
+        Returns:
+            bool: True if download was successful, False otherwise.
+        """
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': output_path,
@@ -51,7 +69,13 @@ class YouTubeDownloader:
             return False
 
     def embed_album_art(self, song, song_path: str, save_directory: str) -> None:
-        """Embed album art into the downloaded MP3 file."""
+        """Embeds album art into an MP3 file.
+
+        Args:
+            song (Song): Song object containing metadata including album art URL.
+            song_path (str): Path to the MP3 file where album art will be embedded.
+            save_directory (str): Directory to temporarily save the album art image.
+        """
         if song.album_art_url:
             album_art_path = os.path.join(save_directory, f"{song.title}.jpg")
             urllib.request.urlretrieve(song.album_art_url, album_art_path)

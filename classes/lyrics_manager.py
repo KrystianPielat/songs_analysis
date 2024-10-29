@@ -16,8 +16,18 @@ class LyricsManager:
             GeniusLyricSource()
         ]
 
-    def fetch_lyrics(self, artist: str, title: str, clean_title: bool = True, clean_lyrics: bool = False):
-        """Fetches the lyrics by trying providers in order."""
+    def fetch_lyrics(self, artist: str, title: str, clean_title: bool = True, clean_lyrics: bool = False) -> Optional[str]:
+        """Fetches the lyrics by attempting to retrieve from providers in order.
+
+        Args:
+            artist (str): The artist's name.
+            title (str): The song title.
+            clean_title (bool, optional): Whether to clean the title to increase match accuracy. Defaults to True.
+            clean_lyrics (bool, optional): Whether to clean the lyrics text for extra characters or annotations. Defaults to False.
+
+        Returns:
+            Optional[str]: The lyrics if found, or None if no lyrics are available from any provider.
+        """
         if clean_title:
             title = LyricsManager._clean_title(title)
         for provider in self.providers:
@@ -32,7 +42,15 @@ class LyricsManager:
 
 
     @staticmethod
-    def _clean_title(title: str):
+    def _clean_title(title: str) -> str:
+        """Cleans the song title by removing unnecessary parts such as featured artists and version information.
+
+        Args:
+            title (str): The original song title.
+
+        Returns:
+            str: The cleaned song title.
+        """
         patterns = [
             r'\(.*?\)',                     # Remove parentheses
             r'\[.*?\]',                     # Remove square brackets
@@ -46,7 +64,15 @@ class LyricsManager:
         return title 
 
     @staticmethod
-    def _clean_lyrics(text: str):
+    def _clean_lyrics(text: str) -> str:
+        """Cleans the lyrics text by removing unwanted annotations and line breaks.
+
+        Args:
+            text (str): The original lyrics text.
+
+        Returns:
+            str: The cleaned lyrics text.
+        """
        # Use regex to remove all text inside square brackets, including the brackets
         clean_text = re.sub(r'\[.*?\]', '', text)
         

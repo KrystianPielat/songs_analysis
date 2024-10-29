@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field, asdict
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 @dataclass
 class SpotifyAudioFeatures:
+    """Dataclass representing Spotify's audio features for a song."""
+
     danceability: Optional[float] = None
     energy: Optional[float] = None
     key: Optional[int] = None
@@ -18,6 +20,8 @@ class SpotifyAudioFeatures:
 
 @dataclass
 class Song:
+    """Dataclass representing a song with various metadata and Spotify audio features."""
+
     id: Optional[str] = None
     title: str = ""
     artist: str = ""
@@ -32,7 +36,12 @@ class Song:
 
     audio_features: SpotifyAudioFeatures = field(default_factory=SpotifyAudioFeatures)
 
-    def to_csv_row(self):
+    def to_csv_row(self) -> Dict[str, Any]:
+        """Converts the song and its audio features to a dictionary suitable for CSV writing.
+
+        Returns:
+            Dict[str, Any]: A dictionary representation of the song, with nested audio features expanded.
+        """
         row_data = {}
         for field_name, value in self.__dict__.items():
             if hasattr(value, "__dataclass_fields__"):  # Check if value is a dataclass

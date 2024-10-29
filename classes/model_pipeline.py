@@ -19,7 +19,18 @@ from imblearn.over_sampling import SMOTE
 LOGGER = logging.getLogger(__name__)
 
 class BasePipeline:
-    def __init__(self, df, target_column, num_features, cat_features):
+    """Base class for a machine learning pipeline to handle data preprocessing, training, evaluation, and SHAP analysis."""
+
+    def __init__(self, df: pd.DataFrame, target_column: str, num_features: List[str], cat_features: List[str]) -> None:
+        """
+        Initializes the pipeline with dataset, target column, and feature columns.
+
+        Args:
+            df (pd.DataFrame): The dataset.
+            target_column (str): Name of the target column.
+            num_features (List[str]): List of numerical feature names.
+            cat_features (List[str]): List of categorical feature names.
+        """
         self.df = df
         self.target_column = target_column
         self.num_features = num_features
@@ -33,7 +44,12 @@ class BasePipeline:
         self.X_test_transformed = None  # To store transformed test data
         LOGGER.info(f"Initializing pipeline for target variable: {target_column}")
 
-    def get_feature_preprocessing_pipeline(self):
+    def get_feature_preprocessing_pipeline(self) -> ColumnTransformer:
+        """Sets up a preprocessing pipeline for numerical and categorical features.
+
+        Returns:
+            ColumnTransformer: Preprocessing pipeline for the feature columns.
+        """
         LOGGER.info("Setting up the pipeline...")
         
         # Preprocessing for numerical and categorical data
@@ -56,7 +72,8 @@ class BasePipeline:
 
         return preprocessor
 
-    def split(self):
+    def split(self) -> None:
+        """Splits the data into training and testing sets."""
         LOGGER.info("Splitting the data into training and testing sets...")
         X = self.df[self.num_features + self.cat_features]
         y = self.df[self.target_column]
@@ -64,13 +81,18 @@ class BasePipeline:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         LOGGER.info("Data splitting completed.")
 
-    def train_model(self):
+    def train_model(self) -> None:
+        """Trains the model using the training data."""
         LOGGER.info("Training the model...")
         self.pipeline.fit(self.X_train, self.y_train)
         LOGGER.info("Model training completed.")
 
-    def save_results(self, save_dir='results'):
-        """Saves SHAP plots and evaluation table to a specified directory, creating directories if necessary."""
+    def save_results(self, save_dir: str = 'results') -> None:
+        """Saves SHAP plots and evaluation table to the specified directory.
+
+        Args:
+            save_dir (str): Directory to save results, default is 'results'.
+        """
         os.makedirs(save_dir, exist_ok=True)
         LOGGER.info(f"Saving results to {save_dir}...")
 
@@ -94,7 +116,12 @@ class BasePipeline:
             plt.close()
             LOGGER.info(f"SHAP beeswarm plot saved to {beeswarm_plot_file}")
 
-    def run_pipeline(self, save_dir='dashboard/results'):
+    def run_pipeline(self, save_dir: str = 'dashboard/results') -> None:
+        """Runs the full pipeline including splitting, training, evaluation, SHAP analysis, and result saving.
+
+        Args:
+            save_dir (str): Directory to save results, default is 'dashboard/results'.
+        """
         with tqdm(total=5, desc="Pipeline Progress", unit="step") as pbar:
             LOGGER.info("Starting pipeline execution...")
 
@@ -121,14 +148,31 @@ class BasePipeline:
             LOGGER.info("Pipeline execution completed.")
 
 class ClassificationPipeline(BasePipeline):
-    def __init__(self, df, target_column, num_features, cat_features, handle_imbalance=True):
+    """Pipeline for classification models with class balancing and evaluation."""
+
+    def __init__(self, df: pd.DataFrame, target_column: str, num_features: List[str], cat_features: List[str], handle_imbalance: bool = True) -> None:
+        """
+        Initializes the classification pipeline with model, preprocessing, and imbalance handling options.
+
+        Args:
+            df (pd.DataFrame): The dataset.
+            target_column (str): Name of the target column.
+            num_features (List[str]): List of numerical feature names.
+            cat_features (List[str]): List of categorical feature names.
+            handle_imbalance (bool, optional): Whether to handle class imbalance with SMOTE. Defaults to True.
+        """
         super().__init__(df, target_column, num_features, cat_features)
         self.model_type = 'classification'
         self.handle_imbalance = handle_imbalance
         self.model = RandomForestClassifier(random_state=42, class_weight='balanced')  # Class weight balancing
         self.pipeline = self.get_classification_pipeline()
 
-    def get_classification_pipeline(self):
+    def get_classification_pipeline(self) -> Pipeline:
+        """Sets up the classification pipeline with preprocessing and model.
+
+        Returns:
+            Pipeline: Classification pipeline.
+        """
         preprocessor = self.get_feature_preprocessing_pipeline()
         return Pipeline(steps=[
             ('preprocessor', preprocessor),
@@ -136,7 +180,12 @@ class ClassificationPipeline(BasePipeline):
         ])
 
 
-    def evaluate_model(self):
+    def evaluate_model(self) -> pd.DataFrame:
+        """Evaluates the classification model and generates a metrics DataFrame.
+
+        Returns:
+            pd.DataFrame: DataFrame containing classification metrics (accuracy, precision, recall, F1 score).
+        """
         LOGGER.info("Evaluating classification model...")
         y_pred = self.pipeline.predict(self.X_test)
 
@@ -160,6 +209,8 @@ class ClassificationPipeline(BasePipeline):
         return df_metrics
     
     def train_model(self):
+        """Trains the classification model with optional SMOTE balancing."""
+
         # Apply the preprocessing step on the DataFrame (ensure X_train is a DataFrame)
         preprocessor_step = self.pipeline.named_steps['preprocessor']
         self.X_train = pd.DataFrame(self.X_train, columns=self.num_features + self.cat_features)  # Ensure it's a DataFrame
@@ -183,6 +234,8 @@ class ClassificationPipeline(BasePipeline):
         LOGGER.info("Model training completed.")
         
     def perform_shap_analysis(self):
+        """Performs SHAP analysis for feature importance on the classification model."""
+
         LOGGER.info("Performing SHAP analysis for classification...")
         model_pipeline = self.pipeline
         
@@ -202,13 +255,29 @@ class ClassificationPipeline(BasePipeline):
 
 
 class RegressionPipeline(BasePipeline):
-    def __init__(self, df, target_column, num_features, cat_features):
+    """Pipeline for regression models with evaluation and SHAP analysis."""
+
+    def __init__(self, df: pd.DataFrame, target_column: str, num_features: List[str], cat_features: List[str]) -> None:
+        """
+        Initializes the regression pipeline with model and preprocessing.
+
+        Args:
+            df (pd.DataFrame): The dataset.
+            target_column (str): Name of the target column.
+            num_features (List[str]): List of numerical feature names.
+            cat_features (List[str]): List of categorical feature names.
+        """
         super().__init__(df, target_column, num_features, cat_features)
         self.model_type = 'regression'
         self.model = RandomForestRegressor(random_state=42)
         self.pipeline = self.get_regression_pipeline()
 
-    def get_regression_pipeline(self):
+    def get_regression_pipeline(self) -> TransformedTargetRegressor:
+        """Sets up the regression pipeline with preprocessing and model.
+
+        Returns:
+            TransformedTargetRegressor: Regression pipeline with target transformation.
+        """
         preprocessor = self.get_feature_preprocessing_pipeline()
         target_transformer = Pipeline(steps=[
             # ('log_transformer', FunctionTransformer(np.log1p, inverse_func=np.expm1, check_inverse=False)),
@@ -221,7 +290,12 @@ class RegressionPipeline(BasePipeline):
             ]), transformer=target_transformer
         )
 
-    def evaluate_model(self):
+    def evaluate_model(self) -> pd.DataFrame:
+        """Evaluates the regression model and generates a metrics DataFrame.
+
+        Returns:
+            pd.DataFrame: DataFrame containing regression metrics (MAE, MSE, RMSE, R-squared).
+        """
         LOGGER.info("Evaluating regression model...")
         y_pred = self.pipeline.predict(self.X_test)
         
@@ -240,7 +314,9 @@ class RegressionPipeline(BasePipeline):
         LOGGER.info("Regression evaluation completed.")
         return results
 
-    def perform_shap_analysis(self):
+    def perform_shap_analysis(self) -> None:
+        """Performs SHAP analysis for feature importance on the regression model."""
+
         LOGGER.info("Performing SHAP analysis for regression...")
         model_pipeline = self.pipeline.regressor_
         

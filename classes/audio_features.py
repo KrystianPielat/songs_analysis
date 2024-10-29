@@ -2,15 +2,25 @@ import warnings
 import librosa
 import numpy as np
 import pandas as pd
+import logging
 from tqdm.auto import tqdm
 from classes.feature_extractor import FeatureExtractor
 
+LOGGER = logging.getLogger(__name__)
 
 class AudioFeatureExtractor(FeatureExtractor):
     """Class to handle the extraction of audio features from MP3 files."""
 
-    def extract_features(self, audio_path):
-        """Extracts audio features from a given audio file."""
+    def extract_features(self, audio_path: str) -> np.ndarray:
+        """Extracts audio features from a given audio file.
+
+        Args:
+            audio_path (str): Path to the audio file.
+
+        Returns:
+            np.ndarray: Array containing extracted audio features, including
+            MFCCs, chroma, spectral contrast, tempo, and zero-crossing rate.
+        """
         y, sr = librosa.load(audio_path, sr=None)
 
         # Extract features
@@ -29,16 +39,19 @@ class AudioFeatureExtractor(FeatureExtractor):
         features = np.hstack((mfccs, chroma, spectral_contrast, tempo, zcr))
         return features
 
-    def add_features(self, df, audio_column='mp3_path'):
-        """
-        Adds audio features to the given DataFrame.
-    
-        Parameters:
-        - df: DataFrame containing audio file paths.
-        - audio_column: Name of the column containing the path to audio files.
-    
+    def add_features(self, df: pd.DataFrame, audio_column: str = 'mp3_path') -> pd.DataFrame:
+        """Adds audio features to the given DataFrame.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing audio file paths.
+            audio_column (str, optional): Name of the column containing the path
+                to audio files. Defaults to 'mp3_path'.
+
         Returns:
-        - DataFrame: The original DataFrame with added audio features.
+            pd.DataFrame: The original DataFrame with added audio features.
+
+        Raises:
+            ValueError: If `audio_column` is not found in the DataFrame.
         """
         # Ensure the audio_column exists in the DataFrame
         if audio_column not in df.columns:
@@ -56,7 +69,7 @@ class AudioFeatureExtractor(FeatureExtractor):
     
         # If all features are already present, return the original DataFrame
         if not missing_columns:
-            print("All audio features already present.")
+            LOGGER.info("All audio features already present.")
             return df
     
         all_features = []
@@ -66,7 +79,7 @@ class AudioFeatureExtractor(FeatureExtractor):
                 features = self.extract_features(audio_path)
                 all_features.append(features)
             except Exception as e:
-                print(f"Error processing file {audio_path}: {e}")
+                LOGGER.error(f"Error processing file {audio_path}: {e}")
                 all_features.append([None] * 34)  # Add placeholder for failed extractions
     
         # Create DataFrame for missing features

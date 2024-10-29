@@ -1,9 +1,17 @@
 import pandas as pd
 import os
+from typing import Callable
 
 
-def gather_data_from_folders(playlists_dir: str):
-    """Concatenates all CSVs from subfolders of a given playlists directory into one DataFrame."""
+def gather_data_from_folders(playlists_dir: str) -> pd.DataFrame:
+    """Concatenates all CSV files from subfolders of a specified directory into one DataFrame.
+
+    Args:
+        playlists_dir (str): Directory containing subfolders with CSV files.
+
+    Returns:
+        pd.DataFrame: Combined DataFrame from all CSV files in subdirectories.
+    """
     all_dataframes = []
 
     # Iterate over all subdirectories in the playlists directory
@@ -27,14 +35,14 @@ def gather_data_from_folders(playlists_dir: str):
     
     return combined_df
 
-def apply_function_to_csvs(playlists_dir, modify_function):
+def apply_function_to_csvs(playlists_dir: str, modify_function: Callable[[pd.DataFrame], pd.DataFrame]) -> None:
     """
-    Applies a function to all CSVs from subfolders of a given playlists directory, 
-    modifies the DataFrame, and saves them back in their respective folders.
+    Applies a specified function to all CSVs in subfolders of a given directory, modifies the DataFrames,
+    and saves them back to their respective files.
 
-    Parameters:
-    playlists_dir (str): The root directory where the playlists and CSVs are located.
-    modify_function (function): A function that takes a DataFrame as input and returns a modified DataFrame.
+    Args:
+        playlists_dir (str): Directory containing subfolders with CSV files.
+        modify_function (Callable[[pd.DataFrame], pd.DataFrame]): Function that takes a DataFrame as input and returns a modified DataFrame.
     """
     # Iterate over all subdirectories in the playlists directory
     for root, dirs, files in os.walk(playlists_dir):
@@ -52,6 +60,14 @@ def apply_function_to_csvs(playlists_dir, modify_function):
                 modified_df.to_csv(csv_path, index=False)
                 print(f"Modified and saved CSV at: {csv_path}")
 
-def example_modify_function(df: pd.DataFrame):
+def example_modify_function(df: pd.DataFrame) -> pd.DataFrame:
+    """Example function to modify a DataFrame by setting 'No lyrics found' values to None in the lyrics column.
+
+    Args:
+        df (pd.DataFrame): DataFrame to modify.
+
+    Returns:
+        pd.DataFrame: Modified DataFrame.
+    """
     df.loc[df.lyrics == "No lyrics found", 'lyrics'] = None
     return df
