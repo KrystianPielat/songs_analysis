@@ -148,3 +148,5 @@ ideas.ipynb
 dashboard/results/
 
 datasets/
+
+*.csv

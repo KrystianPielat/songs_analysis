@@ -10,14 +10,17 @@ from textblob import TextBlob
 import re
 from nltk import pos_tag
 from textstat import textstat
+from langdetect import detect, DetectorFactory
 from classes.feature_extractor import FeatureExtractor
+from typing import List
 
+# Set seed for reproducibility in langdetect
+DetectorFactory.seed = 0
+
+# Download necessary NLTK resources
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('vader_lexicon')
-nltk.download('punkt_tab')
-
-
 
 class TextFeatureExtractor(FeatureExtractor):
     """Class to handle the extraction of text features from song lyrics."""
@@ -41,6 +44,20 @@ class TextFeatureExtractor(FeatureExtractor):
             return len([y for y in self.d[word.lower()][0] if y[-1].isdigit()])
         else:
             return len(re.findall(r'[aeiouy]+', word.lower())) or 1
+
+    def detect_language(self, text: str) -> str:
+        """Detects the language of the given text.
+
+        Args:
+            text (str): The text to detect the language of.
+
+        Returns:
+            str: The detected language code (e.g., 'en' for English).
+        """
+        try:
+            return detect(text)
+        except:
+            return "unknown"
 
     def extract_features(self, lyrics: str) -> List[float]:
         """Extracts various text features from a single lyrics string.
@@ -72,11 +89,14 @@ class TextFeatureExtractor(FeatureExtractor):
 
         average_syllables_per_word = syllable_count / word_count if word_count > 0 else 0
 
+        # Detect language
+        language = self.detect_language(lyrics)
+
         return [
             word_count, unique_word_count, avg_word_length, syllable_count,
             sentiment_polarity, sentiment_subjectivity, readability_score,
             noun_count, verb_count, vader_compound, repetition_count,
-            average_syllables_per_word
+            average_syllables_per_word, language
         ]
 
     def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics') -> pd.DataFrame:
@@ -93,7 +113,7 @@ class TextFeatureExtractor(FeatureExtractor):
             'word_count', 'unique_word_count', 'avg_word_length', 'syllable_count',
             'sentiment_polarity', 'sentiment_subjectivity', 'readability_score',
             'noun_count', 'verb_count', 'vader_compound', 'repetition_count',
-            'average_syllables_per_word'
+            'average_syllables_per_word', 'language'
         ]
 
         all_features = []
@@ -106,7 +126,7 @@ class TextFeatureExtractor(FeatureExtractor):
         features_df = pd.DataFrame(all_features, columns=feature_columns)
 
         # TF-IDF Features
-        tfidf_features = pd.DataFrame(self.tfidf.fit_transform(df[text_column]).toarray(), columns=self.tfidf.get_feature_names_out())#.drop('lyrics', axis=1)
+        tfidf_features = pd.DataFrame(self.tfidf.fit_transform(df[text_column]).toarray(), columns=self.tfidf.get_feature_names_out())
         tfidf_features = tfidf_features.rename(columns={c: "tfidf_" + c for c in tfidf_features.columns})
         
         # Combine all features

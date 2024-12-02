@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from typing import List
 import pandas as pd
 import shap
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -59,7 +60,7 @@ class BasePipeline:
         ])
         categorical_transformer = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+            # ('onehot', OneHotEncoder(handle_unknown='ignore'))
         ])
 
         # Combine both numeric and categorical preprocessors
@@ -86,6 +87,7 @@ class BasePipeline:
         LOGGER.info("Training the model...")
         self.pipeline.fit(self.X_train, self.y_train)
         LOGGER.info("Model training completed.")
+
 
     def save_results(self, save_dir: str = 'results') -> None:
         """Saves SHAP plots and evaluation table to the specified directory.
@@ -123,7 +125,7 @@ class BasePipeline:
             save_dir (str): Directory to save results, default is 'dashboard/results'.
         """
         with tqdm(total=5, desc="Pipeline Progress", unit="step") as pbar:
-            LOGGER.info("Starting pipeline execution...")
+            LOGGER.info(f"Starting pipeline execution for prediction of {self.target_column}...")
 
             pbar.set_description("Splitting data")
             self.split()

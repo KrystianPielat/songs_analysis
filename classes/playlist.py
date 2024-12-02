@@ -2,6 +2,7 @@ import os
 import csv
 import logging
 import re
+from typing import Optional, List, Dict, Tuple, Any, Literal
 from tqdm.auto import tqdm
 from .spotify_manager import SpotifyManager
 from .lyrics_manager import LyricsManager

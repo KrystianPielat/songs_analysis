@@ -2,6 +2,7 @@ import logging
 from .lyric_sources import LetrasMusSource, FandomSource, MakeItPersonalSource, GeniusLyricSource
 from classes.log import setup_logging
 import re
+from typing import Optional, List, Dict
 
 LOGGER = logging.getLogger(__name__)
 

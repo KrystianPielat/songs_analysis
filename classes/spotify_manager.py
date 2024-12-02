@@ -3,6 +3,7 @@ import spotipy.oauth2 as oauth2
 import time
 import logging
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout
+from typing import Any, Dict, Optional, List
 
 LOGGER = logging.getLogger(__name__)
 
