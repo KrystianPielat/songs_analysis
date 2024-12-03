@@ -12,6 +12,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransformer
 from tqdm.auto import tqdm
+from catboost import CatBoostClassifier
 import logging
 import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
@@ -60,7 +61,7 @@ class BasePipeline:
         ])
         categorical_transformer = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='most_frequent')),
-            # ('onehot', OneHotEncoder(handle_unknown='ignore'))
+            ('onehot', OneHotEncoder(handle_unknown='ignore'))
         ])
 
         # Combine both numeric and categorical preprocessors
@@ -166,7 +167,7 @@ class ClassificationPipeline(BasePipeline):
         super().__init__(df, target_column, num_features, cat_features)
         self.model_type = 'classification'
         self.handle_imbalance = handle_imbalance
-        self.model = RandomForestClassifier(random_state=42, class_weight='balanced')  # Class weight balancing
+        self.model = RandomForestClassifier(random_state=42, class_weight='balanced')
         self.pipeline = self.get_classification_pipeline()
 
     def get_classification_pipeline(self) -> Pipeline:
@@ -239,16 +240,15 @@ class ClassificationPipeline(BasePipeline):
         """Performs SHAP analysis for feature importance on the classification model."""
 
         LOGGER.info("Performing SHAP analysis for classification...")
-        model_pipeline = self.pipeline
         
         # Transform the test set using the preprocessing pipeline
-        self.X_test_transformed = model_pipeline.named_steps['preprocessor'].transform(self.X_test)
+        self.X_test_transformed = self.pipeline.named_steps['preprocessor'].transform(self.X_test)
         
         numeric_features = self.num_features
-        categorical_features = list(model_pipeline.named_steps['preprocessor'].transformers_[1][1]['onehot'].get_feature_names_out(self.cat_features))
+        categorical_features = list(self.pipeline.named_steps['preprocessor'].transformers_[1][1]['onehot'].get_feature_names_out(self.cat_features))
         selected_feature_names = numeric_features + categorical_features
         
-        explainer = shap.Explainer(model_pipeline.named_steps['model'], self.X_test_transformed, feature_names=selected_feature_names)
+        explainer = shap.Explainer(self.pipeline.named_steps['model'], self.X_test_transformed, feature_names=selected_feature_names)
         shap_values = explainer(self.X_test_transformed, check_additivity=False)
     
         # For classification, shap_values is a list of arrays (one per class), select class 1
@@ -320,15 +320,14 @@ class RegressionPipeline(BasePipeline):
         """Performs SHAP analysis for feature importance on the regression model."""
 
         LOGGER.info("Performing SHAP analysis for regression...")
-        model_pipeline = self.pipeline.regressor_
-        
+
         # Transform the test set using the preprocessing pipeline
-        self.X_test_transformed = model_pipeline.named_steps['preprocessor'].transform(self.X_test)
+        self.X_test_transformed = self.pipeline.regressor_.named_steps['preprocessor'].transform(self.X_test)
         
         numeric_features = self.num_features
-        categorical_features = list(model_pipeline.named_steps['preprocessor'].transformers_[1][1]['onehot'].get_feature_names_out(self.cat_features))
+        categorical_features = list(self.pipeline.regressor_.named_steps['preprocessor'].transformers_[1][1]['onehot'].get_feature_names_out(self.cat_features))
         selected_feature_names = numeric_features + categorical_features
         
-        explainer = shap.Explainer(model_pipeline.named_steps['model'], self.X_test_transformed, feature_names=selected_feature_names)
+        explainer = shap.Explainer(self.pipeline.regressor_.named_steps['model'], self.X_test_transformed, feature_names=selected_feature_names)
         self.shap_values = explainer(self.X_test_transformed, check_additivity=False)
         LOGGER.info("SHAP analysis for regression completed.")
