@@ -150,3 +150,11 @@ dashboard/results/
 datasets/
 
 *.csv
+
+catboost_info/
+
+classes/_model_pipeline_oryg.py
+
+dashboard/_results/
+
+*.db
