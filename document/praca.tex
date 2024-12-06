@@ -1,0 +1,64 @@
+\documentclass[oneside, 12pt]{book}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{lipsum}
+\usepackage{nameref}
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+\usepackage[export]{adjustbox}
+\usepackage{biblatex}
+\usepackage{titlesec}
+\usepackage{csquotes}
+\usepackage[pdfsubject={Nazwisko I.: Tytuł pracy},
+pdfauthor={Nazwisko I.},
+pdftitle={Nazwisko I.: Tytuł pracy},
+pdfkeywords={słowo kluczowe1; słowo kluczowe2; słowo kluczowe3}]{hyperref}
+
+
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+
+\addbibresource{bibliography.bib}
+
+\titleformat{\chapter}[block]
+  {\normalfont\huge\bfseries}{\thechapter.}{1em}{\Huge}
+
+\titlespacing*{\chapter}{0pt}{50pt}{40pt}
+
+\geometry{
+    top=1in,
+    bottom=1in,
+    outer=1in,
+    inner=1in,
+}
+
+\pagestyle{plain} %Numeracja na dole
+
+\linespread{1.5} % Interlinia 1.5
+
+\setlength{\parindent}{1.25cm} % Wcięcie akapitu 1.25cm
+
+\begin{document}
+\thispagestyle{empty}
+
+\include{strona_tytulowa}
+
+\tableofcontents
+\clearpage
+
+\include{rozdzial1}
+% \include{rozdzial2}
+% \include{rozdzial3}
+% \include{rozdzial4}
+% \include{rozdzial5}
+% \include{rozdzial6}
+% \include{rozdzial7}
+% \include{rozdzial8}
+% \include{rozdzial9}
+
+\cleardoublepage % Dodaj nową stronę, aby "Literatura" zaczęła się na nieparzystej stronie
+\phantomsection % Dodaj punkt w spisie treści dla sekcji "Literatura"
+\addcontentsline{toc}{chapter}{Bibliografia} % Dodaj "Literatura" do spisu treści, bez numerowania
+\printbibliography[title={Bibliografia}]
+\end{document}

@@ -1,0 +1,4 @@
+\babel@toc {polish}{}\relax 
+\contentsline {chapter}{\numberline {1}Rozdział 1}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Podrozdział 1}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Podrozdział 2}{2}{section.1.2}%

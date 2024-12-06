@@ -1,0 +1,86 @@
+% Informacje na stronę tytułową
+\newcommand{\autor}{\fontfamily{qhv}\fontshape{n}\selectfont\LARGE\bfseries
+Imię i nazwisko}
+%
+\newcommand{\album}{\fontfamily{qhv}\fontshape{n}\selectfont
+121352}
+
+\newcommand{\pltitle}{\fontfamily{qhv}\fontshape{n}\selectfont\Large\bfseries
+Tytuł pracy po polsku}
+\newcommand{\engtitle}{\fontfamily{qhv}\fontshape{n}\selectfont\Large\bfseries
+Title of the thesis in English}
+\newcommand{\level}{\fontfamily{qhv}\fontshape{n}\selectfont\Large
+inżynierska} %jeśli magisterka to trzeba sobie przystosować pamiętając o specjalności
+\newcommand{\kierunek}{\fontfamily{qhv}\fontshape{n}\selectfont\Large
+Informatyka}
+%
+\newcommand{\promotor}{\fontfamily{qhv}\fontshape{n}\selectfont\large\bfseries
+dr inż. Daniela Grzonki}
+\newcommand{\spec}{\fontfamily{qhv}\fontshape{n}\selectfont\Large\bfseries
+Brak}
+\newcommand{\rok}{\fontfamily{qhv}\fontshape{n}\selectfont
+2023}
+
+% Strona tytułowa
+\begin{titlepage}
+\thispagestyle{empty}
+\vspace*{1ex}
+\fontfamily{qhv}\fontshape{n}\selectfont
+\hspace{-3.5em}\parbox{0.15\textwidth}{\includegraphics[height=0.15\textwidth]{logo_pk/logoPK.png}}
+\parbox[c]{0.7\textwidth}
+{\centering
+\Large
+{\bfseries Politechnika Krakowska}\\
+{\bfseries im. Tadeusza Kościuszki}\\
+
+\smallskip
+
+\Large Wydział Informatyki i Telekomunikacji}\hspace{0.3em}
+ \parbox{0.2\textwidth}{\includegraphics[width=0.15\textwidth]{logo_pk/logoIT.png}}%\hspace{0.12em}
+\parbox[c]{0.15\textwidth}
+
+
+
+ \vspace{0.10\textheight}
+
+ \center{\autor}
+ \smallskip
+ \center{\large numer albumu: \album}
+
+\vspace*{2ex}
+
+ \center{\pltitle}
+
+ \smallskip
+
+ \center{\engtitle}
+
+ \bigskip
+
+ \center{\Large\bfseries praca \level \\[0.2ex] %jeśli magisterka to trzeba sobie przystosować pamiętając o specjalności
+\fontfamily{qhv}\fontshape{n}\selectfont\Large\bfseries na kierunku
+ \kierunek\\[0.2ex]
+ }
+
+\vspace{0.11\textheight}
+
+\hspace{0.57\textwidth} \parbox{0.42\textwidth}{Praca przygotowana pod
+kierunkiem:
+\\
+%
+\bfseries \promotor}
+
+\vfill
+
+ % wpisać rok
+ \center{Kraków, \rok}
+ \end{titlepage}
+
+ \newpage
+
+% \vspace*{17cm}
+% \begin{flushright}
+% \textit{Tu można sobie coś wpisać}
+% \end{flushright}
+
+
