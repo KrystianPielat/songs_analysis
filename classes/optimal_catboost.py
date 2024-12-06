@@ -1,34 +1,23 @@
 from collections import Counter
 from typing import Any, Dict, List, Optional
-
 import joblib
+import seaborn as sns
 import matplotlib.pyplot as plt
 import optuna
 import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor
+from sklearn.utils.validation import check_is_fitted
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, mean_absolute_error, mean_squared_error, r2_score, root_mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
 import logging
-
-
-
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.metrics import make_scorer
+import numpy as np
+from optuna.integration import OptunaSearchCV
+from sklearn.model_selection import StratifiedKFold, KFold
 
 class OptimalCatBoostClassifier(CatBoostClassifier):
-    """
-    A streamlined wrapper for CatBoostClassifier with Optuna optimization,
-    hardcoded evaluation metrics, feature importance plotting, and optional SQLite logging.
-
-    Args:
-        features (List[str]): List of feature columns.
-        param_grid (Dict): Parameter grid for Optuna optimization.
-        n_trials (int): Number of Optuna trials.
-        cat_features (Optional[List[str]]): List of categorical feature names.
-        use_class_weights (bool): Whether to compute and apply class weights. Defaults to True.
-        cache_path (Optional[str]): Path to SQLite database for storing Optuna results.
-        study_name (Optional[str]): Name for the study in the cache database
-    """
-
     def __init__(
         self,
         features: List[str],
@@ -48,6 +37,7 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         self.use_class_weights = use_class_weights
         self.cache_path = cache_path
         self.study_name = study_name
+        self.cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         self._LOGGER = logging.getLogger(self.__class__.__name__)
 
     @staticmethod
@@ -63,100 +53,113 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         if self.use_class_weights:
             self.class_weights_ = self.compute_class_weights(y)
 
-    def _optimize_parameters(
-        self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series
-    ) -> Optional[Dict[str, Any]]:
-        """Optimize parameters using Optuna."""
+    def _cross_val_metrics(self, model, X, y, cv):
+        """Compute cross-validated metrics."""
+        metrics = {"Accuracy": [], "F1 Score": [], "Precision": [], "Recall": []}
+        for train_idx, test_idx in cv.split(X, y):
+            X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+            y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+            model.fit(X_train, y_train, verbose=0)
+            y_pred = model.predict(X_test)
+            metrics["Accuracy"].append(accuracy_score(y_test, y_pred))
+            metrics["F1 Score"].append(f1_score(y_test, y_pred, average="weighted"))
+            metrics["Precision"].append(precision_score(y_test, y_pred, average="weighted"))
+            metrics["Recall"].append(recall_score(y_test, y_pred, average="weighted"))
+        return {metric: np.mean(scores) for metric, scores in metrics.items()}
 
-        def objective(trial):
-            params = {
-                k: trial.suggest_categorical(k, v) if isinstance(v, list) else trial.suggest_float(k, *v)
-                for k, v in self.param_grid.items()
-            }
-            model = CatBoostClassifier(
-                **params, cat_features=self.cat_features, class_weights=self.class_weights_, verbose=0
-            )
-            model.fit(X_train, y_train, eval_set=(X_valid, y_valid), early_stopping_rounds=100, verbose=0)
-            preds = model.predict(X_valid)
-            return f1_score(y_valid, preds, average="binary" if self.target_type_ == "binary" else "weighted")
-
-        study = optuna.create_study(
-            direction="maximize",
-            storage=f"sqlite:///{self.cache_path}" if self.cache_path else None,
-            study_name=self.study_name if self.study_name is not None else "catboost_optimization",
-            load_if_exists=True,
-        )
-        study.optimize(objective, n_trials=self.n_trials)
-        return study.best_params
+    def compute_class_weights(self, y: pd.Series) -> List[float]:
+        class_counts = Counter(y)
+        total_samples = len(y)
+        return [total_samples / (len(class_counts) * class_counts[label]) for label in sorted(class_counts.keys())]
 
     def fit(self, X: pd.DataFrame, y: pd.Series):
-        """Optimize parameters and train the CatBoost model."""
-        self._initialize_target_properties(y)
-        
-        X_train, X_valid, y_train, y_valid = train_test_split(
-            X[self.features], y, test_size=0.2, random_state=42, stratify=y
+        self.target_type_ = type_of_target(y)
+        if self.target_type_ not in ["binary", "multiclass"]:
+            raise ValueError(f"Unsupported target type: {self.target_type_}")
+
+        class_weights = self.compute_class_weights(y) if self.use_class_weights else None
+        params = {
+            key: optuna.distributions.CategoricalDistribution(value) if isinstance(value, list) else optuna.distributions.FloatDistribution(*value)
+            for key, value in self.param_grid.items()
+        }
+        optuna_search = OptunaSearchCV(
+            estimator=CatBoostClassifier(cat_features=self.cat_features, class_weights=class_weights, verbose=0),
+            param_distributions=params,
+            cv=self.cv,
+            n_trials=self.n_trials,
+            scoring="f1_weighted",
+            refit=False,
+            random_state=42,
+            n_jobs=-1,
         )
-        self.best_params_ = self._optimize_parameters(X_train, y_train, X_valid, y_valid)
 
-        if not self.best_params_:
-            raise ValueError("Optuna failed to find optimal parameters.")
+        optuna_search.fit(X[self.features], y)
 
-        self.set_params(**self.best_params_, cat_features=self.cat_features, class_weights=self.class_weights_, verbose=0)
+        # Update self with the best parameters
+        self.best_params_ = optuna_search.best_params_
+        self.set_params(**self.best_params_, cat_features=self.cat_features, class_weights=class_weights, verbose=0)
+
+        # Fit the current instance with the optimized parameters
         super().fit(X[self.features], y)
 
-        y_pred = self.predict(X_valid)
-        self.training_results_ = pd.DataFrame(
-            {
-                "Metric": ["Accuracy", "F1 Score", "Precision", "Recall"],
-                "Score": [
-                    accuracy_score(y_valid, y_pred),
-                    f1_score(y_valid, y_pred, average="binary" if self.target_type_ == "binary" else "weighted"),
-                    precision_score(y_valid, y_pred, average="binary" if self.target_type_ == "binary" else "weighted"),
-                    recall_score(y_valid, y_pred, average="binary" if self.target_type_ == "binary" else "weighted"),
-                ],
-            }
-        )
-        self._LOGGER.info("Training Results: %s", self.training_results_.to_dict(orient="records"))
+        # Compute training results
+        y_pred = self.predict(X[self.features])
+        self.training_results_ = {
+            "Accuracy": accuracy_score(y, y_pred),
+            "F1 Score": f1_score(y, y_pred, average="weighted"),
+            "Precision": precision_score(y, y_pred, average="weighted"),
+            "Recall": recall_score(y, y_pred, average="weighted"),
+        }
+        self._LOGGER.info("Training completed with results: %s", self.training_results_)
 
+    @property
+    def training_results(self):
+        check_is_fitted(self, msg='First fit the model')
+        return pd.DataFrame([(k, round(v, 3)) for k, v in self.training_results_.items()], columns=["Metric", "Score"])
+
+    def get_params(self, deep=True):
+        """Return estimator parameters for Scikit-learn compatibility."""
+        params = super(CatBoostClassifier, self).get_params(deep=deep)
+        params.update({
+            "features": self.features,
+            "param_grid": self.param_grid,
+            "n_trials": self.n_trials,
+            "cat_features": self.cat_features,
+            "use_class_weights": self.use_class_weights,
+            "cache_path": self.cache_path,
+            "study_name": self.study_name,
+        })
+        return params
+
+    def set_params(self, **params):
+        """Set estimator parameters for Scikit-learn compatibility."""
+        for key, value in params.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        super().set_params(**params)
+        return self
+        
     def plot_feature_importance(self):
-        """Plot feature importance."""
+        """Plot the top 10 most important features using Seaborn."""
         if not self.is_fitted():
             raise ValueError("Model is not trained yet. Call fit() first.")
 
         feature_importances = self.get_feature_importance()
-        plt.figure(figsize=(10, 8))
-        plt.barh(self.feature_names_, feature_importances)
-        plt.xlabel("Importance")
-        plt.ylabel("Feature")
-        plt.title("Feature Importance")
+        feature_names = self.feature_names_
+        importance_df = pd.DataFrame({
+            "Feature": feature_names,
+            "Importance": feature_importances
+        }).sort_values(by="Importance", ascending=False).head(10)  # Top 10 features
+
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x="Importance", y="Feature", data=importance_df, palette="viridis")
+        plt.title("Top 10 Feature Importances", fontsize=16)
+        plt.xlabel("Importance", fontsize=12)
+        plt.ylabel("Feature", fontsize=12)
+        plt.tight_layout()
         plt.show()
 
-    def save_model(self, path: str):
-        """Save the trained model to disk."""
-        joblib.dump(self, path)
-        self._LOGGER.info("Model saved to %s", path)
-
-    def load_model(self, path: str):
-        """Load the trained model from disk."""
-        loaded_model = joblib.load(path)
-        self.__dict__.update(loaded_model.__dict__)
-        self._LOGGER.info("Model loaded from %s", path)
-
-
 class OptimalCatBoostRegressor(CatBoostRegressor):
-    """
-    A streamlined wrapper for CatBoostRegressor with Optuna optimization,
-    hardcoded evaluation metrics, feature importance plotting, and optional SQLite logging.
-
-    Args:
-        features (List[str]): List of feature columns.
-        param_grid (Dict): Parameter grid for Optuna optimization.
-        n_trials (int): Number of Optuna trials.
-        cat_features (Optional[List[str]]): List of categorical feature names.
-        cache_path (Optional[str]): Path to SQLite database for storing Optuna results.
-        study_name (Optional[str]): Custom name for the Optuna study. Defaults to None.
-    """
-
     def __init__(
         self,
         features: List[str],
@@ -174,96 +177,86 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         self.cat_features = cat_features
         self.cache_path = cache_path
         self.study_name = study_name
-        self.target_type_ = None
-        self.best_params_ = None
-        self.training_results_ = None
+        self.cv = KFold(n_splits=5, shuffle=True, random_state=42)
         self._LOGGER = logging.getLogger(self.__class__.__name__)
 
-    def _initialize_target_properties(self, y: pd.Series):
-        """Set up target type and validate."""
-        self.target_type_ = type_of_target(y)
-        if self.target_type_ not in ["continuous"]:
-            raise ValueError(f"Target type '{self.target_type_}' is not supported for regression.")
-
-    def _optimize_parameters(
-        self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series
-    ) -> Optional[Dict[str, Any]]:
-        """Optimize parameters using Optuna."""
-
-        def objective(trial):
-            params = {
-                k: trial.suggest_categorical(k, v) if isinstance(v, list) else trial.suggest_float(k, *v)
-                for k, v in self.param_grid.items()
-            }
-            model = CatBoostRegressor(**params, cat_features=self.cat_features, verbose=0)
-            model.fit(X_train, y_train, eval_set=(X_valid, y_valid), early_stopping_rounds=100, verbose=0)
-            preds = model.predict(X_valid)
-            return root_mean_squared_error(y_valid, preds)
-
-        study = optuna.create_study(
-            direction="minimize",  # Minimizing RMSE
-            storage=f"sqlite:///{self.cache_path}" if self.cache_path else None,
-            study_name=self.study_name if self.study_name else "catboost_regressor_optimization",
-            load_if_exists=True,
-        )
-        study.optimize(objective, n_trials=self.n_trials)
-        return study.best_params
+    def _cross_val_metrics(self, model, X, y, cv):
+        """Compute cross-validated metrics."""
+        metrics = {"MAE": [], "MSE": [], "RMSE": [], "R2": []}
+        for train_idx, test_idx in cv.split(X, y):
+            X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+            y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+            model.fit(X_train, y_train, verbose=0)
+            y_pred = model.predict(X_test)
+            metrics["MAE"].append(mean_absolute_error(y_test, y_pred))
+            metrics["MSE"].append(mean_squared_error(y_test, y_pred))
+            metrics["RMSE"].append(mean_squared_error(y_test, y_pred, squared=False))
+            metrics["R2"].append(r2_score(y_test, y_pred))
+        return {metric: np.mean(scores) for metric, scores in metrics.items()}
 
     def fit(self, X: pd.DataFrame, y: pd.Series):
-        """Optimize parameters and train the CatBoost model."""
-        self._initialize_target_properties(y)
-
-        X_train, X_valid, y_train, y_valid = train_test_split(
-            X[self.features], y, test_size=0.2, random_state=42
+        params = {
+            key: optuna.distributions.CategoricalDistribution(value) if isinstance(value, list) else optuna.distributions.FloatDistribution(*value)
+            for key, value in self.param_grid.items()
+        }
+        optuna_search = OptunaSearchCV(
+            estimator=CatBoostRegressor(cat_features=self.cat_features, verbose=0),
+            param_distributions=params,
+            cv=self.cv,
+            n_trials=self.n_trials,
+            scoring=make_scorer(mean_squared_error, greater_is_better=False),
+            refit=False,
+            random_state=42,
+            n_jobs=-1
         )
-        self.best_params_ = self._optimize_parameters(X_train, y_train, X_valid, y_valid)
 
-        if not self.best_params_:
-            raise ValueError("Optuna failed to find optimal parameters.")
+        optuna_search.fit(X[self.features], y)
 
+        # Update self with the best parameters
+        self.best_params_ = optuna_search.best_params_
         self.set_params(**self.best_params_, cat_features=self.cat_features, verbose=0)
+
+        # Fit the current instance with the optimized parameters
         super().fit(X[self.features], y)
 
-        y_pred = self.predict(X_valid)
-        self.training_results_ = pd.DataFrame(
-            {
-                "Metric": ["Mean Absolute Error", "Mean Squared Error", "Root Mean Squared Error", "R2 Score"],
-                "Score": [
-                    mean_absolute_error(y_valid, y_pred),
-                    mean_squared_error(y_valid, y_pred),
-                    root_mean_squared_error(y_valid, y_pred),  # RMSE
-                    r2_score(y_valid, y_pred),
-                ],
-            }
-        )
-        self._LOGGER.info("Training Results: %s", self.training_results_.to_dict(orient="records"))
+        # Compute training results
+        y_pred = self.predict(X[self.features])
+        self.training_results_ = {
+            "MAE": mean_absolute_error(y, y_pred),
+            "MSE": mean_squared_error(y, y_pred),
+            "RMSE": mean_squared_error(y, y_pred, squared=False),
+            "R2": r2_score(y, y_pred),
+        }
+        self._LOGGER.info("Training completed with results: %s", self.training_results_)
+
+    @property
+    def training_results(self):
+        check_is_fitted(self, msg='First fit the model')
+        return pd.DataFrame([(k, round(v, 3)) for k, v in self.training_results_.items()], columns=["Metric", "Score"])
 
     def plot_feature_importance(self):
-        """Plot feature importance."""
-        if not hasattr(self, "feature_importances_"):
+        """Plot the top 10 most important features using Seaborn."""
+        if not self.is_fitted():
             raise ValueError("Model is not trained yet. Call fit() first.")
 
         feature_importances = self.get_feature_importance()
-        plt.figure(figsize=(10, 8))
-        plt.barh(self.features, feature_importances)
-        plt.xlabel("Importance")
-        plt.ylabel("Feature")
-        plt.title("Feature Importance")
+        feature_names = self.feature_names_
+        importance_df = pd.DataFrame({
+            "Feature": feature_names,
+            "Importance": feature_importances
+        }).sort_values(by="Importance", ascending=False).head(10)  # Top 10 features
+
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x="Importance", y="Feature", data=importance_df, palette="viridis")
+        plt.title("Top 10 Feature Importances", fontsize=16)
+        plt.xlabel("Importance", fontsize=12)
+        plt.ylabel("Feature", fontsize=12)
+        plt.tight_layout()
         plt.show()
 
-    def save_model(self, path: str):
-        """Save the trained model to disk."""
-        joblib.dump(self, path)
-        self._LOGGER.info("Model saved to %s", path)
-
-    def load_model(self, path: str):
-        """Load the trained model from disk."""
-        loaded_model = joblib.load(path)
-        self.__dict__.update(loaded_model.__dict__)
-        self._LOGGER.info("Model loaded from %s", path)
 
     def get_params(self, deep=True):
-        """Return estimator parameters for cloning."""
+        """Return estimator parameters for Scikit-learn compatibility."""
         params = super(CatBoostRegressor, self).get_params(deep=deep)
         params.update({
             "features": self.features,
@@ -275,11 +268,10 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         })
         return params
 
-
     def set_params(self, **params):
-        """Set estimator parameters for cloning."""
+        """Set estimator parameters for Scikit-learn compatibility."""
         for key, value in params.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-        super(CatBoostRegressor, self).set_params(**params)
+        super().set_params(**params)
         return self
