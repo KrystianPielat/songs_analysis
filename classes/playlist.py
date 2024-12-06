@@ -4,6 +4,7 @@ import logging
 import re
 from typing import Optional, List, Dict, Tuple, Any, Literal
 from tqdm.auto import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from .spotify_manager import SpotifyManager
 from .lyrics_manager import LyricsManager
 from .audio_features import AudioFeatureExtractor
@@ -51,33 +52,41 @@ class Playlist:
 
     def _populate_songs(self) -> None:
         """Populates the songs list with metadata from Spotify for each track in the playlist."""
-
+    
         tracks = self.spotify_manager.get_playlist_tracks(self.uri)
         for track in tqdm(tracks, desc='Fetching songs info', unit='song'):
-            if track.get('type') != 'track' or track.get('album') is None:
+            if track.get('type') != 'track' or not track.get('album'):
                 continue
-
-            album_release_year = track['album'].get('release_date', '').split('-')[0]
+    
+            album = track['album']
+            album_release_year = album.get('release_date', '').split('-')[0] if album.get('release_date') else None
             duration_ms = track.get('duration_ms')
             popularity = track.get('popularity') or None
+    
+            # Ensure 'artists' is a non-empty list and contains the required data
+            if not track.get('artists') or not isinstance(track['artists'], list) or not track['artists'][0].get('id') or not track.get('name'):
+                LOGGER.warning(f"Skipping track due to missing or malformed data: {track.get('name')}.")
+                continue
+    
             artist_id = track['artists'][0]['id']
             artist_data = self.spotify_manager.get_artist(artist_id)
             genres = artist_data.get('genres', [])
-
+    
             # Clean the title and artist upon initialization
             song = Song(
                 id=track['id'],
                 title=self._clean_title(track['name']),
                 artist=self._clean_title(track['artists'][0]['name']),
-                album_art_url=track['album']['images'][0]['url'] if track['album'].get('images') else None,
+                album_art_url=album['images'][0]['url'] if album.get('images') else None,
                 popularity=int(popularity) if popularity else None,
                 explicit=track['explicit'],
-                album_release_year=int(album_release_year),
+                album_release_year=int(album_release_year) if album_release_year else None,
                 duration_ms=int(duration_ms),
                 genres=genres,
                 mp3_path=None  # Initialized as None until download
             )
             self.songs.append(song)
+    
 
     def _clean_title(self, title: str, max_length: int = 70) -> str:
         """Cleans the song title by removing invalid characters and truncating if needed.
@@ -106,11 +115,13 @@ class Playlist:
         song_path_base = os.path.join(self.save_path, title)
         mp3_file_path = os.path.abspath(f"{song_path_base}.mp3")
         counter = 1
-        while os.path.exists(mp3_file_path):
-            mp3_file_path = os.path.abspath(f"{song_path_base}_{counter}.mp3")
-            counter += 1
+        # while os.path.exists(mp3_file_path):
+        #     mp3_file_path = os.path.abspath(f"{song_path_base}_{counter}.mp3")
+        #     counter += 1
         return mp3_file_path
 
+
+    
     def process_songs(self) -> None:
         """Processes each song by fetching or downloading missing data, then saves to CSV."""
         existing_songs = self._load_existing_songs()
@@ -118,26 +129,42 @@ class Playlist:
         # Use headers from the first song's `to_csv_row()` to ensure all nested fields are included
         if self.songs:
             csv_headers = self.songs[0].to_csv_row().keys()
-
+    
         with open(self.csv_file, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=csv_headers)
             if os.path.getsize(self.csv_file) == 0:  # Write header only if CSV is new
                 writer.writeheader()
-
-            for song in tqdm(self.songs, desc="Processing Songs", unit="song"):
-                # Check if the song already exists in the CSV
-                if (song.title, song.artist) in existing_songs:
-                    # Use existing mp3_path if set and exists
-                    if existing_songs[(song.title, song.artist)] is not None and os.path.exists(existing_songs[(song.title, song.artist)]):
-                        LOGGER.info(f"Skipping {song.title} by {song.artist} as it already exists with MP3 file.")
-                        continue
+    
+            tasks = []
+            # Initialize tqdm progress bar
+            with ThreadPoolExecutor(max_workers=4) as executor, tqdm(total=len(self.songs), desc="Processing Songs", unit="song") as pbar:
+                for song in self.songs:
+                    if (song.title, song.artist) in existing_songs:
+                        if existing_songs[(song.title, song.artist)] is not None and os.path.exists(
+                            existing_songs[(song.title, song.artist)]
+                        ):
+                            LOGGER.info(f"Skipping {song.title} by {song.artist} as it already exists with MP3 file.")
+                            pbar.update(1)  # Update progress for skipped song
+                            continue
+                        else:
+                            LOGGER.info(f"CSV entry exists for {song.title} by {song.artist}, but MP3 file is missing. Downloading...")
+                            song.mp3_path = self._generate_unique_mp3_path(song.title)
+                            tasks.append(executor.submit(self._download_and_process_song, song, writer))
                     else:
-                        LOGGER.info(f"CSV entry exists for {song.title} by {song.artist}, but MP3 file is missing. Downloading...")
-                        song.mp3_path = self._generate_unique_mp3_path(song.title)  # Set new path for missing file
-                        self._download_song(song)
-                else:
-                    # Process and download new song if it's not in CSV
-                    self._process_single_song(song, writer)
+                        tasks.append(executor.submit(self._download_and_process_song, song, writer))
+    
+                # Process tasks and update progress bar
+                for future in as_completed(tasks):
+                    try:
+                        future.result()  # Handle exceptions here if needed
+                    except Exception as e:
+                        LOGGER.error(f"Error processing a song: {e}")
+                    finally:
+                        pbar.update(1)  # Update progress for each completed task
+    
+    def _download_and_process_song(self, song: Song, writer: csv.DictWriter) -> None:
+        """Handles downloading and processing a single song."""
+        self._process_single_song(song, writer)
 
     def _load_existing_songs(self) -> Dict[Tuple[str, str], Optional[str]]:
         """Loads existing songs from the CSV to avoid reprocessing.
@@ -162,6 +189,9 @@ class Playlist:
         """
         self._fetch_spotify_features(song)
         self._fetch_lyrics(song)
+        if not song.lyrics:
+            LOGGER.info(f"Lyrics not found for song: {song.title} by {song.artist}. Skipping...")
+            return
         self._download_song(song)
 
         # Write the song data using the flattened dictionary from to_csv_row

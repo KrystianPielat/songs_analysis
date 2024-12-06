@@ -1,4 +1,5 @@
 from collections import Counter
+import uuid
 from typing import Any, Dict, List, Optional
 import joblib
 import seaborn as sns
@@ -36,7 +37,7 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         self.cat_features = cat_features
         self.use_class_weights = use_class_weights
         self.cache_path = cache_path
-        self.study_name = study_name
+        self.study_name = study_name or f'catboost_optimization_{uuid.uuid4()}'
         self.cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         self._LOGGER = logging.getLogger(self.__class__.__name__)
 
@@ -82,6 +83,9 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
             key: optuna.distributions.CategoricalDistribution(value) if isinstance(value, list) else optuna.distributions.FloatDistribution(*value)
             for key, value in self.param_grid.items()
         }
+        
+        study = optuna.create_study(study_name=self.study_name, storage=f"sqlite:///{self.cache_path}", load_if_exists=True, direction="maximize")
+
         optuna_search = OptunaSearchCV(
             estimator=CatBoostClassifier(cat_features=self.cat_features, class_weights=class_weights, verbose=0),
             param_distributions=params,
@@ -91,6 +95,7 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
             refit=False,
             random_state=42,
             n_jobs=-1,
+            study=study
         )
 
         optuna_search.fit(X[self.features], y)
@@ -176,7 +181,7 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         self.n_trials = n_trials
         self.cat_features = cat_features
         self.cache_path = cache_path
-        self.study_name = study_name
+        self.study_name = study_name or f'catboost_optimization_{uuid.uuid4()}'
         self.cv = KFold(n_splits=5, shuffle=True, random_state=42)
         self._LOGGER = logging.getLogger(self.__class__.__name__)
 
@@ -199,6 +204,7 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
             key: optuna.distributions.CategoricalDistribution(value) if isinstance(value, list) else optuna.distributions.FloatDistribution(*value)
             for key, value in self.param_grid.items()
         }
+        study = optuna.create_study(study_name=self.study_name, storage=f"sqlite:///{self.cache_path}", load_if_exists=True, direction="maximize")
         optuna_search = OptunaSearchCV(
             estimator=CatBoostRegressor(cat_features=self.cat_features, verbose=0),
             param_distributions=params,
@@ -207,7 +213,8 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
             scoring=make_scorer(mean_squared_error, greater_is_better=False),
             refit=False,
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
+            study=study
         )
 
         optuna_search.fit(X[self.features], y)
