@@ -13,6 +13,10 @@ from textstat import textstat
 from langdetect import detect, DetectorFactory
 from classes.feature_extractor import FeatureExtractor
 from typing import List
+from nltk.stem import SnowballStemmer
+from nltk.corpus import stopwords
+from sklearn.decomposition import PCA
+import string
 
 # Set seed for reproducibility in langdetect
 DetectorFactory.seed = 0
@@ -21,15 +25,48 @@ DetectorFactory.seed = 0
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('vader_lexicon')
+nltk.download('cmudict')
 
 class TextFeatureExtractor(FeatureExtractor):
-    """Class to handle the extraction of text features from song lyrics."""
-
-    def __init__(self) -> None:
+    def __init__(self, n_pca_components: int = 0.95) -> None:
         """Initializes the TextFeatureExtractor with sentiment and TF-IDF analyzers."""
         self.sid = SentimentIntensityAnalyzer()
-        self.d = cmudict.dict()
-        self.tfidf = TfidfVectorizer(max_features=500, stop_words="english")
+        self.tfidf = TfidfVectorizer()
+        self.stemmer = SnowballStemmer("english")
+        self.pca = PCA(n_components=n_pca_components)
+        self.d= cmudict.dict()
+        
+    @staticmethod
+    def preprocess_text(text: str) -> str:
+        """
+        Preprocess text by removing stopwords, punctuation, numbers, 
+        and applying stemming after tokenization.
+
+        Args:
+            text (str): The text to preprocess.
+
+        Returns:
+            str: Processed text ready for analysis.
+        """
+        # Convert to lowercase
+        text = text.lower()
+        
+        # Remove punctuation
+        text = text.translate(str.maketrans("", "", string.punctuation))
+        
+        # Remove numbers
+        text = re.sub(r"\d+", "", text)
+        
+        # Tokenize text
+        words = casual_tokenize(text)
+        
+        # Remove stopwords
+        filtered_words = [word for word in words if word not in set(stopwords.words("english"))]
+        
+        # Apply stemming
+        tokens = [SnowballStemmer("english").stem(word) for word in filtered_words]
+        
+        return " ".join(tokens)
 
     def syllable_count(self, word: str) -> int:
         """Calculates the syllable count for a given word.
@@ -126,11 +163,18 @@ class TextFeatureExtractor(FeatureExtractor):
         # Create DataFrame for the features
         features_df = pd.DataFrame(all_features, columns=feature_columns)
 
-        # TF-IDF Features
-        tfidf_features = pd.DataFrame(self.tfidf.fit_transform(df[text_column]).toarray(), columns=self.tfidf.get_feature_names_out())
-        tfidf_features = tfidf_features.rename(columns={c: "tfidf_" + c for c in tfidf_features.columns})
-        
+        # TF-IDF Transformation
+        tfidf_matrix = self.tfidf.fit_transform(df[text_column]).toarray()
+
+        # Apply PCA
+        n_features = min(self.pca.n_components, tfidf_matrix.shape[1])
+        tfidf_pca = self.pca.fit_transform(tfidf_matrix)
+
+        # Create a DataFrame for PCA-reduced TF-IDF features
+        pca_columns = [f'tfidf_{i}' for i in range(n_features)]
+        tfidf_pca_df = pd.DataFrame(tfidf_pca, columns=pca_columns)
+
         # Combine all features
-        df_with_features = pd.concat([df.reset_index(drop=True), features_df, tfidf_features], axis=1)
+        df_with_features = pd.concat([df.reset_index(drop=True), features_df, tfidf_pca_df], axis=1)
         
         return df_with_features

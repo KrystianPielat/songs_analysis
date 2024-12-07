@@ -53,14 +53,14 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         self.target_type_ = type_of_target(y)
         if self.use_class_weights:
             self.class_weights_ = self.compute_class_weights(y)
-
-    def _cross_val_metrics(self, model, X, y, cv):
+ 
+    def _cross_val_metrics(self, model: CatBoostClassifier, X: pd.DataFrame, y: pd.Series, cv: StratifiedKFold):
         """Compute cross-validated metrics."""
         metrics = {"Accuracy": [], "F1 Score": [], "Precision": [], "Recall": []}
         for train_idx, test_idx in cv.split(X, y):
             X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
             y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
-            model.fit(X_train, y_train, verbose=0)
+            model.fit(X_train, y_train)
             y_pred = model.predict(X_test)
             metrics["Accuracy"].append(accuracy_score(y_test, y_pred))
             metrics["F1 Score"].append(f1_score(y_test, y_pred, average="weighted"))
@@ -103,18 +103,16 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         # Update self with the best parameters
         self.best_params_ = optuna_search.best_params_
         self.set_params(**self.best_params_, cat_features=self.cat_features, class_weights=class_weights, verbose=0)
-
-        # Fit the current instance with the optimized parameters
+        
+        # Compute training results
+        self._LOGGER.info("Computing training results with cross validation...")
+        crossval_model = CatBoostClassifier(cat_features=self.cat_features, class_weights=class_weights, verbose=0).set_params(**self.best_params_)
+        self.training_results_ = self._cross_val_metrics(crossval_model, X[self.features], y, self.cv)
+        
+        # Fit the current instance with the optimized parameters on the whole dataset
+        self._LOGGER.info("Fitting the final model on the whole dataset...")
         super().fit(X[self.features], y)
 
-        # Compute training results
-        y_pred = self.predict(X[self.features])
-        self.training_results_ = {
-            "Accuracy": accuracy_score(y, y_pred),
-            "F1 Score": f1_score(y, y_pred, average="weighted"),
-            "Precision": precision_score(y, y_pred, average="weighted"),
-            "Recall": recall_score(y, y_pred, average="weighted"),
-        }
         self._LOGGER.info("Training completed with results: %s", self.training_results_)
 
     @property
@@ -185,7 +183,7 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         self.cv = KFold(n_splits=5, shuffle=True, random_state=42)
         self._LOGGER = logging.getLogger(self.__class__.__name__)
 
-    def _cross_val_metrics(self, model, X, y, cv):
+    def _cross_val_metrics(self, model: CatBoostClassifier, X: pd.DataFrame, y: pd.Series, cv: StratifiedKFold):
         """Compute cross-validated metrics."""
         metrics = {"MAE": [], "MSE": [], "RMSE": [], "R2": []}
         for train_idx, test_idx in cv.split(X, y):
@@ -223,17 +221,15 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         self.best_params_ = optuna_search.best_params_
         self.set_params(**self.best_params_, cat_features=self.cat_features, verbose=0)
 
-        # Fit the current instance with the optimized parameters
+        # Compute training results
+        self._LOGGER.info("Computing training results with cross validation...")
+        crossval_model = CatBoostRegressor(cat_features=self.cat_features, verbose=0).set_params(**self.best_params_)
+        self.training_results_ = self._cross_val_metrics(crossval_model, X[self.features], y, self.cv)
+        
+        # Fit the current instance with the optimized parameters on the whole dataset
+        self._LOGGER.info("Fitting the final model on the whole dataset...")
         super().fit(X[self.features], y)
 
-        # Compute training results
-        y_pred = self.predict(X[self.features])
-        self.training_results_ = {
-            "MAE": mean_absolute_error(y, y_pred),
-            "MSE": mean_squared_error(y, y_pred),
-            "RMSE": mean_squared_error(y, y_pred, squared=False),
-            "R2": r2_score(y, y_pred),
-        }
         self._LOGGER.info("Training completed with results: %s", self.training_results_)
 
     @property
