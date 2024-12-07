@@ -73,3 +73,10 @@ loggers:
       - stdout
       - stderr 
     propagate: false
+    
+  classes.utils:
+    level: INFO
+    handlers:
+      - stdout
+      - stderr 
+    propagate: false
