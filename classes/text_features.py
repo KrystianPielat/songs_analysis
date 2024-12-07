@@ -1,6 +1,7 @@
 import warnings
 import pandas as pd
 import nltk
+from nltk.tokenize import casual_tokenize
 from collections import Counter
 from nltk.tokenize import word_tokenize
 from nltk.corpus import cmudict
@@ -22,10 +23,10 @@ import string
 DetectorFactory.seed = 0
 
 # Download necessary NLTK resources
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('vader_lexicon')
-nltk.download('cmudict')
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
+nltk.download('vader_lexicon', quiet=True)
+nltk.download('cmudict', quiet=True)
 
 class TextFeatureExtractor(FeatureExtractor):
     def __init__(self, n_pca_components: int = 0.95) -> None:
@@ -166,12 +167,10 @@ class TextFeatureExtractor(FeatureExtractor):
         # TF-IDF Transformation
         tfidf_matrix = self.tfidf.fit_transform(df[text_column]).toarray()
 
-        # Apply PCA
-        n_features = min(self.pca.n_components, tfidf_matrix.shape[1])
         tfidf_pca = self.pca.fit_transform(tfidf_matrix)
 
         # Create a DataFrame for PCA-reduced TF-IDF features
-        pca_columns = [f'tfidf_{i}' for i in range(n_features)]
+        pca_columns = [f'tfidf_{i}' for i in range(tfidf_pca.shape[1])]
         tfidf_pca_df = pd.DataFrame(tfidf_pca, columns=pca_columns)
 
         # Combine all features
