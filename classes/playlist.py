@@ -2,6 +2,8 @@ import os
 import csv
 import logging
 import re
+import time
+from functools import wraps
 from typing import Optional, List, Dict, Tuple, Any, Literal
 from tqdm.auto import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -12,6 +14,35 @@ from .song import Song, SpotifyAudioFeatures
 from .youtube_downloader import YouTubeDownloader
 
 LOGGER = logging.getLogger(__name__)
+
+def retry_operation(max_retries: int = 3, initial_delay: float = 1.0):
+    """
+    A decorator for retrying a function upon failure with quadratic backoff.
+
+    Args:
+        max_retries (int): Maximum number of retries.
+        initial_delay (float): Initial delay (in seconds) before the first retry.
+
+    Returns:
+        Callable: The wrapped function with retry logic.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    LOGGER.error(f"Attempt {attempt} failed with error: {e}")
+                    if attempt < max_retries:
+                        delay = initial_delay * (attempt ** 2)  # Quadratic backoff
+                        LOGGER.info(f"Retrying in {delay:.2f} seconds...")
+                        time.sleep(delay)
+                    else:
+                        raise
+        return wrapper
+    return decorator
+
 
 class Playlist:
     """Class for managing a playlist of songs, fetching song data from Spotify, lyrics from various sources,
@@ -83,7 +114,8 @@ class Playlist:
                 album_release_year=int(album_release_year) if album_release_year else None,
                 duration_ms=int(duration_ms),
                 genres=genres,
-                mp3_path=None  # Initialized as None until download
+                mp3_path=None,
+                csv_path=self.csv_file
             )
             self.songs.append(song)
     
@@ -231,6 +263,7 @@ class Playlist:
         """
         song.lyrics = self.lyrics_manager.fetch_lyrics(song.artist, song.title, clean_title=True)
 
+    @retry_operation(max_retries=3, initial_delay=1.0)
     def _download_song(self, song: Song) -> None:
         """Downloads the song audio from YouTube and embeds album art.
 
@@ -255,4 +288,6 @@ class Playlist:
                 song.mp3_path = mp3_file_path  # Store as absolute path
                 self.youtube_downloader.embed_album_art(song, mp3_file_path, self.save_path)  # Embed album art
             else:
-                LOGGER.warning(f"Failed to download song: {song.title}")
+                raise RuntimeError(f"Failed to download song: {song.title}")
+        else:
+            raise RuntimeError(f"No suitable URL found for {song.title}")

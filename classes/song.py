@@ -18,6 +18,7 @@ class SpotifyAudioFeatures:
     tempo: Optional[float] = None
     time_signature: Optional[int] = None
 
+
 @dataclass
 class Song:
     """Dataclass representing a song with various metadata and Spotify audio features."""
@@ -32,7 +33,8 @@ class Song:
     duration_ms: Optional[int] = None
     genres: Optional[List[str]] = None
     lyrics: Optional[str] = None
-    mp3_path: Optional[str] = None  # Updated attribute to hold the MP3 file path
+    mp3_path: Optional[str] = None
+    csv_path: Optional[str] = None
 
     audio_features: SpotifyAudioFeatures = field(default_factory=SpotifyAudioFeatures)
 

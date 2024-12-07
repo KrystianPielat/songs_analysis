@@ -78,8 +78,9 @@ class TextFeatureExtractor(FeatureExtractor):
         
         tokens = word_tokenize(lyrics)
         tagged = pos_tag(tokens)
-        noun_count = sum(1 for word, tag in tagged if tag.startswith('NN'))
-        verb_count = sum(1 for word, tag in tagged if tag.startswith('VB'))
+        noun_ratio = sum(1 for word, tag in tagged if tag.startswith('NN')) / word_count
+        verb_ratio = sum(1 for word, tag in tagged if tag.startswith('VB')) / word_count
+
 
         vader_compound = self.sid.polarity_scores(lyrics)['compound']
 
@@ -95,7 +96,7 @@ class TextFeatureExtractor(FeatureExtractor):
         return [
             word_count, unique_word_count, avg_word_length, syllable_count,
             sentiment_polarity, sentiment_subjectivity, readability_score,
-            noun_count, verb_count, vader_compound, repetition_count,
+            noun_ratio, verb_ratio, vader_compound, repetition_count,
             average_syllables_per_word, language
         ]
 
@@ -112,7 +113,7 @@ class TextFeatureExtractor(FeatureExtractor):
         feature_columns = [
             'word_count', 'unique_word_count', 'avg_word_length', 'syllable_count',
             'sentiment_polarity', 'sentiment_subjectivity', 'readability_score',
-            'noun_count', 'verb_count', 'vader_compound', 'repetition_count',
+            'noun_ratio', 'verb_ratio', 'vader_compound', 'repetition_count',
             'average_syllables_per_word', 'language'
         ]
 
