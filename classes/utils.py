@@ -1,9 +1,11 @@
 import pandas as pd
 import os
+import re
+import logging
 from typing import Callable, List
 from mutagen.mp3 import MP3
 from mutagen import MutagenError
-import logging
+from classes.constants import GENRE_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,12 +113,15 @@ def find_songs_to_drop(df_to_process: pd.DataFrame, allow_nan_cols: List[str]) -
     invalid_mp3_rows = df_to_process.index[
         ~df_to_process['mp3_path'].apply(lambda x: is_mp3_valid(x) if pd.notna(x) else False)
     ]
+    
+    df_to_process['genre'] = df_to_process['genres'].apply(lambda x: reduce_genres_with_regex(eval(x), GENRE_MAPPING))
+    incorrect_genre_rows = df_to_process[(df_to_process.genre.isna()) | (df_to_process.genre == 'None')].index
 
     short_lyrics_rows = df_to_process.index[
         df_to_process['lyrics'].apply(lambda x: len(x) < 180 if pd.notna(x) else True)
     ]
 
-    rows_to_drop = rows_with_nan.union(invalid_mp3_rows).union(short_lyrics_rows)
+    rows_to_drop = rows_with_nan.union(invalid_mp3_rows).union(short_lyrics_rows).union(incorrect_genre_rows)
 
     for idx in rows_to_drop:
         row = df_to_process.loc[idx]
@@ -127,6 +132,8 @@ def find_songs_to_drop(df_to_process: pd.DataFrame, allow_nan_cols: List[str]) -
             reason.append("invalid MP3 file")
         if idx in short_lyrics_rows:
             reason.append("short lyrics")
+        if idx in incorrect_genre_rows:
+            reason.append("incorrect or missing genre")
         _LOGGER.warning(f"Dropping song '{row['title']}' by '{row['artist']}': {', '.join(reason)}.")
 
     return df_to_process.loc[rows_to_drop]
@@ -177,3 +184,22 @@ def clean_songs_to_drop(songs_to_drop: pd.DataFrame) -> None:
                 _LOGGER.info(f"Updated CSV file: {csv_path}")
             except Exception as e:
                 _LOGGER.error(f"Error updating CSV file {csv_path}: {e}")
+
+def reduce_genres_with_regex(genre_list: list, mapping: dict):
+    """
+    Dynamically match genres using regex patterns and assign them based on GENRE_MAPPING.
+    
+    Args:
+        genre_list (list): List of genres for a song.
+        mapping (dict): Dictionary mapping general genres to specific subgenres.
+
+    Returns:
+        str: The generalized genre if found, otherwise None.
+    """
+    for genre in genre_list:
+        for general, specifics in mapping.items():
+            # Create a dynamic regex pattern to match subgenres (e.g., 'hip hop' in 'desi hip hop')
+            pattern = r'\b(?:' + '|'.join(re.escape(subgenre) for subgenre in specifics) + r')\b'
+            if re.search(pattern, genre, re.IGNORECASE):
+                return general
+    return None
