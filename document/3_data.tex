@@ -5,6 +5,31 @@
 \section{Dataset Description}
 \label{sec:datasetdescription}
 
+The dataset consists of around 6000 songs. Each song has following data:
+
+\begin{itemize}
+  \item \textbf{Metadata} -  e.g. title, artist, genre, popularity
+  \item \textbf{Spotify Audio Features} - e.g. acousticness, instrumentalness,
+    energy
+  \item \textbf{Lyrics} - song lyrics used as a base for textual features
+    extraction
+  \item \textbf{MP3 Files} - audio files used for audio features extraction
+\end{itemize}
+
+\subsection{Metadata}
+\label{sec:metadata}
+Song's information downloaded from Spotify API. The most important features for
+further analyses are \textit{popularity}, \textit{explicitness},
+\textit{genre}, and \textit{release year}. Since Spotify does not provide
+information about the genre of specific songs, the genre extracted is the main
+genre of the primary artist in the song.
+
+
+\subsection{Spotify Audio Features}
+\label{sec:spotifyaudiofeatures}
+Those features describe different acoustic properties of the song
+
+
 %---------------------------------------------------------------------------
 
 \section{Data Collection Methods}
