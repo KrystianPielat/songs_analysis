@@ -16,9 +16,10 @@ from wordfreq import word_frequency
 import pronouncing
 import re
 from nltk import pos_tag
-from typing import List
+from typing import List, Optional
 from nltk.stem import SnowballStemmer
 from classes.feature_extractor import FeatureExtractor
+from langcodes import Language
 
 # Set seed for reproducibility in langdetect
 DetectorFactory.seed = 0
@@ -30,15 +31,17 @@ nltk.download('vader_lexicon', quiet=True)
 nltk.download('stopwords', quiet=True)
 nltk.download('wordnet', quiet=True)
 
+
+
 class TextFeatureExtractor(FeatureExtractor):
     def __init__(self) -> None:
         """Initializes the TextFeatureExtractor with sentiment and TF-IDF analyzers."""
         self.sid = SentimentIntensityAnalyzer()
         self.tfidf = TfidfVectorizer()
-        self.stemmer = SnowballStemmer("english")
+        self.default_stemmer = SnowballStemmer("english")
 
     @staticmethod
-    def preprocess_text(text: str) -> str:
+    def preprocess_text(text: str, stemmer: Optional[SnowballStemmer] = None, stopword_list: Optional[set] = None) -> str:
         """
         Preprocess text by removing stopwords, punctuation, numbers, 
         and applying stemming after tokenization.
@@ -46,68 +49,46 @@ class TextFeatureExtractor(FeatureExtractor):
         text = text.lower()
         text = text.translate(str.maketrans("", "", string.punctuation))
         text = re.sub(r"\d+", "", text)
-        words = casual_tokenize(text)
-        filtered_words = [word for word in words if word not in set(stopwords.words("english"))]
-        tokens = [SnowballStemmer("english").stem(word) for word in filtered_words]
+        tokens = casual_tokenize(text)
+        if text.startswith("letra de"):
+            tokens = tokens[5:]  # Remove "letra de" + average title length
+        if stopword_list is not None:
+            tokens = [token for token in tokens if token not in stopword_list]
+        if stemmer is not None:
+            words = [stemmer.stem(token) for token in tokens]
         return " ".join(tokens)
 
-import warnings
-import pandas as pd
-import nltk
-from nltk.tokenize import casual_tokenize, word_tokenize
-from collections import Counter
-from nltk.corpus import cmudict, stopwords, wordnet as wn
-from nltk.sentiment import SentimentIntensityAnalyzer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from textblob import TextBlob
-from textstat import textstat
-from langdetect import detect, DetectorFactory
-from sklearn.decomposition import PCA
-import string
-import statistics
-from wordfreq import word_frequency
-import pronouncing
-import re
-from nltk import pos_tag
-from typing import List
-from nltk.stem import SnowballStemmer
-from classes.feature_extractor import FeatureExtractor
 
-# Set seed for reproducibility in langdetect
-DetectorFactory.seed = 0
+    def get_stemmer_and_stopwords(self, language: str) -> (Optional[SnowballStemmer], Optional[set]):
+        """Returns the appropriate stemmer and stopword list for the given language."""
+        try:
+            stemmer = SnowballStemmer(language)
+        except ValueError:
+            stemmer = None
 
-# Download necessary NLTK resources
-nltk.download('punkt', quiet=True)
-nltk.download('averaged_perceptron_tagger', quiet=True)
-nltk.download('vader_lexicon', quiet=True)
-nltk.download('stopwords', quiet=True)
-nltk.download('wordnet', quiet=True)
+        try:
+            stopword_list = set(stopwords.words(language))
+        except OSError:
+            stopword_list = None
 
-class TextFeatureExtractor(FeatureExtractor):
-    def __init__(self) -> None:
-        """Initializes the TextFeatureExtractor with sentiment and TF-IDF analyzers."""
-        self.sid = SentimentIntensityAnalyzer()
-        self.tfidf = TfidfVectorizer()
-        self.stemmer = SnowballStemmer("english")
-
-    @staticmethod
-    def preprocess_text(text: str) -> str:
-        """
-        Preprocess text by removing stopwords, punctuation, numbers, 
-        and applying stemming after tokenization.
-        """
-        text = text.lower()
-        text = text.translate(str.maketrans("", "", string.punctuation))
-        text = re.sub(r"\d+", "", text)
-        words = casual_tokenize(text)
-        filtered_words = [word for word in words if word not in set(stopwords.words("english"))]
-        tokens = [SnowballStemmer("english").stem(word) for word in filtered_words]
-        return " ".join(tokens)
+        return stemmer, stopword_list
 
     def extract_features(self, lyrics: str) -> dict:
         """Extracts various text features from a single lyrics string."""
+        # Detect language
+        try:
+            language = Language.make(detect(lyrics)).display_name().lower()
+        except Exception:
+            language = "unknown"
+
+        # Get the appropriate stemmer and stopword list
+        stemmer, stopword_list = self.get_stemmer_and_stopwords(language)
+
+        # Preprocess text with the detected stemmer and stopwords
+        processed_lyrics = self.preprocess_text(lyrics, stemmer, stopword_list)
+
         # Tokenize and preprocess
-        tokens = word_tokenize(lyrics)
+        tokens = word_tokenize(processed_lyrics)
         unique_tokens = set(tokens)
     
         # Compute basic metrics
@@ -168,13 +149,7 @@ class TextFeatureExtractor(FeatureExtractor):
         tagged = pos_tag(tokens)
         noun_ratio = sum(1 for word, tag in tagged if tag.startswith('NN')) / word_count if word_count > 0 else 0
         verb_ratio = sum(1 for word, tag in tagged if tag.startswith('VB')) / word_count if word_count > 0 else 0
-    
-        # Detect language
-        try:
-            language = detect(lyrics)
-        except Exception:
-            language = "unknown"
-    
+
         return {
             "word_count": word_count,
             "unique_word_count": unique_word_count,
@@ -194,7 +169,8 @@ class TextFeatureExtractor(FeatureExtractor):
             "sentiment_polarity": sentiment_polarity,
             "sentiment_subjectivity": sentiment_subjectivity,
             "type_token_ratio": ttr,
-            "repetition_count": repetition_count
+            "repetition_count": repetition_count,
+            "preprocessed_lyrics": processed_lyrics
         }
 
     def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics') -> pd.DataFrame:
@@ -205,7 +181,12 @@ class TextFeatureExtractor(FeatureExtractor):
         # Create a DataFrame directly from the list of dictionaries
         features_df = pd.DataFrame(all_features)
         
+        # Align and overwrite columns in the original DataFrame
+        df = df.drop(columns=features_df.columns.intersection(df.columns), errors='ignore')
+        
         return pd.concat([df.reset_index(drop=True), features_df], axis=1)
+
+
 
 class TfidfFeatureExtractor(FeatureExtractor):
     def __init__(self, n_pca_components: int = 100) -> None:
@@ -245,5 +226,8 @@ class TfidfFeatureExtractor(FeatureExtractor):
         # Extract TF-IDF features
         tfidf_features = self.extract_features(df[text_column])
 
+        # Align and overwrite columns in the original DataFrame
+        df = df.drop([c for c in df.columns if c.startswith('tfidf_') ], axis=1)
+        
         # Combine with the original DataFrame
         return pd.concat([df.reset_index(drop=True), tfidf_features], axis=1)

@@ -19,6 +19,8 @@ from .optimal_catboost import OptimalCatBoostClassifier, OptimalCatBoostRegresso
 import logging
 import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
+from sklearn.feature_selection import SelectFromModel
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 
 LOGGER = logging.getLogger(__name__)
@@ -47,20 +49,42 @@ class BasePipeline:
         self.shap_values = None
         self.X_test_transformed = None  # To store transformed test data
         LOGGER.info(f"Initializing pipeline for target variable: {target_column}")
-
+    
     def get_feature_preprocessing_pipeline(self, encode_categorical: bool = True) -> ColumnTransformer:
-        """Sets up a preprocessing pipeline for numerical and categorical features.
-
+        """
+        Sets up a preprocessing pipeline for numerical and categorical features.
+        Includes feature selection based on importance or correlation.
+        
+        Args:
+            encode_categorical (bool): Whether to encode categorical features. Defaults to True.
+    
         Returns:
             ColumnTransformer: Preprocessing pipeline for the feature columns.
         """
-        LOGGER.info("Setting up the pipeline...")
-        
-        # Preprocessing for numerical and categorical data
+        LOGGER.info("Setting up the pipeline with feature selection...")
+    
+        # Dynamically choose model for feature selection based on task type
+        if self.model_type == "regression":
+            selection_model = RandomForestRegressor(random_state=42)
+        elif self.model_type == "classification":
+            selection_model = RandomForestClassifier(random_state=42)
+        else:
+            raise ValueError("Invalid model_type. Must be 'regression' or 'classification'.")
+    
+        # Feature selection pipeline
+        feature_selector = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='mean')),  # Ensure no NaNs before selection
+            ('feature_selection', SelectFromModel(selection_model, threshold="median"))
+        ])
+    
+        # Preprocessing for numerical data
         numerical_transformer = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='mean')),
-            ('scaler', StandardScaler())
+            ('scaler', StandardScaler()),
+            ('feature_selection', feature_selector)  # Add feature selection here
         ])
+    
+        # Preprocessing for categorical data
         if encode_categorical:
             categorical_transformer = Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
@@ -70,8 +94,8 @@ class BasePipeline:
             categorical_transformer = Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
             ])
-
-        # Combine both numeric and categorical preprocessors
+    
+        # Combine numerical and categorical preprocessors
         preprocessor = ColumnTransformer(
             transformers=[
                 ('num', numerical_transformer, self.num_features),
@@ -80,8 +104,45 @@ class BasePipeline:
             remainder='passthrough',
             verbose_feature_names_out=False
         )
+    
         preprocessor.set_output(transform="pandas")
         return preprocessor
+
+    
+    # def get_feature_preprocessing_pipeline(self, encode_categorical: bool = True) -> ColumnTransformer:
+    #     """Sets up a preprocessing pipeline for numerical and categorical features.
+
+    #     Returns:
+    #         ColumnTransformer: Preprocessing pipeline for the feature columns.
+    #     """
+    #     LOGGER.info("Setting up the pipeline...")
+        
+    #     # Preprocessing for numerical and categorical data
+    #     numerical_transformer = Pipeline(steps=[
+    #         ('imputer', SimpleImputer(strategy='mean')),
+    #         ('scaler', StandardScaler())
+    #     ])
+    #     if encode_categorical:
+    #         categorical_transformer = Pipeline(steps=[
+    #             ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
+    #             ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+    #         ])
+    #     else:
+    #         categorical_transformer = Pipeline(steps=[
+    #             ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
+    #         ])
+
+    #     # Combine both numeric and categorical preprocessors
+    #     preprocessor = ColumnTransformer(
+    #         transformers=[
+    #             ('num', numerical_transformer, self.num_features),
+    #             ('cat', categorical_transformer, self.cat_features)
+    #         ],
+    #         remainder='passthrough',
+    #         verbose_feature_names_out=False
+    #     )
+    #     preprocessor.set_output(transform="pandas")
+    #     return preprocessor
 
     def split(self) -> None:
         """Splits the data into training and testing sets."""

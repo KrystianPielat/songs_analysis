@@ -183,9 +183,11 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         self.cv = KFold(n_splits=5, shuffle=True, random_state=42)
         self._LOGGER = logging.getLogger(self.__class__.__name__)
 
-    def _cross_val_metrics(self, model: CatBoostClassifier, X: pd.DataFrame, y: pd.Series, cv: StratifiedKFold):
+    def _cross_val_metrics(self, model: CatBoostClassifier, X: pd.DataFrame, y: pd.Series, cv: KFold):
         """Compute cross-validated metrics."""
         metrics = {"MAE": [], "MSE": [], "RMSE": [], "R2": []}
+        y = pd.Series(y)
+
         for train_idx, test_idx in cv.split(X, y):
             X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
             y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
