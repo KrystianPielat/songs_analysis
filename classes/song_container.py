@@ -1,4 +1,5 @@
 import os
+import re
 import csv
 import logging
 import random
@@ -69,6 +70,38 @@ class SongContainer:
         self._load_existing_songs()
         self._load_faulty_songs()
 
+    def add_song(self, song: Song):
+        """
+        Adds a song to the songs list if it does not already exist.
+        Songs are identified as duplicates by their title and artist (case-insensitive).
+    
+        Args:
+            song (Song): The song object to add.
+        """
+        song_key = f"{song.title.lower()}_{song.artist.lower()}"
+        existing_keys = {f"{s.title.lower()}_{s.artist.lower()}" for s in self.songs}
+        
+        if song_key not in existing_keys:
+            self.songs.append(song)
+            LOGGER.info(f"Added song '{song.title}' by '{song.artist}' to the container.")
+        else:
+            LOGGER.warning(f"Duplicate song detected: '{song.title}' by '{song.artist}'. Skipping.")
+
+    def _clean_text(self, text: str, max_length: int = 70) -> str:
+        """Cleans the song title by removing invalid characters and truncating if needed.
+
+        Args:
+            title (str): Original song title.
+            max_length (int, optional): Maximum length of the cleaned title. Defaults to 70.
+
+        Returns:
+            str: Cleaned and truncated title.
+        """
+        text = self.lyrics_manager._clean_title(text)
+        text = re.sub(r'[<>:"/\\|?*]', '', text)
+        text = text[:max_length] if len(text) > max_length else text
+        return text.lower()
+
     def _load_existing_songs(self):
         """
         Loads existing songs from the CSV file and adds them to the songs list.
@@ -107,7 +140,7 @@ class SongContainer:
                         csv_path=self.csv_file,
                         audio_features=audio_features
                     )
-                    self.songs.append(song)
+                    self.add_song(song)
                     LOGGER.info(f"Loaded existing song '{song.title}' by '{song.artist}' from CSV.")
 
     def _load_faulty_songs(self):
@@ -153,6 +186,45 @@ class SongContainer:
         self.songs.extend(tracks)
         LOGGER.info(f"Added {len(tracks)} songs for genre '{genre}'.")
 
+    def add_songs_from_playlist(self, playlist_uri: str):
+        """
+        Fetches songs from a Spotify playlist and adds them to the container.
+    
+        Args:
+            playlist_uri (str): The Spotify URI of the playlist.
+        """
+        LOGGER.info(f"Fetching songs from playlist with URI: {playlist_uri}")
+        
+        # Fetch playlist metadata
+        playlist_data = self.spotify_manager.get_playlist(playlist_uri)
+        playlist_name = playlist_data.get('name', 'Unknown Playlist')
+        total_tracks = playlist_data['tracks']['total']
+    
+        # Fetch tracks in pages
+        offset = 0
+        limit = 100  # Spotify allows up to 100 items per request
+        while offset < total_tracks:
+            tracks_data = self.spotify_manager.get_playlist_tracks(playlist_uri, offset=offset, limit=limit)
+            offset += limit
+    
+            for track_item in tracks_data:
+                track = track_item.get('track')
+                if not track or track.get('type') != 'track' or not track.get('album'):
+                    continue
+    
+                # Avoid adding already faulty songs
+                if any(faulty['title'].lower() == track['name'].lower() and faulty['artist'].lower() == track['artists'][0]['name'].lower() for faulty in self.faulty_songs):
+                    LOGGER.warning(f"Skipping previously marked faulty song '{track['name']}' by '{track['artists'][0]['name']}'.")
+                    continue
+    
+                # Create Song object and validate
+                song = self._create_song_from_track(track)
+                if song:
+                    self.add_song(song)
+    
+        LOGGER.info(f"Added songs from playlist '{playlist_name}' with URI '{playlist_uri}'.")
+
+
 
     @retry_operation(max_retries=5, initial_delay=1.0)
     def _create_song_from_track(self, track) -> Optional[Song]:
@@ -176,8 +248,8 @@ class SongContainer:
     
         song = Song(
             id=track['id'],
-            title=track['name'],
-            artist=track['artists'][0]['name'],
+            title=self._clean_text(track['name']),
+            artist=self._clean_text(track['artists'][0]['name']),
             album_art_url=album['images'][0]['url'] if album.get('images') else None,
             popularity=int(popularity) if popularity else None,
             explicit=track['explicit'],

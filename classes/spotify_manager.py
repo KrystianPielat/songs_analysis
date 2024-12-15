@@ -74,24 +74,40 @@ class SpotifyManager:
         """
         return self._make_request(self.client.audio_features, song_id)
 
-    def get_playlist_tracks(self, uri: str) -> List[Dict[str, Any]]:
-        """Fetches tracks from a Spotify playlist, handling pagination.
-
-        Args:
-            uri (str): Spotify URI of the playlist.
-
-        Returns:
-            List[Dict[str, Any]]: List of tracks in the playlist.
+    def get_playlist_tracks(self, playlist_uri: str, limit: int = 100, offset: int = 0) -> List[dict]:
         """
-        tracks = []
-        results = self.get_playlist(uri)
-        playlist_tracks = results["tracks"]
+        Fetches tracks from a Spotify playlist.
+    
+        Args:
+            playlist_uri (str): Spotify playlist URI.
+            limit (int): Maximum number of tracks to fetch per request.
+            offset (int): Offset for pagination.
+    
+        Returns:
+            List[dict]: A list of track items from the playlist.
+        """
+        results = self._make_request(self.client.playlist_items, playlist_uri, limit=limit, offset=offset)
+        return results.get('items', [])
+    
 
-        while playlist_tracks:
-            tracks.extend(playlist_tracks["items"])
-            playlist_tracks = self._make_request(self.client.next, playlist_tracks) if playlist_tracks["next"] else None
+    # def get_playlist_tracks(self, uri: str) -> List[Dict[str, Any]]:
+    #     """Fetches tracks from a Spotify playlist, handling pagination.
 
-        return [track["track"] for track in tracks if track.get("track")]
+    #     Args:
+    #         uri (str): Spotify URI of the playlist.
+
+    #     Returns:
+    #         List[Dict[str, Any]]: List of tracks in the playlist.
+    #     """
+    #     tracks = []
+    #     results = self.get_playlist(uri)
+    #     playlist_tracks = results["tracks"]
+
+    #     while playlist_tracks:
+    #         tracks.extend(playlist_tracks["items"])
+    #         playlist_tracks = self._make_request(self.client.next, playlist_tracks) if playlist_tracks["next"] else None
+
+    #     return [track["track"] for track in tracks if track.get("track")]
 
     def get_artist(self, artist_id: str) -> Dict[str, Any]:
         """Fetches artist data from Spotify.
