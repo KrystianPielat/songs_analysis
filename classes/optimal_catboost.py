@@ -21,11 +21,11 @@ from sklearn.model_selection import StratifiedKFold, KFold
 class OptimalCatBoostClassifier(CatBoostClassifier):
     def __init__(
         self,
-        features: List[str],
         param_grid: Dict,
+        features: Optional[List[str]] = None,
         n_trials: int = 10,
         cat_features: Optional[List[str]] = None,
-        use_class_weights: bool = True,
+        class_weights: Dict[Any, float] = None,
         cache_path: Optional[str] = None,
         study_name: Optional[str] = None,
         **kwargs
@@ -35,7 +35,7 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         self.param_grid = param_grid
         self.n_trials = n_trials
         self.cat_features = cat_features
-        self.use_class_weights = use_class_weights
+        self.class_weights = class_weights
         self.cache_path = cache_path
         self.study_name = study_name or f'catboost_optimization_{uuid.uuid4()}'
         self.cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -48,14 +48,11 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         total_samples = len(y)
         return [total_samples / (len(class_counts) * class_counts[label]) for label in sorted(class_counts.keys())]
 
-    def _initialize_target_properties(self, y: pd.Series):
-        """Set up target type and class weights."""
-        self.target_type_ = type_of_target(y)
-        if self.use_class_weights:
-            self.class_weights_ = self.compute_class_weights(y)
  
     def _cross_val_metrics(self, model: CatBoostClassifier, X: pd.DataFrame, y: pd.Series, cv: StratifiedKFold):
         """Compute cross-validated metrics."""
+        if self.features is not None:
+            X = X[self.features]
         metrics = {"Accuracy": [], "F1 Score": [], "Precision": [], "Recall": []}
         for train_idx, test_idx in cv.split(X, y):
             X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
@@ -68,26 +65,26 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
             metrics["Recall"].append(recall_score(y_test, y_pred, average="weighted"))
         return {metric: np.mean(scores) for metric, scores in metrics.items()}
 
-    def compute_class_weights(self, y: pd.Series) -> List[float]:
-        class_counts = Counter(y)
-        total_samples = len(y)
-        return [total_samples / (len(class_counts) * class_counts[label]) for label in sorted(class_counts.keys())]
-
     def fit(self, X: pd.DataFrame, y: pd.Series):
+        if self.features is not None:
+            X = X[self.features]
+
+        cat_features = [f for f in self.cat_features if f in X.columns]
+        
         self.target_type_ = type_of_target(y)
         if self.target_type_ not in ["binary", "multiclass"]:
             raise ValueError(f"Unsupported target type: {self.target_type_}")
 
-        class_weights = self.compute_class_weights(y) if self.use_class_weights else None
+        class_weights = self.class_weights or self.compute_class_weights(y)
         params = {
             key: optuna.distributions.CategoricalDistribution(value) if isinstance(value, list) else optuna.distributions.FloatDistribution(*value)
             for key, value in self.param_grid.items()
         }
         
-        study = optuna.create_study(study_name=self.study_name, storage=f"sqlite:///{self.cache_path}", load_if_exists=True, direction="maximize")
+        study = optuna.create_study(study_name=self.study_name, storage=f"sqlite:///{self.cache_path}" if self.cache_path else None, load_if_exists=True, direction="maximize")
 
         optuna_search = OptunaSearchCV(
-            estimator=CatBoostClassifier(cat_features=self.cat_features, class_weights=class_weights, verbose=0),
+            estimator=CatBoostClassifier(cat_features=cat_features, class_weights=class_weights, verbose=0),
             param_distributions=params,
             cv=self.cv,
             n_trials=self.n_trials,
@@ -98,20 +95,20 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
             study=study
         )
 
-        optuna_search.fit(X[self.features], y)
+        optuna_search.fit(X, y)
 
         # Update self with the best parameters
         self.best_params_ = optuna_search.best_params_
-        self.set_params(**self.best_params_, cat_features=self.cat_features, class_weights=class_weights, verbose=0)
+        self.set_params(**self.best_params_, cat_features=cat_features, class_weights=class_weights, verbose=0)
         
         # Compute training results
         self._LOGGER.info("Computing training results with cross validation...")
-        crossval_model = CatBoostClassifier(cat_features=self.cat_features, class_weights=class_weights, verbose=0).set_params(**self.best_params_)
-        self.training_results_ = self._cross_val_metrics(crossval_model, X[self.features], y, self.cv)
+        crossval_model = CatBoostClassifier(cat_features=cat_features, class_weights=class_weights, verbose=0).set_params(**self.best_params_)
+        self.training_results_ = self._cross_val_metrics(crossval_model, X, y, self.cv)
         
         # Fit the current instance with the optimized parameters on the whole dataset
         self._LOGGER.info("Fitting the final model on the whole dataset...")
-        super().fit(X[self.features], y)
+        super().fit(X, y)
 
         self._LOGGER.info("Training completed with results: %s", self.training_results_)
 
@@ -128,7 +125,7 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
             "param_grid": self.param_grid,
             "n_trials": self.n_trials,
             "cat_features": self.cat_features,
-            "use_class_weights": self.use_class_weights,
+            "class_weights": self.class_weights,
             "cache_path": self.cache_path,
             "study_name": self.study_name,
         })
@@ -165,8 +162,8 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
 class OptimalCatBoostRegressor(CatBoostRegressor):
     def __init__(
         self,
-        features: List[str],
         param_grid: Dict,
+        features: Optional[List[str]] = None,
         n_trials: int = 10,
         cat_features: Optional[List[str]] = None,
         cache_path: Optional[str] = None,
@@ -185,6 +182,8 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
 
     def _cross_val_metrics(self, model: CatBoostClassifier, X: pd.DataFrame, y: pd.Series, cv: KFold):
         """Compute cross-validated metrics."""
+        if self.features is not None:
+            X = X[self.features]
         metrics = {"MAE": [], "MSE": [], "RMSE": [], "R2": []}
         y = pd.Series(y)
 
@@ -200,11 +199,14 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         return {metric: np.mean(scores) for metric, scores in metrics.items()}
 
     def fit(self, X: pd.DataFrame, y: pd.Series):
+        if self.features is not None:
+            X = X[self.features]
+        cat_features = [ f for f in self.cat_features if f in X.columns ]
         params = {
             key: optuna.distributions.CategoricalDistribution(value) if isinstance(value, list) else optuna.distributions.FloatDistribution(*value)
             for key, value in self.param_grid.items()
         }
-        study = optuna.create_study(study_name=self.study_name, storage=f"sqlite:///{self.cache_path}", load_if_exists=True, direction="maximize")
+        study = optuna.create_study(study_name=self.study_name, storage="sqlite:///{self.cache_path}" if self.cache_path else None, load_if_exists=True, direction="maximize")
         optuna_search = OptunaSearchCV(
             estimator=CatBoostRegressor(cat_features=self.cat_features, verbose=0),
             param_distributions=params,
@@ -217,7 +219,7 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
             study=study
         )
 
-        optuna_search.fit(X[self.features], y)
+        optuna_search.fit(X, y)
 
         # Update self with the best parameters
         self.best_params_ = optuna_search.best_params_
@@ -226,11 +228,11 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         # Compute training results
         self._LOGGER.info("Computing training results with cross validation...")
         crossval_model = CatBoostRegressor(cat_features=self.cat_features, verbose=0).set_params(**self.best_params_)
-        self.training_results_ = self._cross_val_metrics(crossval_model, X[self.features], y, self.cv)
+        self.training_results_ = self._cross_val_metrics(crossval_model, X, y, self.cv)
         
         # Fit the current instance with the optimized parameters on the whole dataset
         self._LOGGER.info("Fitting the final model on the whole dataset...")
-        super().fit(X[self.features], y)
+        super().fit(X, y)
 
         self._LOGGER.info("Training completed with results: %s", self.training_results_)
 

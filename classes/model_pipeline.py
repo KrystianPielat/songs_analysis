@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import pandas as pd
 import seaborn as sns
 import shap
@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, accuracy_score, classification_report
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransformer, OrdinalEncoder
 from tqdm.auto import tqdm
 from .optimal_catboost import OptimalCatBoostClassifier, OptimalCatBoostRegressor
 import logging
@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
 from sklearn.feature_selection import SelectFromModel
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+
 
 
 LOGGER = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ class BasePipeline:
         self.df = df
         self.target_column = target_column
         self.num_features = num_features
-        self.cat_features = cat_features
+        self.cat_features = [ c for c in cat_features if c in df.columns]
         self.X_train = None
         self.X_test = None
         self.y_train = None
@@ -70,25 +71,23 @@ class BasePipeline:
             selection_model = RandomForestClassifier(random_state=42)
         else:
             raise ValueError("Invalid model_type. Must be 'regression' or 'classification'.")
-    
-        # Feature selection pipeline
-        feature_selector = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='mean')),  # Ensure no NaNs before selection
-            ('feature_selection', SelectFromModel(selection_model, threshold="median"))
-        ])
+
+
+        feature_selector = SelectFromModel(selection_model, threshold="mean", prefit=False)
+
     
         # Preprocessing for numerical data
         numerical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='mean')),
+            ('imputer', SimpleImputer(strategy='median')),
             ('scaler', StandardScaler()),
-            ('feature_selection', feature_selector)  # Add feature selection here
         ])
     
         # Preprocessing for categorical data
         if encode_categorical:
             categorical_transformer = Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
-                ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+                # ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+                ('ordinal', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1, dtype='object'))
             ])
         else:
             categorical_transformer = Pipeline(steps=[
@@ -98,51 +97,24 @@ class BasePipeline:
         # Combine numerical and categorical preprocessors
         preprocessor = ColumnTransformer(
             transformers=[
-                ('num', numerical_transformer, self.num_features),
-                ('cat', categorical_transformer, self.cat_features)
+                ('num', numerical_transformer, list(set(self.num_features))),
+                ('cat', categorical_transformer, list(set(self.cat_features))),
             ],
             remainder='passthrough',
             verbose_feature_names_out=False
         )
-    
-        preprocessor.set_output(transform="pandas")
-        return preprocessor
 
     
-    # def get_feature_preprocessing_pipeline(self, encode_categorical: bool = True) -> ColumnTransformer:
-    #     """Sets up a preprocessing pipeline for numerical and categorical features.
+        # preprocessor.set_output(transform="pandas")
+        # Feature selection pipeline with preprocessor
+        pipeline = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('feature_selection', feature_selector)
+        ])
+    
+        pipeline.set_output(transform="pandas")
+        return pipeline
 
-    #     Returns:
-    #         ColumnTransformer: Preprocessing pipeline for the feature columns.
-    #     """
-    #     LOGGER.info("Setting up the pipeline...")
-        
-    #     # Preprocessing for numerical and categorical data
-    #     numerical_transformer = Pipeline(steps=[
-    #         ('imputer', SimpleImputer(strategy='mean')),
-    #         ('scaler', StandardScaler())
-    #     ])
-    #     if encode_categorical:
-    #         categorical_transformer = Pipeline(steps=[
-    #             ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
-    #             ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
-    #         ])
-    #     else:
-    #         categorical_transformer = Pipeline(steps=[
-    #             ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
-    #         ])
-
-    #     # Combine both numeric and categorical preprocessors
-    #     preprocessor = ColumnTransformer(
-    #         transformers=[
-    #             ('num', numerical_transformer, self.num_features),
-    #             ('cat', categorical_transformer, self.cat_features)
-    #         ],
-    #         remainder='passthrough',
-    #         verbose_feature_names_out=False
-    #     )
-    #     preprocessor.set_output(transform="pandas")
-    #     return preprocessor
 
     def split(self) -> None:
         """Splits the data into training and testing sets."""
@@ -312,7 +284,7 @@ class OptimalClassificationPipeline(BasePipeline):
         num_features: List[str], 
         cat_features: List[str], 
         param_grid: Dict, 
-        handle_imbalance: bool = True, 
+        class_weights: Dict[Any, str] = None,
         n_trials: int = 10, 
         cache_path: Optional[str] = None
     ) -> None:
@@ -325,17 +297,15 @@ class OptimalClassificationPipeline(BasePipeline):
             num_features (List[str]): List of numerical feature names.
             cat_features (List[str]): List of categorical feature names.
             param_grid (Dict): Parameter grid for Optuna optimization.
-            handle_imbalance (bool, optional): Whether to handle class imbalance. Defaults to True.
             n_trials (int): Number of trials for Optuna optimization. Defaults to 10.
             cache_path (Optional[str]): Path to cache Optuna study results.
         """
         super().__init__(df, target_column, num_features, cat_features)
         self.model_type = "classification"
         self.param_grid = param_grid
-        self.handle_imbalance = handle_imbalance
         self.n_trials = n_trials
         self.cache_path = cache_path
-        self.class_weights = None
+        self.class_weights = class_weights
         self.pipeline = self.get_pipeline()
 
     def get_pipeline(self) -> Pipeline:
@@ -344,16 +314,16 @@ class OptimalClassificationPipeline(BasePipeline):
         Returns:
             Pipeline: Classification pipeline.
         """
-        preprocessor = self.get_feature_preprocessing_pipeline(encode_categorical=False)
+        preprocessor = self.get_feature_preprocessing_pipeline(encode_categorical=True)
 
         model = OptimalCatBoostClassifier(
-            features=self.num_features + self.cat_features,
+            # features=self.num_features + self.cat_features,
             param_grid=self.param_grid,
             n_trials=self.n_trials,
             cat_features=self.cat_features,
-            use_class_weights=self.handle_imbalance,
             cache_path=self.cache_path,
-            study_name=f"catboost_{self.target_column}"
+            study_name=f"catboost_{self.target_column}",
+            class_weights=self.class_weights
         )
 
         return Pipeline(steps=[
@@ -378,21 +348,28 @@ class OptimalClassificationPipeline(BasePipeline):
         return self.pipeline.named_steps['model'].training_results
         
 
-    def evaluate_model(self, save_dir: Optional[str] = None) -> pd.DataFrame:
+    def evaluate_model(self, save_dir: Optional[str] = None, X_eval: Optional[pd.DataFrame] = None, y_eval: Optional[pd.Series] = None) -> pd.DataFrame:
         """
         Evaluates the classification model and generates a metrics DataFrame.
         
         Args:
             save_dir (Optional[str]): Directory to save the classification report and heatmap. Defaults to None.
+            X_eval (Optional[pd.DataFrame]): Optional custom features for evaluation. Defaults to None.
+            y_eval (Optional[pd.Series]): Optional custom target for evaluation. Defaults to None.
         
         Returns:
             pd.DataFrame: DataFrame containing classification metrics (accuracy, precision, recall, F1 score).
         """
         LOGGER.info("Evaluating the model...")
-        y_pred = self.pipeline.predict(self.X_test)
+
+        # Use the provided evaluation set, or fallback to the default test set
+        X_eval = X_eval if X_eval is not None else self.X_test
+        y_eval = y_eval if y_eval is not None else self.y_test
+
+        y_pred = self.pipeline.predict(X_eval)
         
         # Generate classification report as a dictionary
-        report_dict = classification_report(self.y_test, y_pred, output_dict=True)
+        report_dict = classification_report(y_eval, y_pred, output_dict=True)
         
         # Convert to DataFrame
         report_df = pd.DataFrame(report_dict).transpose()
@@ -418,6 +395,7 @@ class OptimalClassificationPipeline(BasePipeline):
             plt.show()
     
         return report_df
+
 
     @property
     def model(self):
@@ -467,14 +445,14 @@ class OptimalRegressionPipeline(BasePipeline):
         Returns:
             TransformedTargetRegressor: Regression pipeline with target transformation.
         """
-        preprocessor = self.get_feature_preprocessing_pipeline(encode_categorical=False)
+        preprocessor = self.get_feature_preprocessing_pipeline(encode_categorical=True)
     
         target_transformer = Pipeline(steps=[
             ('scaler', StandardScaler())
         ])
 
         model = OptimalCatBoostRegressor(
-            features=self.num_features + self.cat_features,
+            # features=self.num_features + self.cat_features,
             param_grid=self.param_grid,
             n_trials=self.n_trials,
             cat_features=self.cat_features,
@@ -498,34 +476,41 @@ class OptimalRegressionPipeline(BasePipeline):
         self.pipeline.fit(self.X_train, self.y_train)
         LOGGER.info("Pipeline training completed.")
 
-    def evaluate_model(self, save_dir: Optional[str] = None) -> pd.DataFrame:
+    def evaluate_model(self, save_dir: Optional[str] = None, X_eval: Optional[pd.DataFrame] = None, y_eval: Optional[pd.Series] = None) -> pd.DataFrame:
         """
         Evaluates the regression model and generates a metrics DataFrame.
         Includes residual and predicted vs actual plots.
 
         Args:
             save_dir (Optional[str]): Directory to save evaluation metrics and plots. Defaults to None.
+            X_eval (Optional[pd.DataFrame]): Optional custom features for evaluation. Defaults to None.
+            y_eval (Optional[pd.Series]): Optional custom target for evaluation. Defaults to None.
 
         Returns:
             pd.DataFrame: DataFrame containing regression metrics (MAE, MSE, RMSE, R2 Score).
         """
         LOGGER.info("Evaluating the regression model...")
-        y_pred = self.pipeline.predict(self.X_test)
+
+        # Use the provided evaluation set, or fallback to the default test set
+        X_eval = X_eval if X_eval is not None else self.X_test
+        y_eval = y_eval if y_eval is not None else self.y_test
+
+        y_pred = self.pipeline.predict(X_eval)
 
         # Compute metrics
         evaluation_results = {
             "Metric": ["Mean Absolute Error", "Mean Squared Error", "Root Mean Squared Error", "R2 Score"],
             "Score": [
-                mean_absolute_error(self.y_test, y_pred),
-                mean_squared_error(self.y_test, y_pred),
-                mean_squared_error(self.y_test, y_pred, squared=False),  # RMSE
-                r2_score(self.y_test, y_pred),
+                mean_absolute_error(y_eval, y_pred),
+                mean_squared_error(y_eval, y_pred),
+                mean_squared_error(y_eval, y_pred, squared=False),  # RMSE
+                r2_score(y_eval, y_pred),
             ],
         }
         metrics_df = pd.DataFrame(evaluation_results)
 
         # Create residual plot
-        residuals = self.y_test - y_pred
+        residuals = y_eval - y_pred
         plt.figure(figsize=(10, 6))
         sns.histplot(residuals, kde=True, bins=30, color="blue")
         plt.title("Residual Distribution")
@@ -544,8 +529,8 @@ class OptimalRegressionPipeline(BasePipeline):
 
         # Create predicted vs actual plot
         plt.figure(figsize=(10, 6))
-        sns.scatterplot(x=self.y_test, y=y_pred, alpha=0.6, edgecolor=None)
-        plt.plot([self.y_test.min(), self.y_test.max()], [self.y_test.min(), self.y_test.max()], color="red", linestyle="--")
+        sns.scatterplot(x=y_eval, y=y_pred, alpha=0.6, edgecolor=None)
+        plt.plot([y_eval.min(), y_eval.max()], [y_eval.min(), y_eval.max()], color="red", linestyle="--")
         plt.title("Predicted vs Actual Values")
         plt.xlabel("Actual Values")
         plt.ylabel("Predicted Values")
