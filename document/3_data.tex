@@ -5,21 +5,65 @@
 \section{Dataset Description}
 \label{sec:datasetdescription}
 
-The dataset consists of around 6000 songs. Each song has following data:
+The dataset consists of around 6000 songs. For each song metadata, audio
+recording, lyrics and spotify audio features were fetched.
 
-\begin{itemize}
-  \item \textbf{Metadata} -  e.g. title, artist, genre, popularity
-  \item \textbf{Spotify Audio Features} - e.g. acousticness, instrumentalness,
-    energy
-  \item \textbf{Lyrics} - song lyrics used as a base for textual features
-    extraction
-  \item \textbf{MP3 Files} - audio files used for audio features extraction
-\end{itemize}
+\section{Data Collection Methods}
+\label{sec:datacollectionmethods}
+
+\subsection{Sources}
+The data was collected from various sources. Metadata and audio features
+were fetched from Spotify API. The lyrics were scraped from MusixMatch,
+LetrasMus, MakeItPersonal or Lyrics Fandom, or fetched via the Genius API,
+depending on  the availability. Audio files were downloaded from YouTube and
+saved as mp3 files.
+
+\subsection{Methodology}
+The data collection process was automated for efficiency. The starting point
+was a list of Spotify playlist URIs. Each playlist was processed sequentially. 
+The script fetched metadata and audio features for each song in the
+playlist.
+
+Lyrics were then searched based on \textit{artist name} and \textit{title} of
+each song, using multiple lyrics providers. The system continued to query
+different sources until it found lyrics in at least one of them. If it failed
+to retrieve lyrics for the song, it was discarded and wouldn't make it to the
+final dataset.
+
+Finally, the script  searched YouTube for each song and downloaded the first
+relevant result, saving it to an mp3 file. All data was saved into a CSV
+file named after the playlist and stored alongside the recordings.
+
+The entire process was parallelized to significantly enhance the speed of data
+acquisition. It was designed in a robust manner, with careful error handling
+and ability to stop the process at any  time and pick up where it left off.
+
+Additionally, to optimize performance, the entire process was parallelized,
+significantly increasing the speed of data acquisition. It was designed with
+robust error handling, ensuring data correctness and completeness. Moreover, it
+featured the ability to pause and seamlessly resume the process, continuing
+exactly where it left off without data loss.
+
+
+%---------------------------------------------------------------------------
+
 
 \subsection{Metadata}
 \label{sec:metadata}
-Song's information downloaded from Spotify API. The most important features for
-further analyses are \textit{popularity}, \textit{explicitness},
+Song's information downloaded from Spotify API. The information it includes is:
+
+\begin{itemize}
+  \item \textbf{Popularity} - relative measure with values ranging from 0 to
+    100 describing how popular the song is, estimated mostly based on total
+    number of plays and how recent  those plays are
+  \item \textbf{Explicitness} - whether or not the song contains explicit lyrics
+  \item \textbf{Genre} - main genre of the artist(Spotify does not provide
+    information about genre of each musical track)
+  \item \textbf{Album Release Year} - the release year of the album that the
+    song originates from
+\end{itemize}
+
+\textit{popularity}, \textit{explicitness},
 \textit{genre}, and \textit{release year}. Since Spotify does not provide
 information about the genre of specific songs, the genre extracted is the main
 genre of the primary artist in the song.
@@ -27,18 +71,68 @@ genre of the primary artist in the song.
 
 \subsection{Spotify Audio Features}
 \label{sec:spotifyaudiofeatures}
-Those features describe different acoustic properties of the song
+Those features were fetched from the Spotify API.They describe different
+acoustic properties songs:
+\begin{itemize}
+  \item \textbf{Speechiness} - relative measure of spoken words in a track
+  \item \textbf{Acousticness} - a confidence measure of whether the song is
+    acoustic
+  \item \textbf{Danceability} - a measure of how suitable the song is for
+    dancing. Its based on parameters like tempo, rhythm stability, beat
+    strength etc.
+  \item \textbf{Energy} - a measure of perceived intensity of songs. Energetic
+    tracks are usually louder, faster, feel more intense.
+  \item \textbf{Loudness} - overall loudness of the  track in dB averaged
+    across the entire track
+  \item \textbf{Valence} - relative measure describing musical positiveness of
+    a track
+  \item \textbf{Instrumentalness} - measure of how likelihood of the track not
+    containing vocals. In this paper since lyrics are mandatory it's used to
+    discard instrumental tracks.
+  \item \textbf{Liveness} - probability of the song being recorded during a
+    live performance.
+  \item \textbf{Key} - the key of the song, e.g. C\#.
+  \item \textbf{Mode} - indicates the modality of a track(major / minor)
+  \item \textbf{Tempo} - estimated tempo of a track in beats per minute(BPM)
+  \item \textbf{Time Signature} - specifies how many beats there are in each
+    bar
+  \item \textbf{Duration} - the duration of the track in milliseconds
+\end{itemize}
 
 
-%---------------------------------------------------------------------------
+\subsection{Lyrics Features}
+ The lyrics serve as a textual representation of the song's thematic,
+ emotional, and linguistic elements. Since they came from various data sources,
+ they had  to undergo cleaning procedure in order to remove faulty information
+ and prepare them to be processed by the textual feature extraction class. The
+ process consisted of:
+ \begin{itemize}
+  \item \textbf{Standardization} - lyrics were converted to lowercase
+  \item \textbf{Noise Removal} - unnecessary characters, numbers and
+    punctuation, as well as additional comments used by lyrics providers(e.g.
+    'chorus') were removed
+  \item \textbf{Stopwords Filtration} - exclusion of frequently occuring words
+    that carry little information, like 'the' in English
+  \item \textbf{Stemming} - words were reduced to their root forms to enhance
+    uniformity and reduce corpus size
+ \end{itemize}
 
-\section{Data Collection Methods}
-\label{sec:datacollectionmethods}
+ This process laid foundation for further extraction of textual features used
+ for exploratory data analysis, statistical inference and training ML models.
+ That process will be explained in later chapter.
+
 
 %---------------------------------------------------------------------------
 
 \section{Tools and Libraries Used}
 \label{sec:toolsandlibrariesused}
+Python libraries used to facilitate the data acquisition were:
+\begin{itemize}
+  \item \textit{Spotipy} - a lightweight python library for Spotify API
+  \item \textit{youtube-dl} - a library used to find and download youtube videos
+  \item \textit{BeautifulSoup} - a library used for extracting information from
+    HTML, commonly used for web scraping
+\end{itemize}
 
 
 
