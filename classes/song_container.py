@@ -182,8 +182,12 @@ class SongContainer:
                 song = self._create_song_from_track(track)
                 if song:
                     tracks.append(song)
-    
-        self.songs.extend(tracks)
+
+        for track in tracks:
+            # genres = eval(track.genres).insert(0, genre)
+            # track.genres = str(genres)
+            track.genres.insert(0, f"search:{genre}")
+            self.add_song(track)
         LOGGER.info(f"Added {len(tracks)} songs for genre '{genre}'.")
 
     def add_songs_from_playlist(self, playlist_uri: str):
@@ -316,6 +320,7 @@ class SongContainer:
             song (Song): The song object to be downloaded.
         """
         mp3_file_path = os.path.join(self.save_path, f"{song.title}.mp3")
+        temp_file_path = os.path.join(self.save_path, f"{song.title}.part")
     
         # Skip if already downloaded
         if os.path.exists(mp3_file_path):
@@ -325,33 +330,54 @@ class SongContainer:
     
         search_query = f"{song.artist} - {song.title}"
         best_url = self.youtube_downloader.search_youtube(search_query)
+    
         if best_url:
-            success = self.youtube_downloader.download_audio(best_url, mp3_file_path.rsplit('.mp3', 1)[0])
-            if success:
-                LOGGER.info(f"Downloaded '{song.title}' by '{song.artist}' successfully.")
-                song.mp3_path = mp3_file_path
-                self.youtube_downloader.embed_album_art(song, mp3_file_path, self.save_path)
-            else:
-                LOGGER.error(f"Failed to download '{song.title}' by '{song.artist}'.")
+            try:
+                # Download the audio file
+                success = self.youtube_downloader.download_audio(best_url, temp_file_path.rsplit('.part', 1)[0])
+                if success:
+                    # Ensure the `.part` file is renamed to the final `.mp3` file
+                    if os.path.exists(temp_file_path):
+                        os.rename(temp_file_path, mp3_file_path)
+                    song.mp3_path = mp3_file_path
+                    LOGGER.info(f"Downloaded '{song.title}' by '{song.artist}' successfully.")
+    
+                    # Embed album art into the final MP3 file
+                    self.youtube_downloader.embed_album_art(song, mp3_file_path, self.save_path)
+                else:
+                    raise RuntimeError(f"Download failed for '{song.title}' by '{song.artist}'.")
+            except Exception as e:
+                LOGGER.error(f"Failed to download '{song.title}' by '{song.artist}' from URL '{best_url}': {e}")
+                # Clean up incomplete `.part` files
+                song.mp3_path = None
+                if os.path.exists(temp_file_path):
+                    os.remove(temp_file_path)
+            return
         else:
             LOGGER.warning(f"No suitable YouTube URL found for '{song.title}' by '{song.artist}'.")
+            song.mp3_path = None
+
 
     def fetch_metadata(self):
         """
         Fetches Spotify audio features and lyrics for all songs.
         """
         LOGGER.info("Fetching metadata for all songs...")
-        with ThreadPoolExecutor(max_workers=8) as executor:
-            futures = {
-                executor.submit(self._fetch_metadata_for_song, song): song
-                for song in self.songs if not song.audio_features.danceability or not song.lyrics
-            }
-            for future in as_completed(futures):
-                song = futures[future]
-                try:
-                    future.result()
-                except Exception as e:
-                    LOGGER.error(f"Error fetching metadata for '{song.title}' by '{song.artist}': {e}")
+        with tqdm(total=len(self.songs), desc="Fetching metadata", unit="song") as pbar:
+            with ThreadPoolExecutor(max_workers=8) as executor:
+                futures = {
+                    executor.submit(self._fetch_metadata_for_song, song): song
+                    for song in self.songs if not song.audio_features.danceability or not song.lyrics
+                }
+                for future in as_completed(futures):
+                    song = futures[future]
+                    try:
+                        future.result()
+                    except Exception as e:
+                        LOGGER.error(f"Error fetching metadata for '{song.title}' by '{song.artist}': {e}")
+                    finally:
+                        pbar.update(1)
+
     
     def _fetch_metadata_for_song(self, song: Song):
         """
@@ -368,24 +394,28 @@ class SongContainer:
         Downloads all songs in the container using YouTube.
         """
         LOGGER.info("Downloading songs...")
-        with ThreadPoolExecutor(max_workers=8) as executor:
-            futures = {
-                executor.submit(self.download_song, song): song
-                for song in self.songs if not song.mp3_path
-            }
-            for future in as_completed(futures):
-                song = futures[future]
-                try:
-                    future.result()
-                except Exception as e:
-                    LOGGER.error(f"Error downloading '{song.title}' by '{song.artist}': {e}")
+        with tqdm(total=len(self.songs), desc="Downloading songs", unit="song") as pbar:
+            with ThreadPoolExecutor(max_workers=8) as executor:
+                futures = {
+                    executor.submit(self.download_song, song): song
+                    for song in self.songs if not song.mp3_path
+                }
+                for future in as_completed(futures):
+                    song = futures[future]
+                    try:
+                        future.result()
+                    except Exception as e:
+                        LOGGER.error(f"Error downloading '{song.title}' by '{song.artist}': {e}")
+                    finally:
+                        pbar.update(1)
     
+        
 
     def _is_song_valid(self, song: Song) -> bool:
         """Validates that a song has no missing critical data."""
         return all([
             song.id, song.title, song.artist, song.duration_ms,
-            song.audio_features.danceability, song.lyrics is not None,
+            song.audio_features.danceability is not None, song.lyrics,
             song.audio_features.energy is not None
         ])
 
