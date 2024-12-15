@@ -11,9 +11,9 @@ class LyricsManager:
 
     def __init__(self):
         self.providers = [
-            LetrasMusSource(),
             MakeItPersonalSource(),
             FandomSource(),
+            LetrasMusSource(),
             GeniusLyricSource()
         ]
 

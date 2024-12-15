@@ -1,130 +1,252 @@
 \chapter{Methodologies}
 \label{cha:methodologies}
-%---------------------------------------------------------------------------
 
-\section{Feature Engineering}
-\label{sec:featureengineering}
 
 This chapter explains the methodologies used to address the research objectives
 in this thesis. It describes the feature extraction and  engineering methods,
 the use of explainable AI methods, model training and optimization approaches,
 clustering and dimensionality reduction techniques and statistical hypothesis
 testing methods.
-
-
-\subsection{Acoustic Features}
-\label{sec:acousticfeatures}
-
-The acoustic features were extracted in an automated manner from the MP3 files
-downloaded during the data collection process. They describe ...
-
-\subsubsection*{MFCC - Mel Frequency Cepstral Coefficients}
-short time fourier transform
-
-
-\subsubsection*{Chroma}
-
-
-\subsection{Lyrical Features}
-\label{sec:lyricalfeatures}
-
-%---------------------------------------------------------------------------
-
-\section{Explainable AI Methods}
-\label{sec:explainableaimethods}
-
-%---------------------------------------------------------------------------
-
-\section{Clustering and Dimensionality Reduction}
-\label{sec:clusteringanddimensionalityreduction}
-
-%---------------------------------------------------------------------------
-
-\section{Statistical Hypothesis Testing Methods}
-\label{sec:statisticalhypothesistestingmethods}
-
-
-
-\chapter{Methodologies}
-\label{cha:methodologies}
-
-
 %---------------------------------------------------------------------------
 
 \section{Feature Engineering}
 \label{sec:featureengineering}
 
-Feature engineering involves extracting meaningful characteristics from both acoustic data and song lyrics to enable analysis and predictive modeling. The section describes how these features are derived, categorized, and prepared for further analysis.
+Feature engineering is a critical step in the research process, as it involves
+transforming raw data acquired using the data collection script into meaningful
+representations that can be analyzed or used for predictive modeling. This
+section describes the methodologies used to extract acoustic features from the
+mp3 files and lyrical features from the lyrics. These features are designed to
+capture key characteristics of the songs, enabling deeper insights into their
+patterns and relationships.
 
 \subsection{Acoustic Features}
 \label{sec:acousticfeatures}
 
-Acoustic features are extracted from song audio files using established music information retrieval (MIR) techniques. Features include:
+ These features provide a quantitative representation of the audio properties
+ of each song and were extracted directly from the audio files in MP3 format.
+ They describe various aspects of audio signal and provide insights into the
+ rhythm, timbre, harmony and other acoustic properties. The extraction was done
+ using \textit{Librosa} and was automated and parallelized to make it suitable
+ for processing large amounts of data. 
 
+\subsubsection*{MFCC - Mel Frequency Cepstral Coefficients}
+MFCCs represent the short-term power spectrum of a song on a mel-scale and are
+widely used for timbre analysis. These coefficients capture the tonal quality
+of the audio and help differentiate between different instruments and vocal
+characteristics.
+
+
+\subsubsection*{Chroma}
+hroma vectors represent the intensity of each pitch class (e.g., C, C#, D,
+etc.) in the audio. These features provide a harmonic representation of the
+song and are useful for analyzing chord progressions and harmonic structures.
+
+\subsubsection*{Spectral Contrast}
+Spectral contrast measures the difference in amplitude between peaks and
+valleys in the spectrum. It provides insights into the harmonic and timbral
+content of a song, particularly useful for distinguishing between smooth and
+complex textures.
+
+\subsubsection*{Other Features}
+Two additional features were extracted:
 \begin{itemize}
-  \item \textbf{Tempo and Rhythm}: Metrics such as beats per minute (BPM) and rhythmic patterns.
-  \item \textbf{Energy and Dynamics}: Measures of loudness, energy, and sound intensity.
-  \item \textbf{Timbre and Pitch}: Characteristics of tonal quality and frequency-based features.
-  \item \textbf{Valence and Mood}: Descriptive features representing emotional tone.
+  \item \textbf{Tempo} - refers to the speed of the song, measured in \textit{Beats Per Minute(BPM)}
+  \item \textbf{Zero Crossing Rate(ZCR)} - measures the rate at which the audio
+    signal changes sign. It's commonly used as a measure of noisiness or
+    percussive nature of signal
 \end{itemize}
 
-The extraction process utilizes tools like Librosa and Spotify's API, ensuring robust and consistent data preparation.
+%---------------------------------------------------------------------------
 
 \subsection{Lyrical Features}
 \label{sec:lyricalfeatures}
 
-Lyrical features capture linguistic and semantic properties of song lyrics. These features include:
+Lyrical features  were extracted from the lyrics fetched during the data
+collection process. They aim to provide a linguistic and semantic
+representation of the track, capturing their complexity, sentiment and
+stylistic  attributes. The cleaning and extraction  process utilized various
+NLP libraries like \textit{NLTK}, \textit{spaCy} and \textit{TextBlob},
+alongside with custom ad-hoc algorithms. Similarily to acoustic features the
+implementation allowed for simple and intuitive usage under clear and
+comprehensible interface, with parallelization of the computation process for
+increased performance. The features extracted can be grouped as follows:
 
+\subsubsection*{Basic Linguistic Metrics}
 \begin{itemize}
-  \item \textbf{Textual Complexity}: Measures like unique word count, syllable count, and average word length.
-  \item \textbf{Sentiment Analysis}: Polarity and subjectivity derived using TextBlob and Vader sentiment analyzers.
-  \item \textbf{Topic Modeling}: Thematic analysis using techniques like Latent Dirichlet Allocation (LDA).
-  \item \textbf{Stylistic Features}: Metrics such as repetition rate, readability score, and grammatical structure.
+  \item \textbf{Unique Word Count} - measures number of unique words in the lyrics, indicating diversity
+  \item \textbf{Type-Token Ratio} - a measure of lexical richness: ratio of unique words to total words
+  \item \textbf{Word Count} - total  number of words, baseline for text size and compexity
+  \item \textbf{Noun and Verb Ratios} - proporrtios of nous and vers relative to the total word count
 \end{itemize}
 
-Preprocessing involves tokenization, stemming, and stopword removal to normalize the text.
 
+\subsubsection*{Sentiment and Emotional Tone}
+\begin{itemize}
+  \item \textbf{Sentiment Polarity} - a measure of overall sentiment(positive
+    vs. negative) of the text
+  \item \textbf{Sentiment Subjectivity} - represents the degree of subjectivity
+    in the lyrics, attempting to make a distinction between factual and
+    opinionated content
+  \item \textbf{VADER Compound} - a sentiment score derived from the VADER tool
+  \item \textbf{Sentiment Variability} - standard deviation of sentiment on
+    subsets of lyrics, a metric  aiming to capture fluctuations of sentiment
+    throughout the song, highlighting emotional complexity
+  \item \textbf{} -
+\end{itemize}
+
+
+\subsubsection*{Stylistic Features}
+\begin{itemize}
+  \item \textbf{Repetition Count} - the frequency of repeated words
+  \item \textbf{Rhyme Density} - a measure of how often rhymes occur in the
+    text
+  % \item \textbf{Linguistic Uniqueness} - a measure of 
+\end{itemize}
+
+
+\subsubsection*{Semantic and Complexity Features}
+\begin{itemize}
+  \item \textbf{Semantic Depth} - represents the richness and variety of
+    meaning conveyed by the lyrics
+  \item \textbf{Syntactic Complexity} - captures the sophistication of
+    sentence structures
+  \item \textbf{Lexical Richness} - quantifies the variety and richness of the
+    vocabulary
+\end{itemize}
+
+
+
+\subsubsection*{Readability and Accessibility}
+\begin{itemize}
+  \item \textbf{Flesch Reading Ease} - indicates how easy the lyrics are to
+    read
+  \item \textbf{Gunning Fog} - a metric that estimates the  years of education
+    required to understand the text
+  \item \textbf{Dale Chall} - a metric that accounts for familiar and
+    unfamiliar words in the text
+\end{itemize}
+
+
+\subsubsection*{Contextual Information}
+  In process of feature extraction the \textbf{language} of lyrics was also
+  identified using \textit{langdetect} library that uses a classification model
+  to make predictions based on n-grams extracted from the text. The identified
+  language was also used in the cleaning process, to identify which stemmer and
+  stopwords language  to use.
 %---------------------------------------------------------------------------
 
 \section{Explainable AI Methods}
 \label{sec:explainableaimethods}
 
-Explainable AI (XAI) techniques are applied to interpret the predictions of machine learning models. Methods used include:
 
-\begin{itemize}
-  \item \textbf{SHAP Values}: Quantifying the contribution of each feature to model predictions.
-  \item \textbf{Partial Dependence Plots (PDPs)}: Visualizing the relationship between features and predicted outcomes.
-  \item \textbf{Feature Importance Analysis}: Ranking features based on their impact on model decisions.
-\end{itemize}
+Explainable AI (XAI) techniques provide insights into the decision-making
+processes of ML models, making it possible to understand the complex
+relationships captured within the training data. By bridging the gap between
+the pattern-recognition capabilities of these models and their practical
+applications, XAI enables transparency and improves the interpretability of
+results.
 
-These methods provide transparency in models used to predict attributes like popularity and explicitness.
+In this study this methodology was applied in various experiments to understand
+how specific variables influence others, with aim of uncovering rrelationships
+in the data and validating hypotheses. A deeper  understanding of factors
+driving model predictions ensured that the results were both reliable and
+meaningfully adressed the research objectives. The  techniques employed in this paper are: 
+
+\subsubsection*{SHAP (SHapley Additive exPlanations}
 
 %---------------------------------------------------------------------------
 
 \section{Clustering and Dimensionality Reduction}
 \label{sec:clusteringanddimensionalityreduction}
 
-To uncover latent patterns in the data, clustering and dimensionality reduction techniques are employed:
-
-\begin{itemize}
-  \item \textbf{Clustering}: Algorithms such as K-Means and DBSCAN are used to group songs based on feature similarities.
-  \item \textbf{Dimensionality Reduction}: Principal Component Analysis (PCA) and t-SNE are utilized to reduce feature dimensions while preserving variance and interpretability.
-\end{itemize}
-
-These methods help visualize relationships between genres, lyrical themes, and acoustic properties.
-
 %---------------------------------------------------------------------------
 
-\section{Statistical Hypothesis Testing Methods}
-\label{sec:statisticalhypothesistestingmethods}
-
-Statistical hypothesis testing is employed to validate relationships and trends in the data. Methods include:
-
-\begin{itemize}
-  \item \textbf{ANOVA and Tukey's HSD}: Comparing means across groups, such as genres or time periods.
-  \item \textbf{Correlation Analysis}: Assessing relationships between features like sentiment and valence.
-  \item \textbf{Chi-Square Tests}: Testing independence between categorical variables, such as explicitness and genres.
-\end{itemize}
-
-These tests provide a rigorous framework for evaluating the hypotheses outlined in the research objectives.
-
+% \section{Statistical Hypothesis Testing Methods}
+% \label{sec:statisticalhypothesistestingmethods}
+%
+%
+%
+% \chapter{Methodologies}
+% \label{cha:methodologies}
+%
+%
+% %---------------------------------------------------------------------------
+%
+% \section{Feature Engineering}
+% \label{sec:featureengineering}
+%
+% Feature engineering involves extracting meaningful characteristics from both acoustic data and song lyrics to enable analysis and predictive modeling. The section describes how these features are derived, categorized, and prepared for further analysis.
+%
+% \subsection{Acoustic Features}
+% \label{sec:acousticfeatures}
+%
+% Acoustic features are extracted from song audio files using established music information retrieval (MIR) techniques. Features include:
+%
+% \begin{itemize}
+%   \item \textbf{Tempo and Rhythm}: Metrics such as beats per minute (BPM) and rhythmic patterns.
+%   \item \textbf{Energy and Dynamics}: Measures of loudness, energy, and sound intensity.
+%   \item \textbf{Timbre and Pitch}: Characteristics of tonal quality and frequency-based features.
+%   \item \textbf{Valence and Mood}: Descriptive features representing emotional tone.
+% \end{itemize}
+%
+% The extraction process utilizes tools like Librosa and Spotify's API, ensuring robust and consistent data preparation.
+%
+% \subsection{Lyrical Features}
+% \label{sec:lyricalfeatures}
+%
+% Lyrical features capture linguistic and semantic properties of song lyrics. These features include:
+%
+% \begin{itemize}
+%   \item \textbf{Textual Complexity}: Measures like unique word count, syllable count, and average word length.
+%   \item \textbf{Sentiment Analysis}: Polarity and subjectivity derived using TextBlob and Vader sentiment analyzers.
+%   \item \textbf{Topic Modeling}: Thematic analysis using techniques like Latent Dirichlet Allocation (LDA).
+%   \item \textbf{Stylistic Features}: Metrics such as repetition rate, readability score, and grammatical structure.
+% \end{itemize}
+%
+% Preprocessing involves tokenization, stemming, and stopword removal to normalize the text.
+%
+% %---------------------------------------------------------------------------
+%
+% \section{Explainable AI Methods}
+% \label{sec:explainableaimethods}
+%
+% Explainable AI (XAI) techniques are applied to interpret the predictions of machine learning models. Methods used include:
+%
+% \begin{itemize}
+%   \item \textbf{SHAP Values}: Quantifying the contribution of each feature to model predictions.
+%   \item \textbf{Partial Dependence Plots (PDPs)}: Visualizing the relationship between features and predicted outcomes.
+%   \item \textbf{Feature Importance Analysis}: Ranking features based on their impact on model decisions.
+% \end{itemize}
+%
+% These methods provide transparency in models used to predict attributes like popularity and explicitness.
+%
+% %---------------------------------------------------------------------------
+%
+% \section{Clustering and Dimensionality Reduction}
+% \label{sec:clusteringanddimensionalityreduction}
+%
+% To uncover latent patterns in the data, clustering and dimensionality reduction techniques are employed:
+%
+% \begin{itemize}
+%   \item \textbf{Clustering}: Algorithms such as K-Means and DBSCAN are used to group songs based on feature similarities.
+%   \item \textbf{Dimensionality Reduction}: Principal Component Analysis (PCA) and t-SNE are utilized to reduce feature dimensions while preserving variance and interpretability.
+% \end{itemize}
+%
+% These methods help visualize relationships between genres, lyrical themes, and acoustic properties.
+%
+% %---------------------------------------------------------------------------
+%
+% \section{Statistical Hypothesis Testing Methods}
+% \label{sec:statisticalhypothesistestingmethods}
+%
+% Statistical hypothesis testing is employed to validate relationships and trends in the data. Methods include:
+%
+% \begin{itemize}
+%   \item \textbf{ANOVA and Tukey's HSD}: Comparing means across groups, such as genres or time periods.
+%   \item \textbf{Correlation Analysis}: Assessing relationships between features like sentiment and valence.
+%   \item \textbf{Chi-Square Tests}: Testing independence between categorical variables, such as explicitness and genres.
+% \end{itemize}
+%
+% These tests provide a rigorous framework for evaluating the hypotheses outlined in the research objectives.
+%

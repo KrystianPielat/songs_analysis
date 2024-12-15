@@ -13,6 +13,7 @@ from .lyrics_manager import LyricsManager
 from .audio_features import AudioFeatureExtractor
 from .song import Song, SpotifyAudioFeatures
 from .youtube_downloader import YouTubeDownloader
+from math import ceil
 
 LOGGER = logging.getLogger(__name__)
 
@@ -70,13 +71,16 @@ class SongContainer:
         self._load_existing_songs()
         self._load_faulty_songs()
 
-    def add_song(self, song: Song):
+    def add_song(self, song: Song) -> bool:
         """
         Adds a song to the songs list if it does not already exist.
         Songs are identified as duplicates by their title and artist (case-insensitive).
     
         Args:
             song (Song): The song object to add.
+            
+        Returns:
+            bool: Whether it was successfully added or not.
         """
         song_key = f"{song.title.lower()}_{song.artist.lower()}"
         existing_keys = {f"{s.title.lower()}_{s.artist.lower()}" for s in self.songs}
@@ -84,8 +88,9 @@ class SongContainer:
         if song_key not in existing_keys:
             self.songs.append(song)
             LOGGER.info(f"Added song '{song.title}' by '{song.artist}' to the container.")
-        else:
-            LOGGER.warning(f"Duplicate song detected: '{song.title}' by '{song.artist}'. Skipping.")
+            return True
+        LOGGER.warning(f"Duplicate song detected: '{song.title}' by '{song.artist}'. Skipping.")
+        return False
 
     def _clean_text(self, text: str, max_length: int = 70) -> str:
         """Cleans the song title by removing invalid characters and truncating if needed.
@@ -189,6 +194,69 @@ class SongContainer:
             track.genres.insert(0, f"search:{genre}")
             self.add_song(track)
         LOGGER.info(f"Added {len(tracks)} songs for genre '{genre}'.")
+
+
+    def stratify_tracks_by_genre_and_year(
+        self, 
+        genre: str, 
+        year_buckets: list, 
+        num_tracks: int, 
+    ):
+        """
+        Fetches tracks stratified by genre and year buckets, equally distributing the requested
+        number of tracks across the year buckets and adding them to the container.
+
+        Args:
+            genre (str): The genre to search for.
+            year_buckets (list): List of year ranges as tuples, e.g., [(1950, 1960), (1960, 1970)].
+            num_tracks (int): Total number of tracks to fetch across all buckets.
+        """
+        total_buckets = len(year_buckets)
+        tracks_per_bucket = ceil(num_tracks / total_buckets)
+
+        LOGGER.info(f"Stratifying {num_tracks} tracks across {total_buckets} year buckets for genre '{genre}'.")
+        
+        for start_year, end_year in year_buckets:
+            LOGGER.info(f"Fetching tracks for genre '{genre}' between {start_year} and {end_year}.")
+            
+            tracks_added = 0
+            offset = 0
+            limit = 50  # Spotify API max limit per request
+
+            while tracks_added < tracks_per_bucket:
+                # Construct the query
+                query = f"genre:{genre} year:{start_year}-{end_year}"
+                results = self.spotify_manager.search_tracks(
+                    query=query,
+                    limit=min(limit, tracks_per_bucket - tracks_added),
+                    offset=offset
+                )
+                offset += limit
+
+                # Process fetched tracks
+                for track in results.get('tracks', {}).get('items', []):
+                    if any(faulty['title'].lower() == track['name'].lower() and faulty['artist'].lower() == track['artists'][0]['name'].lower() for faulty in self.faulty_songs):
+                        LOGGER.warning(f"Skipping previously marked faulty song '{track['name']}' by '{track['artists'][0]['name']}'.")
+                        continue
+
+                    song = self._create_song_from_track(track)
+                    if song:
+                        song.genres.insert(0, f"genre:{genre}")
+                    if self.add_song(song):
+                        tracks_added += 1
+                        LOGGER.info(f"Added song '{song.title}' by '{song.artist}' to the container.")
+                    else:
+                        LOGGER.warning(f"Failed to create song object for track '{track['name']}' by '{track['artists'][0]['name']}'.")
+
+                    if tracks_added >= tracks_per_bucket:
+                        break
+
+                # Stop if no more results
+                if not results.get('tracks', {}).get('items', []):
+                    LOGGER.warning(f"No more tracks found for genre '{genre}' in {start_year}-{end_year}.")
+                    break
+
+        LOGGER.info(f"Stratified tracks fetching completed for genre '{genre}'. Total songs in container: {len(self.songs)}.")
 
     def add_songs_from_playlist(self, playlist_uri: str):
         """

@@ -27,40 +27,6 @@ class LyricSource(ABC):
         pass
 
 
-class MusixmatchSource(LyricSource):
-    """Musixmatch lyrics provider implementation."""
-
-    def get_song_lyrics(self, artist: str, title: str):
-        search_url = f"https://www.musixmatch.com/search/{artist} {title}"
-        try:
-            search_page = requests.get(search_url)
-            search_soup = BeautifulSoup(search_page.text, 'html.parser')
-            
-            # Find the first song result
-            song_link = search_soup.find("a", {"class": "title"})
-            if song_link:
-                song_url = "https://www.musixmatch.com" + song_link['href']
-                return self._scrape_lyrics(song_url)
-            else:
-                return "Lyrics not found."
-        except requests.RequestException:
-            return "Lyrics not found."  # Handle network or search issues
-
-    def _scrape_lyrics(self, url):
-        try:
-            song_page = requests.get(url)
-            soup = BeautifulSoup(song_page.text, 'html.parser')
-            
-            # Look for the div that contains the lyrics
-            lyrics_div = soup.find("div", {"class": "mxm-lyrics__content"})
-            if lyrics_div:
-                return lyrics_div.get_text(separator="\n").strip()
-            else:
-                return "Lyrics not found."
-        except requests.RequestException:
-            return "Lyrics not found."  # Handle network or scraping issues
-
-
 class GeniusLyricSource(LyricSource):
     def __init__(self):
         self.base_url = "https://api.genius.com"

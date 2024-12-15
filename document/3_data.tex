@@ -1,5 +1,46 @@
 \chapter{Data}
 \label{cha:data}
+
+
+%---------------------------------------------------------------------------
+
+\section{Song Selection Method}
+\label{sec:songselectionmethod}
+
+
+Spotify’s catalog contains approximately 100 million songs and over 6000
+distinct genres. Collecting a truly random sample from this huge and diverse
+population presents significant challenges. A purely random sample is likely to
+contain a great portion of very unpopular songs resulting in poor quality data,
+characterized by sparse meaningful relationships and an overwhelming variety of
+distinct genres. Such diversity would make it nearly impossible to extract
+actionable insights and relationships, as less represented genres and rare
+tracks would dominate, shifting the focus from more prominent trends and
+patterns in music.
+
+
+To address these challenges, a smaller and more organized sample of 6000 songs
+was selected. The stratified sampling approach was designed to ensure a
+balanced dataset by focusing on two key factors: genre and release year. The
+sampling process utilized Spotify's query parametrization tool, which allows
+for the specification of desired genres and release year ranges for musical
+tracks. Release years were grouped into 10-year intervals, starting from 1950
+and extending to 2020, ensuring the dataset represents different time periods
+in modern music. The selection of genres was arbitrary and aimed to include a
+mix of popular and diverse styles, providing a robust representation of
+mainstream musical styles.
+ 
+
+While this approach introduces some degree of selection bias, favoring tracks
+that Spotify's search algorithm prioritizes, this bias is acceptable given the
+research objectives. By explicitly focusing on popular genres and balancing
+across release years, the sample aims to capture relationships and patterns
+that are representative of mainstream trends and music evolution. The
+structured stratification ensures that each genre and time period is adequately
+represented, providing a comprehensive and interpretable dataset for  the
+analysis.
+
+
 %---------------------------------------------------------------------------
 
 \section{Dataset Description}
@@ -12,11 +53,11 @@ recording, lyrics and spotify audio features were fetched.
 \label{sec:datacollectionmethods}
 
 \subsection{Sources}
-The data was collected from various sources. Metadata and audio features
-were fetched from Spotify API. The lyrics were scraped from MusixMatch,
-LetrasMus, MakeItPersonal or Lyrics Fandom, or fetched via the Genius API,
-depending on  the availability. Audio files were downloaded from YouTube and
-saved as mp3 files.
+The data was collected from various sources. Metadata and audio features were
+fetched from Spotify API. The lyrics were scraped from LetrasMus,
+MakeItPersonal or Lyrics Fandom, or fetched via the Genius API, depending on
+the availability. Audio files were downloaded from YouTube and saved as mp3
+files.
 
 \subsection{Methodology}
 The data collection process was automated for efficiency. The starting point
