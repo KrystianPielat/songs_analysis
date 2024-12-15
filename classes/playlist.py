@@ -15,7 +15,7 @@ from .youtube_downloader import YouTubeDownloader
 
 LOGGER = logging.getLogger(__name__)
 
-def retry_operation(max_retries: int = 3, initial_delay: float = 1.0):
+def retry_operation(max_retries: int = 5, initial_delay: float = 1.0):
     """
     A decorator for retrying a function upon failure with quadratic backoff.
 

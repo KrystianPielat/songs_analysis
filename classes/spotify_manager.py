@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, List
 LOGGER = logging.getLogger(__name__)
 
 class SpotifyManager:
-    """Class to handle Spotify API interactions with retry logic."""
+    """Class to handle Spotify API interactions with retry logic and enhanced functionality."""
 
     def __init__(self, client_id: str, client_secret: str, max_retries: int = 5, base_delay: int = 1) -> None:
         """
@@ -42,13 +42,11 @@ class SpotifyManager:
         for attempt in range(1, self.max_retries + 1):
             try:
                 return func(*args, **kwargs)
-            except (ConnectionError, HTTPError, ReadTimeout) as e:
+            except (ConnectionError, HTTPError, ReadTimeout, spotipy.exceptions.SpotifyException) as e:
                 LOGGER.warning(f"Attempt {attempt} failed with error: {e}")
-                
                 if attempt < self.max_retries:
-                    # Non-linear exponential backoff delay between retries
-                    delay = self.base_delay * (2 ** attempt)  # Exponential backoff
-                    LOGGER.info(f"Retrying in {delay} seconds...")
+                    delay = self.base_delay * (2 ** attempt)
+                    LOGGER.info(f"Retrying in {delay:.2f} seconds...")
                     time.sleep(delay)
                 else:
                     LOGGER.error(f"Failed after {self.max_retries} attempts.")
@@ -86,12 +84,14 @@ class SpotifyManager:
             List[Dict[str, Any]]: List of tracks in the playlist.
         """
         tracks = []
-        playlist = self.get_playlist(uri)
-        results = playlist['tracks']
-        while results:
-            tracks.extend(results['items'])
-            results = self._make_request(self.client.next, results) if results['next'] else None
-        return [track['track'] for track in tracks if track.get('track') is not None]
+        results = self.get_playlist(uri)
+        playlist_tracks = results["tracks"]
+
+        while playlist_tracks:
+            tracks.extend(playlist_tracks["items"])
+            playlist_tracks = self._make_request(self.client.next, playlist_tracks) if playlist_tracks["next"] else None
+
+        return [track["track"] for track in tracks if track.get("track")]
 
     def get_artist(self, artist_id: str) -> Dict[str, Any]:
         """Fetches artist data from Spotify.
@@ -103,3 +103,33 @@ class SpotifyManager:
             Dict[str, Any]: Metadata for the specified artist.
         """
         return self._make_request(self.client.artist, artist_id)
+
+    def search_tracks(self, query: str, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+        """Searches for tracks on Spotify.
+
+        Args:
+            query (str): The search query (e.g., "genre:pop").
+            limit (int): The maximum number of tracks to return. Defaults to 50.
+            offset (int): The offset for paginated results. Defaults to 0.
+
+        Returns:
+            Dict[str, Any]: Search results containing tracks.
+        """
+        return self._make_request(self.client.search, q=query, type="track", limit=limit, offset=offset)
+
+    def get_albums_by_artist(self, artist_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Fetches albums by an artist.
+
+        Args:
+            artist_id (str): Spotify ID of the artist.
+            limit (int): The maximum number of albums to fetch. Defaults to 50.
+
+        Returns:
+            List[Dict[str, Any]]: List of albums.
+        """
+        albums = []
+        results = self._make_request(self.client.artist_albums, artist_id, limit=limit)
+        while results:
+            albums.extend(results["items"])
+            results = self._make_request(self.client.next, results) if results["next"] else None
+        return albums

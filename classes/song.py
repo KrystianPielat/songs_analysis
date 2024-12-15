@@ -38,6 +38,12 @@ class Song:
 
     audio_features: SpotifyAudioFeatures = field(default_factory=SpotifyAudioFeatures)
 
+    def __repr__(self):
+        return f"<Song {self.title} by {self.artist}>"
+        
+    def __str__(self):
+        return self.__repr__()
+
     def to_csv_row(self) -> Dict[str, Any]:
         """Converts the song and its audio features to a dictionary suitable for CSV writing.
 
