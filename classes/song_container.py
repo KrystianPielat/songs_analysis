@@ -146,7 +146,7 @@ class SongContainer:
                         audio_features=audio_features
                     )
                     self.add_song(song)
-                    LOGGER.info(f"Loaded existing song '{song.title}' by '{song.artist}' from CSV.")
+                    LOGGER.debug(f"Loaded existing song '{song.title}' by '{song.artist}' from CSV.")
 
     def _load_faulty_songs(self):
         """
@@ -246,7 +246,7 @@ class SongContainer:
                         tracks_added += 1
                         LOGGER.info(f"Added song '{song.title}' by '{song.artist}' to the container.")
                     else:
-                        LOGGER.warning(f"Failed to create song object for track '{track['name']}' by '{track['artists'][0]['name']}'.")
+                        LOGGER.warning(f"Failed to add song '{track['name']}' by '{track['artists'][0]['name']}' because its already in the container.")
 
                     if tracks_added >= tracks_per_bucket:
                         break
@@ -379,6 +379,51 @@ class SongContainer:
         else:
             LOGGER.warning(f"Lyrics for '{song.title}' by '{song.artist}' could not be found.")
     
+    # @retry_operation(max_retries=5, initial_delay=1.0)
+    # def download_song(self, song: Song):
+    #     """
+    #     Downloads a song from YouTube.
+    
+    #     Args:
+    #         song (Song): The song object to be downloaded.
+    #     """
+    #     mp3_file_path = os.path.join(self.save_path, f"{song.title}.mp3")
+    #     temp_file_path = os.path.join(self.save_path, f"{song.title}.part")
+    
+    #     # Skip if already downloaded
+    #     if os.path.exists(mp3_file_path):
+    #         LOGGER.info(f"Skipping download for '{song.title}' by '{song.artist}' as it is already downloaded.")
+    #         song.mp3_path = mp3_file_path
+    #         return
+    
+    #     search_query = f"{song.artist} - {song.title}"
+    #     best_url = self.youtube_downloader.search_youtube(search_query)
+    
+    #     if best_url:
+    #         try:
+    #             # Download the audio file
+    #             success = self.youtube_downloader.download_audio(best_url, temp_file_path.rsplit('.part', 1)[0])
+    #             if success:
+    #                 # Ensure the `.part` file is renamed to the final `.mp3` file
+    #                 if os.path.exists(temp_file_path):
+    #                     os.rename(temp_file_path, mp3_file_path)
+    #                 song.mp3_path = mp3_file_path
+    #                 LOGGER.info(f"Downloaded '{song.title}' by '{song.artist}' successfully.")
+    
+    #                 # Embed album art into the final MP3 file
+    #                 self.youtube_downloader.embed_album_art(song, mp3_file_path, self.save_path)
+    #             else:
+    #                 raise RuntimeError(f"Download failed for '{song.title}' by '{song.artist}'.")
+    #         except Exception as e:
+    #             LOGGER.error(f"Failed to download '{song.title}' by '{song.artist}' from URL '{best_url}': {e}")
+    #             # Clean up incomplete `.part` files
+    #             song.mp3_path = None
+    #             if os.path.exists(temp_file_path):
+    #                 os.remove(temp_file_path)
+    #         return
+    #     else:
+    #         LOGGER.warning(f"No suitable YouTube URL found for '{song.title}' by '{song.artist}'.")
+    #         song.mp3_path = None
     @retry_operation(max_retries=5, initial_delay=1.0)
     def download_song(self, song: Song):
         """
@@ -397,46 +442,57 @@ class SongContainer:
             return
     
         search_query = f"{song.artist} - {song.title}"
-        best_url = self.youtube_downloader.search_youtube(search_query)
-    
-        if best_url:
-            try:
-                # Download the audio file
-                success = self.youtube_downloader.download_audio(best_url, temp_file_path.rsplit('.part', 1)[0])
-                if success:
-                    # Ensure the `.part` file is renamed to the final `.mp3` file
-                    if os.path.exists(temp_file_path):
-                        os.rename(temp_file_path, mp3_file_path)
-                    song.mp3_path = mp3_file_path
-                    LOGGER.info(f"Downloaded '{song.title}' by '{song.artist}' successfully.")
-    
-                    # Embed album art into the final MP3 file
-                    self.youtube_downloader.embed_album_art(song, mp3_file_path, self.save_path)
-                else:
-                    raise RuntimeError(f"Download failed for '{song.title}' by '{song.artist}'.")
-            except Exception as e:
-                LOGGER.error(f"Failed to download '{song.title}' by '{song.artist}' from URL '{best_url}': {e}")
-                # Clean up incomplete `.part` files
+        try:
+            best_url = self.youtube_downloader.search_youtube(search_query)
+            if not best_url:
+                LOGGER.warning(f"No suitable YouTube URL found for '{song.title}' by '{song.artist}'.")
                 song.mp3_path = None
+                return
+    
+            # Download the audio file
+            success = self.youtube_downloader.download_audio(best_url, temp_file_path.rsplit('.part', 1)[0])
+            if success:
+                # Ensure the `.part` file is renamed to the final `.mp3` file
                 if os.path.exists(temp_file_path):
-                    os.remove(temp_file_path)
-            return
-        else:
-            LOGGER.warning(f"No suitable YouTube URL found for '{song.title}' by '{song.artist}'.")
+                    os.rename(temp_file_path, mp3_file_path)
+                song.mp3_path = mp3_file_path
+                LOGGER.info(f"Downloaded '{song.title}' by '{song.artist}' successfully.")
+    
+                # Embed album art into the final MP3 file
+                self.youtube_downloader.embed_album_art(song, mp3_file_path, self.save_path)
+            else:
+                raise RuntimeError(f"Download failed for '{song.title}' by '{song.artist}'.")
+    
+        except Exception as e:
+            # Detect CAPTCHA-specific error
+            if "Sign in to confirm you’re not a bot" in str(e):
+                LOGGER.error(f"CAPTCHA error encountered for '{song.title}' by '{song.artist}': {e}")
+                raise CaptchaException("CAPTCHA error: unable to search YouTube.") from e
+    
+            LOGGER.error(f"Failed to download '{song.title}' by '{song.artist}' from URL '{best_url}': {e}")
+    
+            # Clean up incomplete `.part` files
             song.mp3_path = None
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
 
 
     def fetch_metadata(self):
         """
-        Fetches Spotify audio features and lyrics for all songs.
+        Fetches Spotify audio features and lyrics for all songs that are missing either.
         """
         LOGGER.info("Fetching metadata for all songs...")
-        with tqdm(total=len(self.songs), desc="Fetching metadata", unit="song") as pbar:
+        
+        # Filter the songs that need metadata fetching
+        songs_to_fetch = [song for song in self.songs if not song.lyrics or not song.audio_features.danceability]
+    
+        if not songs_to_fetch:
+            LOGGER.info("All songs already have complete metadata. Nothing to fetch.")
+            return
+    
+        with tqdm(total=len(songs_to_fetch), desc="Fetching metadata", unit="song") as pbar:
             with ThreadPoolExecutor(max_workers=8) as executor:
-                futures = {
-                    executor.submit(self._fetch_metadata_for_song, song): song
-                    for song in self.songs if not song.audio_features.danceability or not song.lyrics
-                }
+                futures = {executor.submit(self._fetch_metadata_for_song, song): song for song in songs_to_fetch}
                 for future in as_completed(futures):
                     song = futures[future]
                     try:
@@ -445,6 +501,7 @@ class SongContainer:
                         LOGGER.error(f"Error fetching metadata for '{song.title}' by '{song.artist}': {e}")
                     finally:
                         pbar.update(1)
+
 
     
     def _fetch_metadata_for_song(self, song: Song):
@@ -457,25 +514,65 @@ class SongContainer:
         self.load_audio_features(song)
         self.load_lyrics(song)
 
+    # def download_songs(self):
+    #     """
+    #     Downloads all songs in the container using YouTube.
+    #     """
+    #     LOGGER.info("Downloading songs...")
+    #     songs_to_download = [ song for song in self.songs if not song.mp3_path or not os.path.exists(os.path.join(self.save_path, song.mp3_path)) ]
+    #     with tqdm(total=len(songs_to_download), desc="Downloading songs", unit="song") as pbar:
+    #         with ThreadPoolExecutor(max_workers=8) as executor:
+    #             futures = {
+    #                 executor.submit(self.download_song, song): song
+    #                 for song in songs_to_download
+    #             }
+    #             for future in as_completed(futures):
+    #                 song = futures[future]
+    #                 try:
+    #                     future.result()
+    #                 except Exception as e:
+    #                     LOGGER.error(f"Error downloading '{song.title}' by '{song.artist}': {e}")
+    #                 finally:
+    #                     pbar.update(1)
+
     def download_songs(self):
         """
         Downloads all songs in the container using YouTube.
+        Stops execution if a CAPTCHA error is encountered.
         """
-        LOGGER.info("Downloading songs...")
-        with tqdm(total=len(self.songs), desc="Downloading songs", unit="song") as pbar:
-            with ThreadPoolExecutor(max_workers=8) as executor:
-                futures = {
-                    executor.submit(self.download_song, song): song
-                    for song in self.songs if not song.mp3_path
-                }
-                for future in as_completed(futures):
-                    song = futures[future]
-                    try:
-                        future.result()
-                    except Exception as e:
-                        LOGGER.error(f"Error downloading '{song.title}' by '{song.artist}': {e}")
-                    finally:
-                        pbar.update(1)
+        LOGGER.info("Starting to download songs...")
+        songs_to_download = [
+            song for song in self.songs
+            if not song.mp3_path or not os.path.exists(os.path.join(self.save_path, song.mp3_path))
+        ]
+        
+        try:
+            with tqdm(total=len(songs_to_download), desc="Downloading songs", unit="song") as pbar:
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    futures = {
+                        executor.submit(self.download_song, song): song
+                        for song in songs_to_download
+                    }
+                    for future in as_completed(futures):
+                        song = futures[future]
+                        try:
+                            future.result()
+                        except RuntimeError as e:
+                            LOGGER.error(f"Error downloading '{song.title}' by '{song.artist}': {e}")
+                        except CaptchaException as e: 
+                            LOGGER.error("CAPTCHA error detected. Stopping all downloads.")
+                            executor.shutdown(wait=False, cancel_futures=True)
+                            raise CaptchaException("CAPTCHA error: Download process stopped.") from e
+                        finally:
+                            pbar.update(1)
+        except RuntimeError as e:
+            LOGGER.error(f"Download process stopped due to: {e}")
+        except Exception as e:
+            LOGGER.error(f"Unexpected error during downloads: {e}")
+        except CaptchaException as e: 
+            LOGGER.error(f"Download process stopped due captcha")
+        else:
+            LOGGER.info("All downloads completed successfully.")
     
         
 
@@ -528,6 +625,36 @@ class SongContainer:
         LOGGER.info(f"Removed {len(faulty_entries)} faulty songs from the container.")
 
 
+    # def save_songs_to_csv(self):
+    #     """
+    #     Saves the current list of songs to the CSV file.
+    #     Appends to the file if it already exists, avoiding duplicates.
+    #     """
+    #     LOGGER.info("Saving songs to CSV...")
+    #     if not self.songs:
+    #         LOGGER.warning("No songs to save.")
+    #         return
+    
+    #     existing_titles = set()
+    #     if os.path.exists(self.csv_file):
+    #         with open(self.csv_file, mode='r', encoding='utf-8') as file:
+    #             reader = csv.DictReader(file)
+    #             existing_titles = {row['title'].lower() + row['artist'].lower() for row in reader}
+    
+    #     with open(self.csv_file, mode='a', newline='', encoding='utf-8') as file:
+    #         writer = csv.DictWriter(file, fieldnames=self.songs[0].to_csv_row().keys())
+    #         if os.path.getsize(self.csv_file) == 0:  # Write header if file is new
+    #             writer.writeheader()
+    
+    #         for song in self.songs:
+    #             song_key = song.title.lower() + song.artist.lower()
+    #             if song_key not in existing_titles:
+    #                 writer.writerow(song.to_csv_row())
+    #                 existing_titles.add(song_key)
+    #                 LOGGER.info(f"Saved song '{song.title}' by '{song.artist}' to CSV.")
+    
+    #     LOGGER.info("Finished saving songs to CSV.")
+
     def save_songs_to_csv(self):
         """
         Saves the current list of songs to the CSV file.
@@ -538,22 +665,12 @@ class SongContainer:
             LOGGER.warning("No songs to save.")
             return
     
-        existing_titles = set()
-        if os.path.exists(self.csv_file):
-            with open(self.csv_file, mode='r', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                existing_titles = {row['title'].lower() + row['artist'].lower() for row in reader}
-    
-        with open(self.csv_file, mode='a', newline='', encoding='utf-8') as file:
+        with open(self.csv_file, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=self.songs[0].to_csv_row().keys())
             if os.path.getsize(self.csv_file) == 0:  # Write header if file is new
                 writer.writeheader()
     
             for song in self.songs:
-                song_key = song.title.lower() + song.artist.lower()
-                if song_key not in existing_titles:
-                    writer.writerow(song.to_csv_row())
-                    existing_titles.add(song_key)
-                    LOGGER.info(f"Saved song '{song.title}' by '{song.artist}' to CSV.")
+                writer.writerow(song.to_csv_row())
     
         LOGGER.info("Finished saving songs to CSV.")

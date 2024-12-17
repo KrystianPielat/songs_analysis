@@ -5,6 +5,8 @@ import logging
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC, error
 from typing import Optional
+from youtube_search import YoutubeSearch
+from classes.exceptions import CaptchaException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +27,6 @@ class YouTubeDownloader:
             Optional[str]: URL of the best match video, or None if no results found.
         """
         try:
-            from youtube_search import YoutubeSearch
             results = YoutubeSearch(query, max_results=1).to_dict()
             url = f"https://www.youtube.com{results[0]['url_suffix']}"
             LOGGER.info(f"Found YouTube URL for '{query}': {url}")
@@ -33,6 +34,11 @@ class YouTubeDownloader:
         except IndexError:
             LOGGER.warning(f"No valid YouTube URL found for '{query}'")
             return None
+        except Exception as e:
+            if "Sign in to confirm you’re not a bot" in str(e):
+                LOGGER.error("YouTube CAPTCHA error encountered during search.")
+                raise CaptchaException("CAPTCHA error: unable to search YouTube.") from e
+            raise
 
     def download_audio(self, url: str, output_path: str) -> bool:
         """Downloads audio from a YouTube URL and saves it as an MP3 file.
@@ -65,9 +71,12 @@ class YouTubeDownloader:
             LOGGER.info(f"Downloaded audio to '{output_path}'")
             return True
         except Exception as e:
-            LOGGER.error(f"Failed to download from YouTube URL '{url}': {e}")
-            return False
-
+            if "Sign in to confirm you’re not a bot" in str(e):
+                LOGGER.error("YouTube CAPTCHA error encountered during download.")
+                raise CaptchaException("CAPTCHA error: unable to download audio from YouTube.") from e
+            raise
+        return False
+            
     def embed_album_art(self, song, song_path: str, save_directory: str) -> None:
         """Embeds album art into an MP3 file.
 

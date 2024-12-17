@@ -20,6 +20,7 @@ from typing import List, Optional
 from nltk.stem import SnowballStemmer
 from classes.feature_extractor import FeatureExtractor
 from langcodes import Language
+from empath import Empath
 
 # Set seed for reproducibility in langdetect
 DetectorFactory.seed = 0
@@ -39,6 +40,7 @@ class TextFeatureExtractor(FeatureExtractor):
         self.sid = SentimentIntensityAnalyzer()
         self.tfidf = TfidfVectorizer()
         self.default_stemmer = SnowballStemmer("english")
+        self.empath_analyzer = Empath()
 
     @staticmethod
     def preprocess_text(text: str, stemmer: Optional[SnowballStemmer] = None, stopword_list: Optional[set] = None) -> str:
@@ -58,6 +60,20 @@ class TextFeatureExtractor(FeatureExtractor):
             words = [stemmer.stem(token) for token in tokens]
         return " ".join(tokens)
 
+    
+    def extract_empath_features(self, text: str) -> dict:
+        """
+        Extracts Empath features for a given text.
+
+        Args:
+            text (str): The text to analyze.
+        
+        Returns:
+            dict: Dictionary of Empath category scores.
+        """
+        empath_scores = self.empath_analyzer.analyze(text, normalize=True)
+        empath_scores = {f'empath_{k}': v for k, v in empath_scores.items()}
+        return empath_scores
 
     def get_stemmer_and_stopwords(self, language: str) -> (Optional[SnowballStemmer], Optional[set]):
         """Returns the appropriate stemmer and stopword list for the given language."""
@@ -150,6 +166,9 @@ class TextFeatureExtractor(FeatureExtractor):
         noun_ratio = sum(1 for word, tag in tagged if tag.startswith('NN')) / word_count if word_count > 0 else 0
         verb_ratio = sum(1 for word, tag in tagged if tag.startswith('VB')) / word_count if word_count > 0 else 0
 
+        # Empath
+        empath_features = self.extract_empath_features(lyrics)
+
         return {
             "word_count": word_count,
             "unique_word_count": unique_word_count,
@@ -170,7 +189,8 @@ class TextFeatureExtractor(FeatureExtractor):
             "sentiment_subjectivity": sentiment_subjectivity,
             "type_token_ratio": ttr,
             "repetition_count": repetition_count,
-            "preprocessed_lyrics": processed_lyrics
+            "preprocessed_lyrics": processed_lyrics,
+            **empath_features
         }
 
     def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics') -> pd.DataFrame:

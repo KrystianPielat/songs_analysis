@@ -60,15 +60,8 @@ loggers:
       - stderr
     propagate: false
     
-  classes.playlist:
-    level: INFO
-    handlers:
-      - stdout
-      - stderr
-    propagate: false
-    
   classes.song_container:
-    level: INFO
+    level: WARNING
     handlers:
       - stdout
       - stderr
