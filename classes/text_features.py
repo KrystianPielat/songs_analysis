@@ -21,6 +21,8 @@ from nltk.stem import SnowballStemmer
 from classes.feature_extractor import FeatureExtractor
 from langcodes import Language
 from empath import Empath
+from multiprocessing import Pool, cpu_count
+from tqdm.auto import tqdm
 
 # Set seed for reproducibility in langdetect
 DetectorFactory.seed = 0
@@ -33,94 +35,94 @@ nltk.download('stopwords', quiet=True)
 nltk.download('wordnet', quiet=True)
 
 
-
-class TextFeatureExtractor(FeatureExtractor):
+class TextFeatureExtractor:
     def __init__(self) -> None:
-        """Initializes the TextFeatureExtractor with sentiment and TF-IDF analyzers."""
+        """Initializes the TextFeatureExtractor with sentiment and Empath analyzers."""
         self.sid = SentimentIntensityAnalyzer()
-        self.tfidf = TfidfVectorizer()
-        self.default_stemmer = SnowballStemmer("english")
         self.empath_analyzer = Empath()
 
     @staticmethod
-    def preprocess_text(text: str, stemmer: Optional[SnowballStemmer] = None, stopword_list: Optional[set] = None) -> str:
+    def preprocess_text(text: str, stemmer: Optional[SnowballStemmer] = None, stopword_list: Optional[set] = None, title: Optional[str] = None) -> str:
         """
-        Preprocess text by removing stopwords, punctuation, numbers, 
-        and applying stemming after tokenization.
+        Preprocess text by:
+        - Removing square bracket content like [Verse], [Chorus].
+        - Removing "letra de" prefix and title words in the first 6 words of lyrics.
+        - Removing stopwords and punctuation.
+        - Applying stemming.
         """
+        if not isinstance(text, str):
+            return ""
+    
+        # Lowercase the text
         text = text.lower()
-        text = text.translate(str.maketrans("", "", string.punctuation))
-        text = re.sub(r"\d+", "", text)
-        tokens = casual_tokenize(text)
+    
+        # Remove square bracket content like [Chorus], [Verse 1]
+        text = re.sub(r"\[.*?\]", "", text)
+    
+        # Remove "letra de" prefix and clean title-like words
         if text.startswith("letra de"):
-            tokens = tokens[5:]  # Remove "letra de" + average title length
-        if stopword_list is not None:
+            text = text[len("letra de"):].strip()
+            if title:
+                title_words = set(title.lower().split())
+                lyrics_words = text.split()
+                text = " ".join([word for i, word in enumerate(lyrics_words) if i >= 6 or word not in title_words])
+    
+        # Remove words like "verse", "chorus"
+        text = re.sub(r"\b(verse|chorus|bridge|outro|intro)\b", "", text)
+    
+        # Remove numbers and punctuation
+        text = re.sub(r"\d+", "", text.translate(str.maketrans("", "", string.punctuation)))
+    
+        # Tokenize and remove stopwords
+        tokens = casual_tokenize(text)
+        if stopword_list:
             tokens = [token for token in tokens if token not in stopword_list]
-        if stemmer is not None:
-            words = [stemmer.stem(token) for token in tokens]
+    
+        # Apply stemming if a stemmer is provided
+        if stemmer:
+            tokens = [stemmer.stem(token) for token in tokens]
+    
         return " ".join(tokens)
 
-    
+
     def extract_empath_features(self, text: str) -> dict:
-        """
-        Extracts Empath features for a given text.
-
-        Args:
-            text (str): The text to analyze.
-        
-        Returns:
-            dict: Dictionary of Empath category scores.
-        """
+        """Extracts Empath features for a given text."""
         empath_scores = self.empath_analyzer.analyze(text, normalize=True)
-        empath_scores = {f'empath_{k}': v for k, v in empath_scores.items()}
-        return empath_scores
-
-    def get_stemmer_and_stopwords(self, language: str) -> (Optional[SnowballStemmer], Optional[set]):
-        """Returns the appropriate stemmer and stopword list for the given language."""
-        try:
-            stemmer = SnowballStemmer(language)
-        except ValueError:
-            stemmer = None
-
-        try:
-            stopword_list = set(stopwords.words(language))
-        except OSError:
-            stopword_list = None
-
-        return stemmer, stopword_list
+        return {f'empath_{k}': v for k, v in empath_scores.items()}
 
     def extract_features(self, lyrics: str) -> dict:
         """Extracts various text features from a single lyrics string."""
-        # Detect language
+        # Language detection
         try:
             language = Language.make(detect(lyrics)).display_name().lower()
         except Exception:
             language = "unknown"
 
-        # Get the appropriate stemmer and stopword list
-        stemmer, stopword_list = self.get_stemmer_and_stopwords(language)
+        # Stopwords and stemmer
+        stemmer, stopword_list = None, None
+        if language in stopwords.fileids():
+            stemmer = SnowballStemmer(language)
+            stopword_list = set(stopwords.words(language))
 
-        # Preprocess text with the detected stemmer and stopwords
+        # Preprocess text
         processed_lyrics = self.preprocess_text(lyrics, stemmer, stopword_list)
-
-        # Tokenize and preprocess
         tokens = word_tokenize(processed_lyrics)
         unique_tokens = set(tokens)
-    
-        # Compute basic metrics
+
+        # Basic Metrics
         word_count = len(tokens)
         unique_word_count = len(unique_tokens)
         lexical_richness = unique_word_count / word_count if word_count > 0 else 0
-    
+
         # Semantic depth
-        synset_depths = [max(len(ss.hypernym_paths()[0]) for ss in wn.synsets(word)) 
+        synset_depths = [max(len(ss.hypernym_paths()[0]) for ss in wn.synsets(word))
                          for word in tokens if wn.synsets(word)]
         semantic_depth = sum(synset_depths) / len(synset_depths) if synset_depths else 0
-    
+
         # Syntactic complexity
         sentences = nltk.sent_tokenize(lyrics)
         syntactic_complexity = sum(len(word_tokenize(sent)) for sent in sentences) / len(sentences) if sentences else 0
-    
+
         # Rhyme density
         lines = lyrics.split(".\n")
         rhyme_pairs = 0
@@ -130,43 +132,39 @@ class TextFeatureExtractor(FeatureExtractor):
                 rhymes = [w for w in pronouncing.rhymes(words[-1]) if w in words]
                 rhyme_pairs += len(rhymes)
         rhyme_density = rhyme_pairs / word_count if word_count > 0 else 0
-    
-        # Sentiment variability
-        scores = [self.sid.polarity_scores(line)['compound'] for line in lines]
-        sentiment_variability = statistics.stdev(scores) if len(scores) > 1 else 0
-    
-        # Vader compound
-        vader_compound = self.sid.polarity_scores(lyrics)['compound']
 
-        # Sentiment polarity and subjectivity
+        # Sentiment Variability
+        scores = [self.sid.polarity_scores(line)['compound'] for line in lines if line]
+        sentiment_variability = statistics.stdev(scores) if len(scores) > 1 else 0
+
+        # Vader and TextBlob Sentiment
+        vader_compound = self.sid.polarity_scores(lyrics)['compound']
         sentiment_polarity = TextBlob(lyrics).sentiment.polarity
         sentiment_subjectivity = TextBlob(lyrics).sentiment.subjectivity
-    
+
         # Linguistic uniqueness
         clean_tokens = [word.strip(".,") for word in tokens]
         rare_words = [word for word in clean_tokens if word_frequency(word, 'en') < 1e-6]
         linguistic_uniqueness = len(rare_words) / len(clean_tokens) if clean_tokens else 0
 
-        # Type-Token Ratio (TTR)
+        # Type-Token Ratio (TTR) and Repetition
         ttr = len(unique_tokens) / len(tokens) if tokens else 0
-
-        # Repetition count
         word_freq = Counter(tokens)
         repetition_count = sum(count - 1 for count in word_freq.values() if count > 1)
-    
+
         # Readability metrics
         readability = {
             "flesch_reading_ease": textstat.flesch_reading_ease(lyrics),
             "gunning_fog": textstat.gunning_fog(lyrics),
             "dale_chall": textstat.dale_chall_readability_score(lyrics)
         }
-    
-        # Part of speech ratios
-        tagged = pos_tag(tokens)
-        noun_ratio = sum(1 for word, tag in tagged if tag.startswith('NN')) / word_count if word_count > 0 else 0
-        verb_ratio = sum(1 for word, tag in tagged if tag.startswith('VB')) / word_count if word_count > 0 else 0
 
-        # Empath
+        # Part-of-Speech Ratios
+        tagged = pos_tag(tokens)
+        noun_ratio = sum(1 for _, tag in tagged if tag.startswith('NN')) / word_count if word_count > 0 else 0
+        verb_ratio = sum(1 for _, tag in tagged if tag.startswith('VB')) / word_count if word_count > 0 else 0
+
+        # Empath features
         empath_features = self.extract_empath_features(lyrics)
 
         return {
@@ -193,17 +191,41 @@ class TextFeatureExtractor(FeatureExtractor):
             **empath_features
         }
 
-    def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics') -> pd.DataFrame:
-        """Adds extracted text features and TF-IDF features to a DataFrame."""
-        # Extract features for all rows
-        all_features = [self.extract_features(row[text_column]) for _, row in df.iterrows()]
-        
-        # Create a DataFrame directly from the list of dictionaries
+
+    @staticmethod
+    def _process_batch(args):
+        """Processes a batch of rows for feature extraction."""
+        batch, text_column = args
+        extractor = TextFeatureExtractor()
+        results = []
+        for _, row in batch.iterrows():
+            try:
+                features = extractor.extract_features(row[text_column])
+                results.append(features)
+            except Exception as e:
+                logging.error(f"Error processing row: {e}")
+                placeholder = {k: None for k in extractor.extract_features("").keys()}
+                results.append(placeholder)
+        return results
+
+    def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics', batch_size: int = 100) -> pd.DataFrame:
+        """Adds extracted text features to a DataFrame in parallel batches."""
+        if text_column not in df.columns:
+            raise ValueError(f"Column '{text_column}' not found in DataFrame.")
+
+        # Split DataFrame into batches
+        batches = [(df.iloc[i:i + batch_size], text_column) for i in range(0, len(df), batch_size)]
+        all_features = []
+
+        # Process batches in parallel
+        with Pool(cpu_count()) as pool:
+            with tqdm(total=len(df), desc="Processing Features") as pbar:
+                for batch_result in pool.imap(TextFeatureExtractor._process_batch, batches):
+                    all_features.extend(batch_result)
+                    pbar.update(len(batch_result))
+
+        # Combine results into DataFrame
         features_df = pd.DataFrame(all_features)
-        
-        # Align and overwrite columns in the original DataFrame
-        df = df.drop(columns=features_df.columns.intersection(df.columns), errors='ignore')
-        
         return pd.concat([df.reset_index(drop=True), features_df], axis=1)
 
 
