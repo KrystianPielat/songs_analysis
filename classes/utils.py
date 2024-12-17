@@ -10,6 +10,7 @@ from classes.constants import GENRE_MAPPING
 _LOGGER = logging.getLogger(__name__)
 
 
+
 def gather_data_from_folders(playlists_dir: str) -> pd.DataFrame:
     """Concatenates all CSV files from subfolders of a specified directory into one DataFrame.
 
@@ -23,7 +24,7 @@ def gather_data_from_folders(playlists_dir: str) -> pd.DataFrame:
 
     for root, dirs, files in os.walk(playlists_dir):
         for file in files:
-            if file.endswith('.csv') and '.ipynb' not in root and not file.startswith("_"):
+            if file.endswith('.csv') and '.ipynb' not in root and not file.startswith("_") and 'faulty' not in file:
                 csv_path = os.path.join(root, file)
                 _LOGGER.info(f"Loading CSV file: {csv_path}")
                 df = pd.read_csv(csv_path, index_col=None)

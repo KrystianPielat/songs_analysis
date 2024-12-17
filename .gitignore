@@ -168,3 +168,5 @@ playlists_new/
 classes/_playlist.py
 
 test/
+
+final_data.pkl
