@@ -170,3 +170,5 @@ classes/_playlist.py
 test/
 
 final_data.pkl
+
+_onboarding.ipynb
