@@ -34,40 +34,56 @@ nltk.download('vader_lexicon', quiet=True)
 nltk.download('stopwords', quiet=True)
 nltk.download('wordnet', quiet=True)
 
-def process_batch(args):
-    """Standalone function to process a batch of text rows."""
-    batch, text_column = args  # Unpack the tuple
-    extractor = TextFeatureExtractor()  # Create an instance of the extractor
-    results = []
-    for _, row in batch.iterrows():
-        try:
-            features = extractor.extract_features(row[text_column])
-            results.append(features)
-        except Exception as e:
-            logging.error(f"Error processing row: {e}")
-            placeholder = {k: None for k in extractor.extract_features("").keys()}
-            results.append(placeholder)
-    return results
-
 
 class TextFeatureExtractor:
     def __init__(self) -> None:
         """Initializes the TextFeatureExtractor with sentiment and Empath analyzers."""
         self.sid = SentimentIntensityAnalyzer()
-        self.default_stemmer = SnowballStemmer("english")
         self.empath_analyzer = Empath()
 
     @staticmethod
-    def preprocess_text(text: str, stemmer: Optional[SnowballStemmer] = None, stopword_list: Optional[set] = None) -> str:
-        """Preprocess text by removing stopwords, punctuation, and applying stemming."""
+    def preprocess_text(text: str, stemmer: Optional[SnowballStemmer] = None, stopword_list: Optional[set] = None, title: Optional[str] = None) -> str:
+        """
+        Preprocess text by:
+        - Removing square bracket content like [Verse], [Chorus].
+        - Removing "letra de" prefix and title words in the first 6 words of lyrics.
+        - Removing stopwords and punctuation.
+        - Applying stemming.
+        """
+        if not isinstance(text, str):
+            return ""
+    
+        # Lowercase the text
         text = text.lower()
+    
+        # Remove square bracket content like [Chorus], [Verse 1]
+        text = re.sub(r"\[.*?\]", "", text)
+    
+        # Remove "letra de" prefix and clean title-like words
+        if text.startswith("letra de"):
+            text = text[len("letra de"):].strip()
+            if title:
+                title_words = set(title.lower().split())
+                lyrics_words = text.split()
+                text = " ".join([word for i, word in enumerate(lyrics_words) if i >= 6 or word not in title_words])
+    
+        # Remove words like "verse", "chorus"
+        text = re.sub(r"\b(verse|chorus|bridge|outro|intro)\b", "", text)
+    
+        # Remove numbers and punctuation
         text = re.sub(r"\d+", "", text.translate(str.maketrans("", "", string.punctuation)))
+    
+        # Tokenize and remove stopwords
         tokens = casual_tokenize(text)
         if stopword_list:
             tokens = [token for token in tokens if token not in stopword_list]
+    
+        # Apply stemming if a stemmer is provided
         if stemmer:
             tokens = [stemmer.stem(token) for token in tokens]
+    
         return " ".join(tokens)
+
 
     def extract_empath_features(self, text: str) -> dict:
         """Extracts Empath features for a given text."""
@@ -175,29 +191,39 @@ class TextFeatureExtractor:
             **empath_features
         }
 
-    # @staticmethod
-    # def _process_batch(args):
-    #     """Processes a batch of rows for feature extraction."""
-    #     batch, extractor, text_column = args
-    #     results = [extractor.extract_features(row[text_column]) for _, row in batch.iterrows()]
-    #     return results
+
+    @staticmethod
+    def _process_batch(args):
+        """Processes a batch of rows for feature extraction."""
+        batch, text_column = args
+        extractor = TextFeatureExtractor()
+        results = []
+        for _, row in batch.iterrows():
+            try:
+                features = extractor.extract_features(row[text_column])
+                results.append(features)
+            except Exception as e:
+                logging.error(f"Error processing row: {e}")
+                placeholder = {k: None for k in extractor.extract_features("").keys()}
+                results.append(placeholder)
+        return results
 
     def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics', batch_size: int = 100) -> pd.DataFrame:
         """Adds extracted text features to a DataFrame in parallel batches."""
         if text_column not in df.columns:
             raise ValueError(f"Column '{text_column}' not found in DataFrame.")
-    
+
         # Split DataFrame into batches
         batches = [(df.iloc[i:i + batch_size], text_column) for i in range(0, len(df), batch_size)]
         all_features = []
-    
+
         # Process batches in parallel
         with Pool(cpu_count()) as pool:
             with tqdm(total=len(df), desc="Processing Features") as pbar:
-                for batch_result in pool.imap(process_batch, batches):
+                for batch_result in pool.imap(TextFeatureExtractor._process_batch, batches):
                     all_features.extend(batch_result)
                     pbar.update(len(batch_result))
-    
+
         # Combine results into DataFrame
         features_df = pd.DataFrame(all_features)
         return pd.concat([df.reset_index(drop=True), features_df], axis=1)
