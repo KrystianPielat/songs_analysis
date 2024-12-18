@@ -171,6 +171,33 @@ It can be broken down into two parts:
   \end{itemize}
 \end{itemize}
 
+
+\subsubsection*{Empath}
+Empath\cite{empath} is a semantic analysis tool designed for extracting
+semantic, thematic and emotional features from text by analyzing words based on
+predefined categories. It classifies words into over 200 built-in categories,
+such as \textit{sadness}, \textit{food} and \textit{music}. It  identifies
+relationships between words and these categories, offering a higher-level
+representation of text content beyond simple word frequency.
+
+In this study, Empath was  used to analyze song lyrics, allowing for extraction
+of thematic and  emotional content. These features were used to complement
+other lyrical reprersentations, such as TF-IDF and LDA. In contrary to those
+methods however, empath provided a broader contextual understanding of lyrics
+by summarizing them into measningful categories. This approach also enhanced
+the interpretability of topics identified by LDA, as empath features offered an
+additional layer of semantic insight, making it easier to characterize and
+describe those topics.
+
+Moreover, Empath allows for a more nuanced exploration of lyrical content
+across different genres. By analyzing trends in emotional categories like
+sadness or anger, and themes such as party or work, it helps to identify
+meaningful variations between genres or time periods.
+
+By combining Empath with traditional feature extraction methods, this study
+benefits from a richer, more interpretable representation of lyrical content.
+
+
 %---------------------------------------------------------------------------
 
 \section{Explainable AI Methods}
@@ -191,7 +218,7 @@ driving model predictions ensured that the results were both reliable and
 meaningfully adressed the research objectives. The  techniques employed in this paper are: 
 
 \subsubsection*{SHAP (SHapley Additive exPlanations)}
-SHAP values offer a detailed  breakdown of how individual features contribute
+SHAP\cite{shap} values offer a detailed  breakdown of how individual features contribute
 to  each prediction. It uses game theory principles to compute the importance
 of each feature for a given output, providing both global insights on general
 feature importance and  local explainations, showing how diffrenet features
@@ -204,7 +231,7 @@ visualization of relationships.
 \begin{figure}[ht]
   \centering
   \includegraphics[width=4in]{img/shap_intro.png}
-  \caption{SHAP}
+  \caption{SHAP\cite{shap}}
   \label{Figure:fig_beh}
 \end{figure}
 \end{center}
