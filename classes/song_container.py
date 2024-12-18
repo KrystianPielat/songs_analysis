@@ -139,7 +139,7 @@ class SongContainer:
                         explicit=row['explicit'].lower() == 'true',
                         album_release_year=int(row['album_release_year']) if row['album_release_year'] else None,
                         duration_ms=int(row['duration_ms']) if row['duration_ms'] else None,
-                        genres=row['genres'].split(',') if row.get('genres') else [],
+                        genres=row['genres'],#.split(',') if row.get('genres') else [],
                         lyrics=row.get('lyrics'),
                         mp3_path=row.get('mp3_path'),
                         csv_path=self.csv_file,
@@ -186,12 +186,10 @@ class SongContainer:
     
                 song = self._create_song_from_track(track)
                 if song:
+                    song.genres.insert(0, f"search:{genre}")
                     tracks.append(song)
 
         for track in tracks:
-            # genres = eval(track.genres).insert(0, genre)
-            # track.genres = str(genres)
-            track.genres.insert(0, f"search:{genre}")
             self.add_song(track)
         LOGGER.info(f"Added {len(tracks)} songs for genre '{genre}'.")
 
@@ -379,51 +377,7 @@ class SongContainer:
         else:
             LOGGER.warning(f"Lyrics for '{song.title}' by '{song.artist}' could not be found.")
     
-    # @retry_operation(max_retries=5, initial_delay=1.0)
-    # def download_song(self, song: Song):
-    #     """
-    #     Downloads a song from YouTube.
-    
-    #     Args:
-    #         song (Song): The song object to be downloaded.
-    #     """
-    #     mp3_file_path = os.path.join(self.save_path, f"{song.title}.mp3")
-    #     temp_file_path = os.path.join(self.save_path, f"{song.title}.part")
-    
-    #     # Skip if already downloaded
-    #     if os.path.exists(mp3_file_path):
-    #         LOGGER.info(f"Skipping download for '{song.title}' by '{song.artist}' as it is already downloaded.")
-    #         song.mp3_path = mp3_file_path
-    #         return
-    
-    #     search_query = f"{song.artist} - {song.title}"
-    #     best_url = self.youtube_downloader.search_youtube(search_query)
-    
-    #     if best_url:
-    #         try:
-    #             # Download the audio file
-    #             success = self.youtube_downloader.download_audio(best_url, temp_file_path.rsplit('.part', 1)[0])
-    #             if success:
-    #                 # Ensure the `.part` file is renamed to the final `.mp3` file
-    #                 if os.path.exists(temp_file_path):
-    #                     os.rename(temp_file_path, mp3_file_path)
-    #                 song.mp3_path = mp3_file_path
-    #                 LOGGER.info(f"Downloaded '{song.title}' by '{song.artist}' successfully.")
-    
-    #                 # Embed album art into the final MP3 file
-    #                 self.youtube_downloader.embed_album_art(song, mp3_file_path, self.save_path)
-    #             else:
-    #                 raise RuntimeError(f"Download failed for '{song.title}' by '{song.artist}'.")
-    #         except Exception as e:
-    #             LOGGER.error(f"Failed to download '{song.title}' by '{song.artist}' from URL '{best_url}': {e}")
-    #             # Clean up incomplete `.part` files
-    #             song.mp3_path = None
-    #             if os.path.exists(temp_file_path):
-    #                 os.remove(temp_file_path)
-    #         return
-    #     else:
-    #         LOGGER.warning(f"No suitable YouTube URL found for '{song.title}' by '{song.artist}'.")
-    #         song.mp3_path = None
+
     @retry_operation(max_retries=5, initial_delay=1.0)
     def download_song(self, song: Song):
         """
@@ -513,27 +467,6 @@ class SongContainer:
         """
         self.load_audio_features(song)
         self.load_lyrics(song)
-
-    # def download_songs(self):
-    #     """
-    #     Downloads all songs in the container using YouTube.
-    #     """
-    #     LOGGER.info("Downloading songs...")
-    #     songs_to_download = [ song for song in self.songs if not song.mp3_path or not os.path.exists(os.path.join(self.save_path, song.mp3_path)) ]
-    #     with tqdm(total=len(songs_to_download), desc="Downloading songs", unit="song") as pbar:
-    #         with ThreadPoolExecutor(max_workers=8) as executor:
-    #             futures = {
-    #                 executor.submit(self.download_song, song): song
-    #                 for song in songs_to_download
-    #             }
-    #             for future in as_completed(futures):
-    #                 song = futures[future]
-    #                 try:
-    #                     future.result()
-    #                 except Exception as e:
-    #                     LOGGER.error(f"Error downloading '{song.title}' by '{song.artist}': {e}")
-    #                 finally:
-    #                     pbar.update(1)
 
     def download_songs(self):
         """
@@ -625,35 +558,6 @@ class SongContainer:
         LOGGER.info(f"Removed {len(faulty_entries)} faulty songs from the container.")
 
 
-    # def save_songs_to_csv(self):
-    #     """
-    #     Saves the current list of songs to the CSV file.
-    #     Appends to the file if it already exists, avoiding duplicates.
-    #     """
-    #     LOGGER.info("Saving songs to CSV...")
-    #     if not self.songs:
-    #         LOGGER.warning("No songs to save.")
-    #         return
-    
-    #     existing_titles = set()
-    #     if os.path.exists(self.csv_file):
-    #         with open(self.csv_file, mode='r', encoding='utf-8') as file:
-    #             reader = csv.DictReader(file)
-    #             existing_titles = {row['title'].lower() + row['artist'].lower() for row in reader}
-    
-    #     with open(self.csv_file, mode='a', newline='', encoding='utf-8') as file:
-    #         writer = csv.DictWriter(file, fieldnames=self.songs[0].to_csv_row().keys())
-    #         if os.path.getsize(self.csv_file) == 0:  # Write header if file is new
-    #             writer.writeheader()
-    
-    #         for song in self.songs:
-    #             song_key = song.title.lower() + song.artist.lower()
-    #             if song_key not in existing_titles:
-    #                 writer.writerow(song.to_csv_row())
-    #                 existing_titles.add(song_key)
-    #                 LOGGER.info(f"Saved song '{song.title}' by '{song.artist}' to CSV.")
-    
-    #     LOGGER.info("Finished saving songs to CSV.")
 
     def save_songs_to_csv(self):
         """

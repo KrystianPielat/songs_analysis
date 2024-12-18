@@ -6,6 +6,8 @@ import logging
 from tqdm.auto import tqdm
 from classes.feature_extractor import FeatureExtractor
 from multiprocessing import Pool, cpu_count
+import gc
+import psutil
 
 LOGGER = logging.getLogger(__name__)
 
@@ -86,11 +88,15 @@ class AudioFeatureExtractor:
         # Process in parallel if batch_size is provided
         if batch_size:
             batches = [(df.iloc[i:i + batch_size], audio_column) for i in range(0, len(df), batch_size)]
-            with Pool(cpu_count()) as pool:
+            with Pool(max(cpu_count() // 2, 1)) as pool:
                 with tqdm(total=len(df), desc="Extracting Audio Features", unit="file") as pbar:
                     for batch_result in pool.imap(AudioFeatureExtractor._process_batch_static, batches):
                         all_features.extend(batch_result)
                         pbar.update(len(batch_result))
+                        gc.collect()
+                        memory_info = psutil.virtual_memory()
+                        LOGGER.info(f"Memory Usage: {memory_info.percent}%")
+
         else:
             # Process sequentially
             for _, row in tqdm(df.iterrows(), total=len(df), desc="Extracting Audio Features", unit="file"):

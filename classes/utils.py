@@ -9,7 +9,13 @@ from classes.constants import GENRE_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
 
-
+def variance_based_empath_cleaning(df, variance_threshold: float = 0.0001):
+    empath_df = df[[col for col in df.columns if col.startswith("empath_")]]
+    feature_variances = empath_df.var()
+    low_variance_features = feature_variances[feature_variances < 0.0001].index
+    _LOGGER.info(f"Total empath features: {empath_df.shape[1]}")
+    _LOGGER.info(f"Low-variance features to remove: {len(low_variance_features)}")
+    return list(empath_df.drop(columns=low_variance_features).columns)
 
 def gather_data_from_folders(playlists_dir: str) -> pd.DataFrame:
     """Concatenates all CSV files from subfolders of a specified directory into one DataFrame.

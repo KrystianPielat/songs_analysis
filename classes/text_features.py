@@ -23,6 +23,7 @@ from langcodes import Language
 from empath import Empath
 from multiprocessing import Pool, cpu_count
 from tqdm.auto import tqdm
+import logging
 
 # Set seed for reproducibility in langdetect
 DetectorFactory.seed = 0
@@ -86,9 +87,17 @@ class TextFeatureExtractor:
 
 
     def extract_empath_features(self, text: str) -> dict:
-        """Extracts Empath features for a given text."""
-        empath_scores = self.empath_analyzer.analyze(text, normalize=True)
-        return {f'empath_{k}': v for k, v in empath_scores.items()}
+        """Extracts Empath features for a given text, or returns NaN values if language is unsupported."""
+        try:
+            empath_scores = self.empath_analyzer.analyze(text, normalize=True)
+            if not empath_scores:
+                raise ValueError("Empath failed")
+            return {f'empath_{k}': v for k, v in empath_scores.items()}
+        except ValueError:
+            # Generate all columns as NaN if Empath fails
+            empath_categories = self.empath_analyzer.cats
+            return {f'empath_{k}': None for k in empath_categories}
+
 
     def extract_features(self, lyrics: str) -> dict:
         """Extracts various text features from a single lyrics string."""
@@ -213,6 +222,12 @@ class TextFeatureExtractor:
         if text_column not in df.columns:
             raise ValueError(f"Column '{text_column}' not found in DataFrame.")
 
+        
+        sample_features = self.extract_features("")
+        feature_columns = list(sample_features.keys())
+    
+        df = df.drop(columns=[col for col in feature_columns if col in df.columns], errors="ignore")
+
         # Split DataFrame into batches
         batches = [(df.iloc[i:i + batch_size], text_column) for i in range(0, len(df), batch_size)]
         all_features = []
@@ -229,47 +244,3 @@ class TextFeatureExtractor:
         return pd.concat([df.reset_index(drop=True), features_df], axis=1)
 
 
-
-class TfidfFeatureExtractor(FeatureExtractor):
-    def __init__(self, n_pca_components: int = 100) -> None:
-        """Initializes the TF-IDF Feature Extractor with PCA."""
-        self.tfidf = TfidfVectorizer()
-        self.pca = PCA(n_components=n_pca_components)
-
-    def extract_features(self, data: pd.Series) -> pd.DataFrame:
-        """Extracts TF-IDF features and applies PCA for dimensionality reduction.
-
-        Args:
-            data (pd.Series): The text data to process.
-
-        Returns:
-            pd.DataFrame: The PCA-reduced TF-IDF features as a DataFrame.
-        """
-        # TF-IDF Transformation
-        tfidf_matrix = self.tfidf.fit_transform(data).toarray()
-
-        # Apply PCA for dimensionality reduction
-        tfidf_pca = self.pca.fit_transform(tfidf_matrix)
-
-        # Create a DataFrame for PCA-reduced TF-IDF features
-        pca_columns = [f'tfidf_{i}' for i in range(tfidf_pca.shape[1])]
-        return pd.DataFrame(tfidf_pca, columns=pca_columns)
-
-    def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics') -> pd.DataFrame:
-        """Adds TF-IDF PCA-reduced features to the DataFrame.
-
-        Args:
-            df (pd.DataFrame): DataFrame containing text data.
-            text_column (str, optional): Column containing the text data. Defaults to 'text'.
-
-        Returns:
-            pd.DataFrame: The original DataFrame with added TF-IDF PCA features.
-        """
-        # Extract TF-IDF features
-        tfidf_features = self.extract_features(df[text_column])
-
-        # Align and overwrite columns in the original DataFrame
-        df = df.drop([c for c in df.columns if c.startswith('tfidf_') ], axis=1)
-        
-        # Combine with the original DataFrame
-        return pd.concat([df.reset_index(drop=True), tfidf_features], axis=1)
