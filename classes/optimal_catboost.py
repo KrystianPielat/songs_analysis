@@ -34,7 +34,7 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         self.features = features
         self.param_grid = param_grid
         self.n_trials = n_trials
-        self.cat_features = cat_features
+        self.cat_features = cat_features or []
         self.class_weights = class_weights
         self.cache_path = cache_path
         self.study_name = study_name or f'catboost_optimization_{uuid.uuid4()}'
@@ -174,7 +174,7 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         self.features = features
         self.param_grid = param_grid
         self.n_trials = n_trials
-        self.cat_features = cat_features
+        self.cat_features = cat_features or  []
         self.cache_path = cache_path
         self.study_name = study_name or f'catboost_optimization_{uuid.uuid4()}'
         self.cv = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -206,9 +206,9 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
             key: optuna.distributions.CategoricalDistribution(value) if isinstance(value, list) else optuna.distributions.FloatDistribution(*value)
             for key, value in self.param_grid.items()
         }
-        study = optuna.create_study(study_name=self.study_name, storage="sqlite:///{self.cache_path}" if self.cache_path else None, load_if_exists=True, direction="maximize")
+        study = optuna.create_study(study_name=self.study_name, storage=f"sqlite:///{self.cache_path}" if self.cache_path else None, load_if_exists=True, direction="maximize")
         optuna_search = OptunaSearchCV(
-            estimator=CatBoostRegressor(cat_features=self.cat_features, verbose=0),
+            estimator=CatBoostRegressor(cat_features=cat_features, verbose=0),
             param_distributions=params,
             cv=self.cv,
             n_trials=self.n_trials,
@@ -223,11 +223,11 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
 
         # Update self with the best parameters
         self.best_params_ = optuna_search.best_params_
-        self.set_params(**self.best_params_, cat_features=self.cat_features, verbose=0)
+        self.set_params(**self.best_params_, cat_features=cat_features, verbose=0)
 
         # Compute training results
         self._LOGGER.info("Computing training results with cross validation...")
-        crossval_model = CatBoostRegressor(cat_features=self.cat_features, verbose=0).set_params(**self.best_params_)
+        crossval_model = CatBoostRegressor(cat_features=cat_features, verbose=0).set_params(**self.best_params_)
         self.training_results_ = self._cross_val_metrics(crossval_model, X, y, self.cv)
         
         # Fit the current instance with the optimized parameters on the whole dataset

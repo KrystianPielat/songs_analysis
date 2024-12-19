@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import numpy as np
 import re
 import logging
 from typing import Callable, List
@@ -8,6 +9,22 @@ from mutagen import MutagenError
 from classes.constants import GENRE_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
+
+def winsorize_series(series, lower_percentile, upper_percentile):
+    """
+    Winsorizes a pandas Series by capping values at specified percentiles.
+    
+    Args:
+        series (pd.Series): The input series to be winsorized.
+        lower_percentile (float): The lower percentile (e.g., 0.05 for the 5th percentile).
+        upper_percentile (float): The upper percentile (e.g., 0.95 for the 95th percentile).
+        
+    Returns:
+        pd.Series: Winsorized series.
+    """
+    lower_bound = np.percentile(series, lower_percentile * 100)
+    upper_bound = np.percentile(series, upper_percentile * 100)
+    return series.clip(lower=lower_bound, upper=upper_bound)
 
 def variance_based_empath_cleaning(df, variance_threshold: float = 0.0001):
     empath_df = df[[col for col in df.columns if col.startswith("empath_")]]

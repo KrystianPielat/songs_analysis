@@ -24,6 +24,7 @@ from empath import Empath
 from multiprocessing import Pool, cpu_count
 from tqdm.auto import tqdm
 import logging
+from classes.utils import winsorize_series
 
 # Set seed for reproducibility in langdetect
 DetectorFactory.seed = 0
@@ -217,7 +218,7 @@ class TextFeatureExtractor:
                 results.append(placeholder)
         return results
 
-    def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics', batch_size: int = 100) -> pd.DataFrame:
+    def add_features(self, df: pd.DataFrame, text_column: str = 'lyrics', batch_size: int = 100, winsorize: bool = True) -> pd.DataFrame:
         """Adds extracted text features to a DataFrame in parallel batches."""
         if text_column not in df.columns:
             raise ValueError(f"Column '{text_column}' not found in DataFrame.")
@@ -241,6 +242,14 @@ class TextFeatureExtractor:
 
         # Combine results into DataFrame
         features_df = pd.DataFrame(all_features)
-        return pd.concat([df.reset_index(drop=True), features_df], axis=1)
-
-
+        df = pd.concat([df.reset_index(drop=True), features_df], axis=1)
+        if winsorize:
+            winsorization_features = [
+                'duration_ms', 'unique_word_count', 'repetition_count', 'semantic_depth', 'syntactic_complexity', 'rhyme_density', 
+                'sentiment_variability', 'flesch_reading_ease', 'gunning_fog', 'dale_chall', 'word_count'
+            ]
+            for feature in winsorization_features:
+                df[feature] = winsorize_series(df[feature], 0.05, 0.95)
+        return df
+    
+    
