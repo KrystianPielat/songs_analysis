@@ -34,7 +34,7 @@ class OptimalCatBoostClassifier(CatBoostClassifier):
         self.features = features
         self.param_grid = param_grid
         self.n_trials = n_trials
-        self.cat_features = cat_features or []
+        self.cat_features = cat_features
         self.class_weights = class_weights
         self.cache_path = cache_path
         self.study_name = study_name or f'catboost_optimization_{uuid.uuid4()}'
@@ -174,7 +174,7 @@ class OptimalCatBoostRegressor(CatBoostRegressor):
         self.features = features
         self.param_grid = param_grid
         self.n_trials = n_trials
-        self.cat_features = cat_features or  []
+        self.cat_features = cat_features
         self.cache_path = cache_path
         self.study_name = study_name or f'catboost_optimization_{uuid.uuid4()}'
         self.cv = KFold(n_splits=5, shuffle=True, random_state=42)
