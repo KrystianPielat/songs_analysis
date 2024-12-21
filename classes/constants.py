@@ -450,3 +450,18 @@ GENRE_MAPPING = {
           'rock uruguayo'],
  'singer-songwriter': ['british singer-songwriter']}
 
+
+
+SWEAR_WORD_MAPPING = {
+    "damn": "d*mn",
+    "hell": "h*ll",
+    "crap": "c**p",
+    "shit": "sh*t",
+    "fuck": "f**k",
+    "bitch": "b**ch",
+    "bastard": "b**tard",
+    "ass": "a*s",
+    "dumb": "d*mb",
+    "stupid": "st***d",
+    "nigga": "n**ga"
+}

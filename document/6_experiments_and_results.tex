@@ -438,6 +438,14 @@ positive emotion.
 %---------------------------------------------------------------------------
 \section{Sentiment}
 \label{sec:sentiment}
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=7in]{img/wordclouds.png}
+  \caption{Wordclouds of Positive and Negative Sentiment Songs.}
+  \label{Figure:fig_bh}
+\end{figure}
+\end{center}
 
 This section tackles the problem of song lyrics sentiment prediction. The
 binary sentiment labels(positive (1) and negative (0)) were derived from the
@@ -524,12 +532,139 @@ performance of audio-based sentiment prediction models.
 \end{figure}
 \end{center}
 
-The SHAP analysis showed that lyrical features, like empath_negative_emotion,
-empath_optimism, and empath_swearing_terms, were the most influential in
-predicting sentiment, with negative emotions and swearing linked to negative
-sentiment, and optimism and positive emotion tied to positive sentiment. TF-IDF
-and Word2Vec embeddings also contributed, reflecting patterns in lyrics. Audio
-features, however, had minimal impact, emphasizing the need for improved audio
-feature engineering to capture sentiment.
+The SHAP analysis showed that lyrical features, like \textit{empath negative
+emotion}, \textit{empath optimism}, and \textit{empath swearing terms}, were
+the most influential in predicting sentiment, with negative emotions and
+swearing linked to negative sentiment, and optimism and positive emotion tied
+to positive sentiment. TF-IDF and Word2Vec embeddings also contributed,
+reflecting patterns in lyrics. Audio features, however, had minimal impact,
+emphasizing the need for improved audio feature engineering to capture
+sentiment.
 
 %---------------------------------------------------------------------------
+
+\section{Topics Modelling}
+\label{sec:topicsmodelling}
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{img/topics/png/topics.png}
+  \caption{Intertopic Distance Map.}
+  \label{Figure:intertopicdistancemap}
+\end{figure}
+\end{center}
+
+\begin{itemize}
+  \item The bubble chart shows the intertopic distance map using multidimensional
+scaling (MDS). Each bubble represents a topic extracted by the LDA model.
+  \item The position of the bubbles reflects the relationship between topics.
+    Topics closer together share more words or themes in common.
+  \item The size of the bubbles represents the prevalence of the topic within
+    the entire dataset. Larger bubbles correspond to topics with a higher
+    proportion of terms in the dataset.
+\end{itemize}
+
+
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=3in]{img/topics/png/general.png}
+  \caption{Top-30 Most Salient Terms across the entire corpus. The bars
+  represent how often each term appears in the entire corpus.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+ \textbf{Blue bars show overall frequency of the terms in the entire corpus.
+ Red bars indicate estimated frequency of the terms in that topic.} Now we can
+ look at the results in each topic:
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=3in]{img/topics/png/t1.png}
+  \caption{Top-30 Most Salient Terms in Topic 1.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=3in]{img/topics/png/t2.png}
+  \caption{Top-30 Most Salient Terms in Topic 2.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=3in]{img/topics/png/t3.png}
+  \caption{Top-30 Most Salient Terms in Topic 3.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=3in]{img/topics/png/t4.png}
+  \caption{Top-30 Most Salient Terms in Topic 4.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=3in]{img/topics/png/t5.png}
+  \caption{Top-30 Most Salient Terms in Topic 5.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+
+The topic modeling results reveal distinct themes found in the analyzed song
+lyrics. The intertopic distance map(Figure~\ref{Figure:intertopicdistancemap}) shows
+that the five topics are well separated(except for 1 and 3, that have a
+significant overlap). The model has successfully captured distinct clusters of
+related terms, providing valuable insight and observations:
+
+\begin{itemize}
+    \item Topic 1 appears to revolve around \textbf{existential and philosophical
+      themes}, with frequent use of words like ``world``, ``life``, ``time``,
+      ``die``, ``live``, and ``dream``.
+    \item Topic 2 is characterized by \textbf{colloquial and explicit
+      language}, exhibiting themes related to \textbf{rap and hip hop culture}.
+      This topic is strongly tied to urban and street culture themes.
+    \item Topic 3 revolves around themes of \textbf{love, heartbreak, emotional
+      conflict and relationships}, as indicated by words like ``love``,
+      ``heart``, ``hurt, ``break``.
+    \item Topic 4 focuses on themes of \textbf{romantic affection, celebration,
+      and festives}. Words such as ``baby``, ``tonight``, ``girl``, ``wanna",
+      and ``kiss`` highlight intimate emotions and the inclusion of
+      ``Christmas``, ``Santa`` and other related words strongly suggests a
+      Christmas-themed music.
+    \item Topic 5 appears to center around themes of \textbf{music, rhythm and
+      energetic expressions}. Most prominent words identified for that topic
+      are ``hey``, ``yeah``, ``rock``, ``music`` and ``beat``. They suggest a
+      focus on the sound and feel of music. Inclusion of terms such as
+      ``regga``(stemmed version of ``reggae``) indicates possible inclusion of
+      reggae songs.
+\end{itemize}
+
+The topic modeling analysis effectively uncovered five distinct thematic
+clusters within the song lyrics dataset, each representing unique aspects of
+lyrical expression, ranging from love and affection, to urban culture, and
+Christmas themes. The intertopic distance map
+(Figure~\ref{Figure:intertopicdistancemap}) confirms that the identified topics
+are well-separated, with overlaps only in related themes such as existentialism
+(Topic 1) and emotional conflict (Topic 3).
+
+These results demonstrate the potential of topic modeling to extract and
+analyze dominant lyrical themes in music at scale. The insights derived here
+provide a foundation for further exploration into the relationship between
+lyrics and other properties like audio features and genres.

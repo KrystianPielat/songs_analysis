@@ -6,7 +6,7 @@ import logging
 from typing import Callable, List
 from mutagen.mp3 import MP3
 from mutagen import MutagenError
-from classes.constants import GENRE_MAPPING
+from classes.constants import GENRE_MAPPING, SWEAR_WORD_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -227,3 +227,8 @@ def reduce_genres_with_regex(genre_list: list, mapping: dict):
             if re.search(pattern, genre, re.IGNORECASE):
                 return general
     return None
+
+def censor_swear_words(text):
+    words = text.split()
+    censored_words = [SWEAR_WORD_MAPPING[word] if word in SWEAR_WORD_MAPPING else word for word in words]
+    return ' '.join(censored_words)
