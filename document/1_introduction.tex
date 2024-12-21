@@ -12,12 +12,13 @@ overwhelming number of songs released every day presents us with a great
 opportunity to investigate more closely its characteristics through the lens of
 data-driven analyses and machine learning techniques. 
 
-Based on the acoustic features that can be extracted from the music tracks and
-textual features extracted from song lyrics we attempt to understand better
-complex relationships between different music track characteristics and uncover
-insights into how music is perceived by listeners, the factors that influence
-song's popularity, the defining traits of various music genres and how trends
-shape the evolution of music and its characteristics over the years. 
+Based on the acoustic features that can be extracted from the music tracks, and
+textual features extracted from song lyrics and information available on
+Spotify, this paper attempts to understand better complex relationships between
+different music track characteristics and uncover insights into how music is
+perceived by listeners, the factors that influence song's popularity, the
+defining traits of various music genres and how trends shape the evolution of
+music and its characteristics over the years. 
 
 This approach offers a modern, quantitative perspective on music, enabling us
 to further explore relationships between different musical and textual
@@ -47,7 +48,8 @@ intelligence(\textit{XAI}) techniques to:
 \begin{itemize} 
   \item Analyze relationships between musical and textual characteristics of
     collected songs
-  \item Examine how song characteristics vary across various genres and what are the defining traits
+  \item Examine how song characteristics vary across various genres and what
+    are their defining traits
   \item Investigate the relationship between lyrical sentiment and acoustic
     dynamics (e.g., valence and tempo).
   \item Identify and understand key factors contributing to song's popularity
@@ -57,20 +59,31 @@ intelligence(\textit{XAI}) techniques to:
     relationships
 \end{itemize}
 
+Additionally, this thesis aims to create a practical and reusable framework for
+explainable AI (\textit{XAI}) evaluation, as well as a clear and systematic
+method for collecting data. These tools are designed to make it easier for
+future researchers to build on this work, apply the methods to new projects,
+and explore other areas of music analysis.
+
 %---------------------------------------------------------------------------
 
 \section{Research Questions}
 \label{sec:researchquestions}
-Using collected data and established methodologies following questions will be
-considered:
-
+This thesis aims to leverage a diverse dataset of songs collected through a
+systematic metehodology, consisting of metadata, Spotify's audio features,
+lyrics and mp3 tracks. With the help of advanced data analysis techniques and
+explainable artificial intelligence it attempts to achieve following
+objectives:
 \begin{enumerate}
-  \item \textbf{Acoustic and Textual Relationships} - how does acoustic
-    properties like energy and tempo relate to lyrical features like sentiment?
-  \item \textbf{Genre-specific traits} - What makes different genres unique in terms of their sound and lyrics?
-    properties like energy and tempo relate to lyrical features like sentiment?
-  \item \textbf{Popularity Determinants} - What are the features that have
-    strongest influence on song's popularity?
+  \item \item Explore the relationships between lyrical, acoustic, and metadata
+    features of songs to uncover meaningful patterns and dependencies.
+  \item Analyze defining characteristics of songs across different genres and
+    investigate how these features contribute to genre identity.
+  \item  Identify key factors that drive song popularity and assess their
+    impact using predictive models and XAI techniques.
+  \item  Develop predictive models to estimate various song attributes (e.g.
+    popularity, explicitness, sentiment) and use XAI to interpret these models,
+    extracting meaningful insights about feature importance and relationships.
 \end{enumerate}
 
 %---------------------------------------------------------------------------
@@ -79,11 +92,19 @@ considered:
 \section{Thesis Structure}
 \label{sec:thesisstructure}
 
-The structure is organized to address specified research objectives. It begins
-with introduction to the methodologies used for data collection, preprocessing,
-feature extraction, followed by exploration of the analysis and XAI techniques.
-Subsequent chapters focus on the verification of hypotheses with various
-analytical approaches. Finally the thesis concludes with a discussion of
-results and potential directions for future work.
+This thesis is structured into several chapters to address the research
+objectives. It begins with an introduction, followed by a discussion of related
+work, highlighting key studies and their connection to this research. The data
+chapter explains the sampling method, data collection framework, and sources
+used.
 
-%---------------------------------------------------------------------------
+Next, the methodology chapter details the feature engineering process,
+describing all extracted features, and introduces the explainable AI
+(\textit{XAI}) techniques and other methods applied in the study. This is
+followed by an extensive data analysis chapter, exploring relationships between
+features and identifying distinctive traits of each genre.
+
+The experiments chapter presents the conducted experiments and discussion of
+the results. The thesis concludes with a summary of contributions, a description
+of the limitations, key findings, and recommendations for future work. 
+

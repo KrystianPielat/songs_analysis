@@ -10,16 +10,17 @@
 
 Spotify’s catalog contains approximately 100 million songs and over 6000
 distinct genres. Collecting a truly random sample from this huge and diverse
-population presents significant challenges. A purely random sample is likely to
-contain a great portion of very unpopular songs resulting in poor quality data,
-characterized by sparse meaningful relationships and an overwhelming variety of
-distinct genres. Such diversity would make it nearly impossible to extract
-actionable insights and relationships, as less represented genres and rare
-tracks would dominate, shifting the focus from more prominent trends and
-patterns in music.
+population presents significant challenges. A purely random sampling approach
+would likely result in a dataset heavily skewed towards obscure genres and
+imbalanced release year distribution. This would lead to poor data quality for
+meeting the research objectives, with sparse meaningful relationships and an
+overwhelming diversity of genres. Such diversity would make it nearly
+impossible to extract actionable insights and relationships, as less
+represented genres and rare tracks would dominate, shifting the focus from more
+prominent trends and patterns in music.
 
 
-To address these challenges, a smaller and more organized sample of 6000 songs
+To address these challenges, a smaller and more organized sample of 3500 songs
 was selected. The stratified sampling approach was designed to ensure a
 balanced dataset by focusing on two key factors: genre and release year. The
 sampling process utilized Spotify's query parametrization tool, which allows
@@ -46,7 +47,7 @@ analysis.
 \section{Dataset Description}
 \label{sec:datasetdescription}
 
-The dataset consists of around 6000 songs. For each song metadata, audio
+The dataset consists of around 3500 songs. For each song metadata, audio
 recording, lyrics and spotify audio features were fetched.
 
 \section{Data Collection Methods}
@@ -169,10 +170,12 @@ acoustic properties songs:
 \label{sec:toolsandlibrariesused}
 Python libraries used to facilitate the data acquisition were:
 \begin{itemize}
-  \item \textit{Spotipy} - a lightweight python library for Spotify API
-  \item \textit{youtube-dl} - a library used to find and download youtube videos
-  \item \textit{BeautifulSoup} - a library used for extracting information from
-    HTML, commonly used for web scraping
+  \item \textit{Spotipy} \cite{spotipy}- a lightweight python library for
+    Spotify API
+  \item \textit{youtube-dl} \cite{ytdl} - a library used to find and download
+    YouTube videos
+  \item \textit{BeautifulSoup} \cite{beautifulsoup} - a library used for
+    extracting information from HTML, commonly used for web scraping
 \end{itemize}
 
 
