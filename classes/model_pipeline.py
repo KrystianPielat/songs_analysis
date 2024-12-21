@@ -179,68 +179,127 @@ class BasePipeline:
             pbar.update(1)
 
             LOGGER.info("Pipeline execution completed.")
-            
+
+
     def perform_shap_analysis(self, save_dir: Optional[str] = None):
         """
         Performs SHAP analysis for feature importance.
-        - Generates separate beeswarm plots for multiclass classification (with class names).
-        - Generates a single beeswarm plot for binary classification or regression.
-        - Includes a bar chart of global feature importance (mean absolute SHAP values).
+        - Generates beeswarm plots for multiclass classification (per class and aggregated).
+        - Generates bar charts for per-class and global (aggregated) feature importance.
         - Optionally saves the plots to the specified directory.
-    
+        
         Args:
             save_dir (Optional[str]): Directory to save SHAP plots. Defaults to None.
         """
         LOGGER.info("Performing SHAP analysis...")
-    
+        
         # Transform the test set using the preprocessing pipeline
         self.X_test_transformed = self.preprocessor.transform(self.X_test)
-    
+        
         # Create and compute SHAP explainer
         if not self.shap_values:
             explainer = shap.TreeExplainer(self.model)
             self.shap_values = explainer(self.X_test_transformed, check_additivity=False)
-    
+        
         # Feature names
         feature_names = self.X_test_transformed.columns
-    
-        # Detect the task type based on SHAP values
+        
         if len(self.shap_values.values.shape) == 3:  # Multiclass classification
             num_classes = self.shap_values.values.shape[2]
             LOGGER.info(f"Multiclass classification detected with {num_classes} classes.")
-    
-            # Generate beeswarm plots for each class
+            
+            # Per-class feature importance
             for class_idx in range(num_classes):
-                # Get the class name if available
-                class_names = getattr(self.model, 'classes_', None)
-                class_name = class_names[class_idx] if class_names is not None else f"Class {class_idx}"
-    
-                LOGGER.info(f"Generating SHAP beeswarm plot for {class_name}...")
-                class_shap_values = self.shap_values[..., class_idx]
-    
-                # Beeswarm plot
+                LOGGER.info(f"Generating SHAP feature importance and beeswarm plot for Class {class_idx}")
+                
+                # Extract SHAP values for the current class
+                class_shap_values = self.shap_values.values[:, :, class_idx]
+                
+                # Beeswarm plot for the class
                 plt.figure(figsize=(10, 8))
                 shap.summary_plot(class_shap_values, self.X_test_transformed, show=False)
-                plt.title(f"SHAP Beeswarm Plot for {class_name}")
-    
-                # Save beeswarm plot
+                plt.title(f"SHAP Beeswarm Plot for Class {class_idx}")
+                
                 if save_dir:
-                    beeswarm_file = os.path.join(save_dir, f"shap_beeswarm_{class_name}.png")
+                    beeswarm_file = os.path.join(save_dir, f"shap_beeswarm_class_{class_idx}.png")
                     plt.savefig(beeswarm_file, bbox_inches="tight")
-                    LOGGER.info(f"SHAP beeswarm plot for {class_name} saved to {beeswarm_file}")
+                    LOGGER.info(f"SHAP beeswarm plot for Class {class_idx} saved to {beeswarm_file}")
                     plt.close()
                 else:
                     plt.show()
-    
+                
+                # Calculate mean absolute SHAP values for this class
+                shap_values_abs_mean_class = np.abs(class_shap_values).mean(axis=0)
+                
+                # Create feature importance DataFrame
+                feature_importance_df_class = pd.DataFrame({
+                    "Feature": feature_names,
+                    "Mean SHAP Value": shap_values_abs_mean_class
+                }).sort_values(by="Mean SHAP Value", ascending=False).head(15)
+                
+                # Plot per-class feature importance
+                plt.figure(figsize=(10, 8))
+                sns.barplot(x="Mean SHAP Value", y="Feature", data=feature_importance_df_class, palette="viridis")
+                plt.title(f"Feature Importance for Class {class_idx}")
+                plt.xlabel("Mean Absolute SHAP Value")
+                plt.ylabel("Feature")
+                plt.tight_layout()
+                
+                if save_dir:
+                    importance_file = os.path.join(save_dir, f"shap_feature_importance_class_{class_idx}.png")
+                    plt.savefig(importance_file, bbox_inches="tight")
+                    LOGGER.info(f"Feature importance bar plot for Class {class_idx} saved to {importance_file}")
+                    plt.close()
+                else:
+                    plt.show()
+            
+            # Global (aggregated) feature importance
+            LOGGER.info("Generating global feature importance (aggregated across classes).")
+            shap_values_abs_mean_global = np.abs(self.shap_values.values).mean(axis=(0, 2))  # Mean across samples and classes
+            
+            # Beeswarm plot for global SHAP values
+            plt.figure(figsize=(10, 8))
+            shap.summary_plot(self.shap_values.values.mean(axis=2), self.X_test_transformed, show=False)
+            plt.title("SHAP Beeswarm Plot (Aggregated Across Classes)")
+            
+            if save_dir:
+                beeswarm_file = os.path.join(save_dir, "shap_beeswarm_global.png")
+                plt.savefig(beeswarm_file, bbox_inches="tight")
+                LOGGER.info(f"Global beeswarm plot saved to {beeswarm_file}")
+                plt.close()
+            else:
+                plt.show()
+            
+            # Create feature importance DataFrame
+            feature_importance_df_global = pd.DataFrame({
+                "Feature": feature_names,
+                "Mean SHAP Value": shap_values_abs_mean_global
+            }).sort_values(by="Mean SHAP Value", ascending=False).head(15)
+            
+            # Plot global feature importance
+            plt.figure(figsize=(10, 8))
+            sns.barplot(x="Mean SHAP Value", y="Feature", data=feature_importance_df_global, palette="viridis")
+            plt.title("Global Feature Importance (Aggregated Across Classes)")
+            plt.xlabel("Mean Absolute SHAP Value")
+            plt.ylabel("Feature")
+            plt.tight_layout()
+            
+            if save_dir:
+                importance_file = os.path.join(save_dir, "shap_feature_importance_global.png")
+                plt.savefig(importance_file, bbox_inches="tight")
+                LOGGER.info(f"Global feature importance bar plot saved to {importance_file}")
+                plt.close()
+            else:
+                plt.show()
+        
         else:  # Binary classification or regression
             LOGGER.info("Binary classification or regression detected.")
-    
+            
             # Beeswarm plot
             plt.figure(figsize=(10, 8))
             shap.summary_plot(self.shap_values.values, self.X_test_transformed, show=False)
             plt.title("SHAP Beeswarm Plot")
-    
-            # Save beeswarm plot
+            
             if save_dir:
                 beeswarm_file = os.path.join(save_dir, "shap_beeswarm.png")
                 plt.savefig(beeswarm_file, bbox_inches="tight")
@@ -248,30 +307,33 @@ class BasePipeline:
                 plt.close()
             else:
                 plt.show()
+            
+            # Global feature importance
+            LOGGER.info("Generating feature importance bar plot...")
+            shap_values_abs_mean = np.abs(self.shap_values.values).mean(axis=0)
+            
+            feature_importance_df = pd.DataFrame({
+                "Feature": feature_names,
+                "Mean SHAP Value": shap_values_abs_mean
+            }).sort_values(by="Mean SHAP Value", ascending=False).head(15)
+            
+            plt.figure(figsize=(10, 8))
+            sns.barplot(x="Mean SHAP Value", y="Feature", data=feature_importance_df, palette="viridis")
+            plt.title("Global Feature Importance")
+            plt.xlabel("Mean Absolute SHAP Value")
+            plt.ylabel("Feature")
+            plt.tight_layout()
+            
+            if save_dir:
+                importance_file = os.path.join(save_dir, "shap_feature_importance_global.png")
+                plt.savefig(importance_file, bbox_inches="tight")
+                LOGGER.info(f"Global feature importance bar plot saved to {importance_file}")
+                plt.close()
+            else:
+                plt.show()
     
-        # Feature importance bar plot (global SHAP values)
-        LOGGER.info("Generating feature importance bar plot...")
-        shap_values_abs_mean = np.abs(self.shap_values.values).mean(axis=0)
-        feature_importance_df = pd.DataFrame({
-            "Feature": feature_names,
-            "Mean SHAP Value": shap_values_abs_mean
-        }).sort_values(by="Mean SHAP Value", ascending=False).head(15)
-    
-        plt.figure(figsize=(10, 8))
-        sns.barplot(x="Mean SHAP Value", y="Feature", data=feature_importance_df, palette="viridis")
-        plt.title("Feature Importance (Mean Absolute SHAP Values)")
-        plt.xlabel("Mean Absolute SHAP Value")
-        plt.ylabel("Feature")
-        plt.tight_layout()
-    
-        # Save feature importance plot
-        if save_dir:
-            importance_file = os.path.join(save_dir, "shap_feature_importance.png")
-            plt.savefig(importance_file, bbox_inches="tight")
-            LOGGER.info(f"Feature importance bar plot saved to {importance_file}")
-            plt.close()
-        else:
-            plt.show()
+
+
 
 
 class OptimalClassificationPipeline(BasePipeline):
