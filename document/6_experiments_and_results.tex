@@ -840,7 +840,6 @@ findings.
 
 \subsection{Spotify Features Across Topics}
 
-\subsection{Sentiment Across Topics}
 \begin{center}
 \begin{figure}[H]
   \centering
@@ -874,4 +873,139 @@ unique musical attributes:
   \item \textbf{Topic 5}: High values in \textit{tempo}, \textit{valence}, and
     \textit{danceability}, along with moderate \textit{energy}, suggest lively,
     upbeat, and energetic and possibly danceable tracks.
+\end{itemize}
+
+
+\section{Temporal Trends in Music}
+\label{sec:temporaltrends}
+
+To analyze the temporal trends in musical features, during the data collection
+phase the variable \textit{album release year} was stratified into 10-year
+buckets representing distinct decades. This stratification allowed for a
+comparative analysis of feature evolution across time periods.
+
+
+\subsection{Identification of Features Affected by Release Year}
+
+The process for identifying features influenced by release year involved two
+main steps:
+
+\begin{itemize}
+  \item \textbf{Linear Regression Analysis}: Simple linear regression models
+    were trained for each feature using the decade as the independent variable.
+    The coefficient of determination ($R^2$) values were extracted to quantify
+    how well the decade explained the variance in each feature.
+  \item \textbf{ANOVA Testing}: Analysis of variance (ANOVA) was conducted to
+    assess the statistical significance of differences in feature means across
+    decades. The resulting p-values were used to identify features where
+    temporal variation was statistically significant.
+\end{itemize}
+Features exhibiting high $R^2$ values and statistically significant p-values
+($\alpha = 0.05$) were selected as candidates for further analysis.
+
+24 features were identifed to  have meaningful dependency on the decade of
+release, those are  their plots along with 95\% confidence intervals:
+
+A total of 24 features were identified as having a meaningful dependency on the
+decade of release. These  features demonstrated statistically significant
+p-values and relatively high $R^2$ coefficients, indicating notable changes in
+their values over time.
+
+
+% \usepackage{color}
+% \usepackage{tabularray}
+\begin{table}[H]
+\centering
+\caption{Features identified as having significant dependency on the decade of
+release.}
+\begin{tblr}{
+  column{even} = {r},
+  column{3} = {r},
+  column{5} = {r},
+  hline{1,25} = {-}{0.08em},
+  hline{2} = {-}{},
+}
+\textbf{Feature}       & \textbf{R²} & \textbf{Trend Coefficient} & \textbf{F-Statistic} & \textbf{p-Value} \\
+explicit               & 0.909073    & 0.006645                   & 76.023316            & 0.000000         \\
+valence                & 0.906611    & -0.003028                  & 45.487845            & 0.000000         \\
+syntactic\_complexity  & 0.905622    & 0.519760                   & 3.188473             & 0.002285         \\
+popularity             & 0.893476    & 0.276672                   & 61.320459            & 0.000000         \\
+vader\_compound        & 0.880113    & -0.007787                  & 11.830054            & 0.000000         \\
+sentiment\_polarity    & 0.853502    & -0.001479                  & 8.135521             & 0.000000         \\
+loudness               & 0.833296    & 0.068308                   & 139.657491           & 0.000000         \\
+rhyme\_density         & 0.824603    & -0.000094                  & 18.454532            & 0.000000         \\
+danceability           & 0.814174    & 0.001072                   & 7.099057             & 0.000000         \\
+speechiness            & 0.806721    & 0.000817                   & 18.774707            & 0.000000         \\
+dale\_chall            & 0.775952    & 0.031306                   & 5.824913             & 0.000001         \\
+flesch\_reading\_ease  & 0.771849    & -0.415172                  & 3.364072             & 0.001401         \\
+gunning\_fog           & 0.758302    & 0.154463                   & 3.178465             & 0.002350         \\
+lexical\_richness      & 0.565358    & -0.000709                  & 10.507191            & 0.000000         \\
+type\_token\_ratio     & 0.565358    & -0.000709                  & 10.507191            & 0.000000         \\
+energy                 & 0.518081    & 0.003036                   & 84.094129            & 0.000000         \\
+acousticness           & 0.469885    & -0.005867                  & 221.629618           & 0.000000         \\
+duration\_ms           & 0.151967    & 495.225838                 & 102.202431           & 0.000000         \\
+semantic\_depth        & 0.115761    & 0.000821                   & 3.334177             & 0.001523         \\
+tempo                  & 0.110478    & 0.036494                   & 2.943202             & 0.004482         \\
+sentiment\_variability & 0.064628    & -0.000182                  & 5.719228             & 0.000001         \\
+linguistic\_uniqueness & 0.020538    & 0.000049                   & 2.558628             & 0.012530         \\
+instrumentalness       & 0.016573    & 0.000118                   & 4.748720             & 0.000025         
+\end{tblr}
+\end{table}
+
+
+The following plots display the trends of these features across decades, along
+with 95\% confidence intervals to illustrate the variability of the trends:
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{img/temporal_trends_1.png}
+  \caption{Plot showing temporal changes of features dependent on the decade in
+  which the song was released.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{img/temporal_trends_2.png}
+  \caption{Plot showing temporal changes of features dependent on the decade in
+  which the song was released.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{img/temporal_trends_3.png}
+  \caption{Plot showing temporal changes of features dependent on the decade in
+  which the song was released.}
+  \label{Figure:fig_eh}
+\end{figure}
+\end{center}
+
+Based on those plots it can be observed that:
+\begin{itemize}
+  \item \textbf{There is a clear, strong upward trend in explicit content frrom
+    the 1980s onward}. It reflects a cultural shift  towards more openness in
+    lyrical expression and increase in popularity of genres such as rap.
+  \item \textbf{There is a steady increase in popularity over the decades. Potentially
+    it might reflect the increased emphasis on producing music for mass appeal.}
+  \item Speechiness peaks in the 1990s and 2000s, likely reflecting the rise of
+    rap and spoken-word music during this period.
+  \item The observed decrease in vader compound and valence suggests a shift
+    towards less positive or more emotionally nuanced lyrical content over the
+    decades.
+  \item \textbf{There is a substantial decrease in acousticness and a
+      corresponding increase in energy over the decades, reflecting a clear
+      shift in musical trends. This transition highlights the move away from
+      traditional, acoustic-oriented compositions to electronically produced
+      music, driven by the rise of genres like EDM and modern pop. The increase
+    in energy further underscores the growing preference for high-tempo,
+  dynamic, and engaging tracks.}
+  \item Loudness exhibited a consistent increase over the decades, likely
+    also influenced by the shift toward electronic music, which often employs
+    amplified and dynamically intense production techniques.
 \end{itemize}

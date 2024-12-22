@@ -3,10 +3,13 @@ import os
 import numpy as np
 import re
 import logging
+import matplotlib.pyplot as plt
+import seaborn as sns
 from typing import Callable, List
 from mutagen.mp3 import MP3
 from mutagen import MutagenError
 from classes.constants import GENRE_MAPPING, SWEAR_WORD_MAPPING
+from sklearn.preprocessing import MinMaxScaler
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -232,3 +235,42 @@ def censor_swear_words(text):
     words = text.split()
     censored_words = [SWEAR_WORD_MAPPING[word] if word in SWEAR_WORD_MAPPING else word for word in words]
     return ' '.join(censored_words)
+
+def plot_temporal_shifts(df: pd.DataFrame, features: List[str], year_col: str = 'album_release_year') -> plt.Figure:
+    if not all([f in df.columns for f in features]):
+        raise ValueError("One of the features is missing from the df")
+    
+    df = df.copy()
+    df['decade'] = (df[year_col] // 10) * 10
+    
+    df_melted = df.melt(id_vars=['decade'], value_vars=features, var_name='feature', value_name='value')
+    
+    scaler = MinMaxScaler()
+    df_melted['scaled_value'] = df_melted.groupby('feature')['value'].transform(
+        lambda x: scaler.fit_transform(x.values.reshape(-1, 1)).flatten()
+    )
+    
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    sns.lineplot(
+        data=df_melted,
+        x='decade',
+        y='scaled_value',
+        hue='feature',
+        ci=95,
+        marker='o',
+        ax=ax
+    )
+    
+    ax.set_title('Trend Shifts in Scaled Features Over Decades with Confidence Intervals')
+    ax.set_xlabel('Decade')
+    ax.set_ylabel('Scaled Feature Value')
+    ax.set_xticks(df_melted['decade'].unique())
+    ax.set_xticklabels(df_melted['decade'].unique(), rotation=45)
+    ax.legend(title='Features', loc='upper right')
+    plt.tight_layout()
+
+    plt.close(fig)
+
+    return fig
+
