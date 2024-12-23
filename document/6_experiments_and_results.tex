@@ -26,12 +26,15 @@ robustness and performance in handling complex relationships.
 
 Baseline models were also implemented to serve as a reference point:
 \begin{itemize}
-  \item \textit{Baseline Mean Model}: baseline model for regression that always predicts the mean.
-  \item \textit{Baseline Majority Model}: baseline model for classification that always predicts the majority class.
-  \item \textit{Baseline Random Model}: baseline model for classification that predicts random class.
+  \item \textit{Baseline Mean Model}: baseline model for regression that always
+    predicts the mean.
+  \item \textit{Baseline Majority Model}: baseline model for classification
+    that always predicts the majority class.
+  \item \textit{Baseline Random Model}: baseline model for classification that
+    predicts random class.
 \end{itemize}
 
-The experiments involved both quantitative evaluatoin and SHAP analysis to
+The experiments involved both quantitative evaluation and SHAP analysis to
 assess feature importance and interpretability of the models.
 
 %---------------------------------------------------------------------------
@@ -67,7 +70,7 @@ based on the feature importance from initial Random Forest model.
 \end{tblr}
 \end{table}
 
-As seen in the results table, the CatBoost model trained on spotify data only
+As seen in the results table, the CatBoost model trained on Spotify data only
 achieved the best performance, with \textbf{Mean Absolute Error(MAE) of
 \textbf{6.04} and and $R^2$ of 0.77}, closely followed by the model trained on
 all features that achieved \textbf{MAE of 6.33 and ($R^2$ of 0.74}. The results
@@ -142,12 +145,22 @@ features. Key insights:
 %---------------------------------------------------------------------------
 \subsection{Classification Approach}
 
+\begin{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=6in]{img/clf_pipeline.png}
+  \caption{Classification model pipeline. It involves preprocessing, feature
+  selection and CatBoost model.}
+  \label{Figure:fig_beh}
+\end{figure}
+\end{center}
+
 The task of predicting song popularity was reformulated as a binary
 classification problem, where the target was to determine whether a song is
-"popular" (1) or "not popular" (0). In order to create those labels from an
-integer variable with range 0-100, the \textbf{70th perrcentile of the
+``popular`` (1) or ``not popular`` (0). In order to create those labels from an
+integer variable with range 0-100, the \textbf{70th percentile of the
 popularity values was used as the threshold}. Songs with popularity greater or
-equal  than this  threshold werre  labeled as popular, and the rest was labeled
+equal  than this  threshold were  labeled as popular, and the rest was labeled
 as unpopular. This thresholding approach based on quantile ensures a balanced
 representation of popular songs in the dataset while accounting for the
 naturally skewed distribution of  popularity scores.
@@ -174,7 +187,7 @@ The classification models were evaluated using accuracy and weighted F1-score.
 \textit{Baseline Majority Model} (which predicts the majority class for all
 samples) achieved an accuracy of 65.93\% and an F1-score of 52.39\%. This
 reflects the class imbalance introduced by the thresholding, with a higher
-proportion of songs being labeled as "not popular."
+proportion of songs being labeled as ``not popular``.
 
 The \textit{Baseline Random Model}, which guesses classes randomly, performed
 worse in accuracy (48.27\%) and achieved a slightly higher F1-score of 49.57\%
@@ -287,10 +300,10 @@ content.
 \end{table}
 
 
-The table presents the results of the models in terms of accurracy and weighted
+The table presents the results of the models in terms of accuracy and weighted
 F1 score. The \textit{Baseline Majority Model} achieved accuracy of 84\% and
 significantly lower F1 weighted average of 76.69\%, which reflects its inability
-to handle class balance effectively. The \textit{Baseline Random Model}
+to handle class imbalance effectively. The \textit{Baseline Random Model}
 performed very poorly, with an accuracy of 47.03\% and F1 weighted average of
 53.91\%.
 
@@ -299,7 +312,7 @@ of \textbf{92.41\%} and weighted average score of \textbf{92.4\%} when trained
 on all features. Interestingly, the model trained only using lyrical features
 performed nearly as well, indicating that explicitness can largely be predicted
 based on lyrical content. Models that relied on Spotify metadata and features
-extracted from audio files had lower performance, achieving accurracy close to
+extracted from audio files had lower performance, achieving accuracy close to
 \textit{Baseline Majority Model}, but with higher F1 scores, due to their
 ability to address class imbalance. These observations emphasize the centrality
 of lyrical information in prediction of explicit content.
@@ -620,6 +633,12 @@ classes) we can observe that:
 
 \subsection{Latent Dirichlet Allocation}
 
+Latent Dirichlet Allocation (LDA) was applied to the song lyrics dataset to
+identify thematic clusters and analyze the distribution of topics across songs.
+The analysis leveraged the \textit{pyLDAvis}\cite{pylda} library to generate
+visualizations, including intertopic distance maps and term relevance plots,
+providing insights into the distinct themes present in the lyrics.
+
 \begin{center}
 \begin{figure}[H]
   \centering
@@ -667,7 +686,7 @@ scaling (MDS). Each bubble represents a topic extracted by the LDA model.
 \begin{center}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=3in]{img/topics/png/t2.png}
+  \includegraphics[width=3in]{img/topics/png/t2_censored.png}
   \caption{Top-30 Most Relevant Terms in Topic 2.}
   \label{Figure:fig_eh}
 \end{figure}
@@ -702,7 +721,7 @@ scaling (MDS). Each bubble represents a topic extracted by the LDA model.
 
 
 The topic modeling results reveal distinct themes found in the analyzed song
-lyrics. The intertopic distance map(Figure~\ref{Figure:intertopicdistancemap}) shows
+lyrics. The intertopic distance map(fig~\ref{Figure:intertopicdistancemap}) shows
 that the five topics are well separated(except for 1 and 3, that have a
 significant overlap). The model has successfully captured distinct clusters of
 related terms, providing valuable insight and observations:
@@ -718,7 +737,7 @@ related terms, providing valuable insight and observations:
       conflict and relationships}, as indicated by words like ``love``,
       ``heart``, ``hurt, ``break``.
     \item Topic 4 focuses on themes of \textbf{romantic affection, celebration,
-      and festives}. Words such as ``baby``, ``tonight``, ``girl``, ``wanna",
+      and festives}. Words such as ``baby``, ``tonight``, ``girl``, ``wanna``,
       and ``kiss`` highlight intimate emotions and the inclusion of
       ``Christmas``, ``Santa`` and other related words strongly suggests a
       Christmas-themed music.
@@ -734,7 +753,7 @@ The topic modeling analysis effectively uncovered five distinct thematic
 clusters within the song lyrics dataset, each representing unique aspects of
 lyrical expression, ranging from love and affection, to urban culture, and
 Christmas themes. The intertopic distance map
-(Figure~\ref{Figure:intertopicdistancemap}) confirms that the identified topics
+(fig.Figure~\ref{Figure:intertopicdistancemap}) confirms that the identified topics
 are well-separated, with overlaps only in related themes such as existentialism
 (Topic 1) and emotional conflict (Topic 3).
 
@@ -780,8 +799,8 @@ include:
 Based on the heatmap topics 1 and 3 show more diverse genre distribution,
 indicating thematic universality or overlap. This observation aligns with the
 conclusions drawn from the  distance
-map(Figure~\ref{Figure:intertopicdistancemap}) and the analysis of their most
-relevant terms((Figure~\ref{Figure:t1}, (Figure~\ref{Figure:t3})). Topics 2 and
+map(fig.~\ref{Figure:intertopicdistancemap}) and the analysis of their most
+relevant terms(fig.~\ref{Figure:t1}, (fig.~\ref{Figure:t3}). Topics 2 and
 5 display strong dominance by specific genres, showing more focused thematic
 expressions.
 
@@ -867,7 +886,7 @@ unique musical attributes:
     paired with low \textit{energy} and  \textit{danceability} suggest slower,
     more emotional, acoustic tracks.
   \item \textbf{Topic 4}: High \textit{acousticness},  \textit{popularity},
-    relatively high \textit{valence} and \textit{tempo} indicate s ofter,
+    relatively high \textit{valence} and \textit{tempo} indicate softer,
     somewhat upbeat  tracks that include both instrumental and vocal
     components.
   \item \textbf{Topic 5}: High values in \textit{tempo}, \textit{valence}, and
@@ -882,7 +901,8 @@ unique musical attributes:
 To analyze the temporal trends in musical features, during the data collection
 phase the variable \textit{album release year} was stratified into 10-year
 buckets representing distinct decades. This stratification allowed for a
-comparative analysis of feature evolution across time periods.
+comparative analysis of feature evolution across time periods, assuring
+that each time period had sufficient representation.
 
 
 \subsection{Identification of Features Affected by Release Year}
@@ -903,8 +923,6 @@ main steps:
 Features exhibiting high $R^2$ values and statistically significant p-values
 ($\alpha = 0.05$) were selected as candidates for further analysis.
 
-24 features were identifed to  have meaningful dependency on the decade of
-release, those are  their plots along with 95\% confidence intervals:
 
 A total of 24 features were identified as having a meaningful dependency on the
 decade of release. These  features demonstrated statistically significant
@@ -953,6 +971,7 @@ instrumentalness       & 0.016573    & 0.000118                   & 4.748720    
 \end{table}
 
 
+\subsection{Plots and Results}
 The following plots display the trends of these features across decades, along
 with 95\% confidence intervals to illustrate the variability of the trends:
 
@@ -988,7 +1007,7 @@ with 95\% confidence intervals to illustrate the variability of the trends:
 
 Based on those plots it can be observed that:
 \begin{itemize}
-  \item \textbf{There is a clear, strong upward trend in explicit content frrom
+  \item \textbf{There is a clear, strong upward trend in explicit content from
     the 1980s onward}. It reflects a cultural shift  towards more openness in
     lyrical expression and increase in popularity of genres such as rap.
   \item \textbf{There is a steady increase in popularity over the decades. Potentially

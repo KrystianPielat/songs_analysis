@@ -1,13 +1,121 @@
-\chapter{Conclusion and Future Work}
-\label{cha:conclusionandfuturework}
+\chapter{Conclusion}
+\label{cha:conclusion}
 %---------------------------------------------------------------------------
 
 \section{Summary of Contributions}
 \label{sec:summaryofcontributions}
 
+This thesis has provided an extensive analysis of the relationships between
+acoustic parameters, lyrical content, and metadata in characterizing music
+tracks. By integrating well organized data collection methodology, advanced
+feature engineering, explainable AI methods, machine learning models and
+statistical methods, this study accomplished the following:
+
+\begin{itemize}
+  \item Constructed a diverse dataset by combining Spotify metadata and audio
+    features, textual features derived from lyrics, and acoustic features
+    extracted from downloaded MP3 files, representing over 3,500 songs.
+
+  \item Conducted an in-depth EDA to identify trends, patterns, and distinctive
+    characteristics within acoustic and lyrical features across genres,
+    leveraging advanced statistical methods.
+
+  \item Characterized distinctive traits of the genres included in the study,
+    providing insights into their unique acoustic and lyrical attributes. 
+
+  \item Trained machine learning models for various predictive tasks, including
+    popularity, explicitness, sentiment, and genre classification, and
+    identified key features influencing these attributes. The models were
+    tested against baseline models to evaluate their performance,
+    and explainable AI methodologies such as SHAP were used to enhance
+    interpretability and investigate feature importance and interactions.
+
+  \item Applied Latent Dirichlet Allocation (LDA) to identify and analyze
+    thematic patterns in lyrics, offering insights into the recurring themes
+    and their distribution across genres and time periods, while exploring
+    their distinct characteristics.
+
+  \item Investigated temporal trends in music characteristics, offering
+    insights into the evolution of music styles and listener preferences.
+
+  \item Established a reusable framework for data collection, feature
+    extraction, and XAI-driven analysis, providing foundation for further
+    research in music analysis.
+\end{itemize}
+
+
+
+
+
 
 %---------------------------------------------------------------------------
+\section{Limitations of the Study}
+\label{sec:limitations}
 
+This study faced several key limitations that should be considered when
+interpreting the results:
+
+\subsubsection*{Selection Bias}
+
+The dataset was created through stratified sampling of songs on Spotify, based
+on genre and release decade. However, this stratification relied on Spotify's
+search algorithm, introducing a potential bias influenced by the algorithm's
+underlying logic and priorities. Factors such as the musical preferences of the
+user querying the data, the time of year, and the specific version of the
+search algorithm at the time of data collection could all have impacted the
+selection of songs, potentially skewing the dataset toward certain trends or
+preferences. Collection of truly random sample for the purpose of this study
+would have posed significant challenges, explained in \textit{Sampling
+Method} (\ref{sec:samplingmethod}).
+
+
+
+
+\subsubsection*{Dimensionality}
+
+The dataset was relatively small due to computational and time constraints.
+This limitation restricted the complexity of analyses and the generalizability
+of insights. Larger datasets could have enhanced the performance of the models
+and provided more robust findings.
+
+\subsubsection*{Dependency on Spotify}
+Many features used in this study were derived from Spotify's metadata and
+algorithms. For instance, genre assignments, popularity metrics, and features
+such as danceability and loudness depend on Spotify's estimations, which may
+not always align with objective or universal measures.
+
+
+
+%---------------------------------------------------------------------------
 \section{Recommendations for Future Work}
 \label{sec:recommendationsforfuturework}
 
+
+\subsubsection*{Expand Dataset Size and Diversity}
+Collect a larger and more diverse dataset. More data would not only improve the
+quality and robustness of trained models but also enable more comprehensive and
+accurate analyses, uncovering complex relationships and trends in the
+data.
+
+\subsubsection*{Reduce Dependency on Spotify}
+Incorporate alternative data sources to minimize reliance on Spotify's metadata
+and algorithmically generated features. These could include publicly available
+audio datasets, other music streaming platforms, or custom feature extraction
+from raw audio files.
+
+
+\subsubsection*{Improve Feature Engineering}
+Enhance the feature engineering process, with a particular focus on extracting
+more nuanced and comprehensive features from MP3 files. Improved feature
+engineering would provide a deeper understanding of music's structure and
+characteristics, contributing to more accurate and insightful analyses.
+
+\subsubsection*{Utilize Advanced Modeling Techniques}
+Experiment with a variety of models, including more complex architectures, to
+better capture the relationships in the data. Broaden the hyperparameter search
+in Optuna to optimize model performance and identify the best configurations.
+
+
+\subsubsection*{Refine Clustering and Topic Modeling}
+Extend the use of clustering and topic modeling techniques to uncover more
+nuanced relationships between genres and lyrical themes.

@@ -26,6 +26,17 @@ Lyrics on the Characteristics of Music Tracks Using AI Methods},
 pdfkeywords={musical analysis; nlp; acoustic analysis}]{hyperref}
 \usepackage{tabularray}
 
+\addto\captionspolish{
+  \renewcommand{\figurename}{Figure}
+}
+
+\addto\captionspolish{
+  \renewcommand{\tablename}{Table}
+}
+
+\addto\captionspolish{
+  \renewcommand{\contentsname}{Table of Contents}
+}
 
 \setcounter{tocdepth}{3}
 \setcounter{secnumdepth}{3}
@@ -70,6 +81,6 @@ pdfkeywords={musical analysis; nlp; acoustic analysis}]{hyperref}
 
 \cleardoublepage % Dodaj nową stronę, aby "Literatura" zaczęła się na nieparzystej stronie
 \phantomsection % Dodaj punkt w spisie treści dla sekcji "Literatura"
-\addcontentsline{toc}{chapter}{Bibliografia} % Dodaj "Literatura" do spisu treści, bez numerowania
-\printbibliography[title={Bibliografia}]
+\addcontentsline{toc}{chapter}{Bibliography} % Dodaj "Literatura" do spisu treści, bez numerowania
+\printbibliography[title={Bibliography}]
 \end{document}
