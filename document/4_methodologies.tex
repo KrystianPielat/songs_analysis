@@ -27,8 +27,8 @@ patterns and relationships.
  of each song and were extracted directly from the audio files in MP3 format.
  They describe various aspects of audio signal and provide insights into the
  rhythm, timbre, harmony and other acoustic properties. The extraction was done
- using \textit{Librosa}\cite{librosa} and was automated and parallelized to make it suitable
- for processing large amounts of data. 
+ using \textit{Librosa} and was automated and parallelized to make it suitable
+ for processing large amounts of data. \cite{librosa}
 
 \subsubsection*{MFCC - Mel Frequency Cepstral Coefficients}
 MFCCs represent the short-term power spectrum of a song on a mel-scale and are
@@ -67,12 +67,13 @@ Lyrical features  were extracted from the lyrics fetched during the data
 collection process. They aim to provide a linguistic and semantic
 representation of the track, capturing their complexity, sentiment and
 stylistic  attributes. The cleaning and extraction  process utilized various
-NLP libraries like \textit{NLTK}\cite{nltk}, \textit{spaCy}\cite{spacy} and
-\textit{TextBlob}\cite{textblob}, alongside with custom ad-hoc algorithms.
-Similarily to acoustic features the implementation allowed for simple and
-intuitive usage under clear and comprehensible interface, with parallelization
-of the computation process for increased performance. The features extracted
-can be grouped as follows:
+NLP libraries like \textit{NLTK}, \textit{spaCy} and \textit{TextBlob},
+alongside with custom ad-hoc algorithms. Similarily to acoustic features the
+implementation allowed for simple and intuitive usage under clear and
+comprehensible interface, with parallelization of the computation process for
+increased performance. \cite{nltk} \cite{spacy} \cite{textblob}
+
+The features extracted can be grouped as follows:
 
 \subsubsection*{Basic Linguistic Metrics}
 \begin{itemize}
@@ -144,12 +145,12 @@ can be grouped as follows:
 
 \subsubsection*{TF-IDF (Term Frequency - Inverse Document Frequency)}
 
-TF-IDF\cite{tfidf} is a measure that can quantify the relevance of tokens in a
+TF-IDF is a measure that can quantify the relevance of tokens in a
 document amongst a collection of documents. In the context of this study, it
 determines how important a word in a song's lyrics is  compared to all other
 song's lyrics in the dataset. It's used to highlight words that are unique or
 meaningful while giving less importance to very common words like 'the' or
-'and'.
+'and'.\cite{tfidf}
 
 It can be broken down into two parts:
 
@@ -179,13 +180,25 @@ It can be broken down into two parts:
   \end{itemize}
 \end{itemize}
 
+
+The final TF-IDF value is computed by multiplying the Term Frequency (TF) and
+the Inverse Document Frequency (IDF) for a word \( w \):  
+\[  
+TF\text{-}IDF(w, d) = TF(w, d) \cdot IDF(w)  
+\]  
+
+The terms that are frequently occurring in a specific document (high TF) and
+rarely appearing in other documents (high IDF) receive a higher score, making
+them more significant for identifying the document's unique content.
+
+
 \subsubsection*{Word2Vec}
 
-Word2Vec\cite{w2v} is a neural network-based technique for creating dense
+Word2Vec is a neural network-based technique for creating dense
 vector representations of words, capturing their semantic relationships in a
 high-dimensional space. Unlike traditional bag-of-words or TF-IDF methods,
 Word2Vec generates embeddings that preserve the contextual meaning of words
-based on their usage within the corpus.
+based on their usage within the corpus.\cite{w2v}
 
 Two primary approaches are used in Word2Vec: 
 \begin{itemize} 
@@ -203,12 +216,12 @@ classification, clustering, and thematic exploration.
 
 
 \subsubsection*{Empath}
-Empath\cite{empath} is a semantic analysis tool designed for extracting
+Empath is a semantic analysis tool designed for extracting
 semantic, thematic and emotional features from text by analyzing words based on
 predefined categories. It classifies words into over 200 built-in categories,
 such as \textit{sadness}, \textit{food} and \textit{music}. It  identifies
 relationships between words and these categories, offering a higher-level
-representation of text content beyond simple word frequency.
+representation of text content beyond simple word frequency.\cite{empath}
 
 In this study, Empath was  used to analyze song lyrics, allowing for extraction
 of thematic and  emotional content. These features were used to complement
@@ -248,10 +261,10 @@ driving model predictions ensured that the results were both reliable and
 meaningfully adressed the research objectives. The  techniques employed in this paper are: 
 
 \subsubsection*{SHAP (SHapley Additive exPlanations)}
-SHAP\cite{shap} values offer a detailed  breakdown of how individual features contribute
+SHAP values offer a detailed  breakdown of how individual features contribute
 to  each prediction. It uses game theory principles to compute the importance
 of each feature for a given output, providing both global insights on general
-feature importance and  local explainations, showing how diffrenet features
+feature importance and  local explainations, showing how different features
 contributed to specific predictions. In this study SHAP values were used in
 order to explain the predictive process of trained Catboost models, allowing
 for identification of key features for specific prediction task and
@@ -288,7 +301,7 @@ visualization of relationships.
 %---------------------------------------------------------------------------
 
 \subsubsection*{Machine Learning Models}
-In this study, CatBoost\cite{catboost}, a widely recognized gradient boosting
+In this study, CatBoost, a widely recognized gradient boosting
 algorithm known for its high predictive accuracy and efficiency, was employed
 to build classification and regression models. These models utilized a
 combination of acoustic, lyrical and metadata features in order to predict the
@@ -298,13 +311,13 @@ order to understand their decision process and understand the interactions
 between features and the target variable. Catboost was chosen for its
 flexibility, ease of use, robust performance, compatibility with SHAP and
 built-in support for categorical features,  which eliminated the need for
-extensive preprocessing.
+extensive preprocessing.\cite{catboost}
 
 In order to further optimize the performance of these models, the
-hyperparameter tuning library \textit{Optuna}\cite{optuna} was used. Its
+hyperparameter tuning library \textit{Optuna} was used. Its
 efficient optimization framework allowed for systematic exploration of
 different sets of hyperparameter configurations, ensuring the model achieved
-optimal performance while avoiding overfitting. 
+optimal performance while avoiding overfitting.\cite{optuna} 
 
 To address the challenges commonly encountered when training ML models on
 complex datasets, following techniques were employed:
@@ -334,8 +347,8 @@ datasets by transforming them into principal components that retain most of the
 original information. It achieves this by converting potentially correlated
 variables into a smaller set of less correlated variables, called principal
 components, in a way that preserves as much of the original variance as
-possible\cite{pca}. PCA is often employed to reduce dataset dimensionality and improve
-generalization by reducing noise and redundancy in the data.
+possible. PCA is often employed to reduce dataset dimensionality and improve
+generalization by reducing noise and redundancy in the data.\cite{pca}
 
 In this study, PCA was applied to the TF-IDF vectors derived from
 song lyrics. TF-IDF vectors are typically high-dimensional, with thousands of
@@ -363,10 +376,10 @@ methodologies.
 \section{Topic Modelling - Latent Dirichlet Allocation (LDA)}
 \label{sec:topicmodelling}
 
-Latent Dirichlet Allocation (LDA)\cite{lda} is a generative probabilistic model
+Latent Dirichlet Allocation (LDA) is a generative probabilistic model
 designed to uncover latent topics within a collection of discrete data, such as
 text corpus.  It represents each document as a mixture of topics, where each
-topic is characterized by a distribution over words. 
+topic is characterized by a distribution over words. \cite{lda}
 
 In this study, LDA was applied on the lyrics in order to identify commonly
 ocurrirng topics in songs. Each song's lyrics were represented as a combination
