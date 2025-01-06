@@ -11,7 +11,7 @@ that influence the success of music tracks. This problem has two approaches:
   \item \textbf{Regression} - Spotify's popularity is a value on scale of
     0-100. This approach involves training a regression model trying to predict
     that value;
-  \item \textbf{Classification} - assigning binary label to the songs(popular
+  \item \textbf{Classification} - assigning binary label to the songs (popular
     vs. unpopular) and training a classification model to predict it.
 \end{itemize}
 
@@ -72,9 +72,9 @@ based on the feature importance from initial Random Forest model.
 \end{table}
 
 As seen in the results table, the CatBoost model trained on Spotify data only
-achieved the best performance, with \textbf{Mean Absolute Error(MAE) of
+achieved the best performance, with \textbf{Mean Absolute Error (MAE) of
 \textbf{6.04} and and $R^2$ of 0.77}, closely followed by the model trained on
-all features that achieved \textbf{MAE of 6.33 and ($R^2$ of 0.74}. The results
+all features that achieved \textbf{MAE of 6.33 and $R^2$ of 0.74}. The results
 clearly indicate the importance of Spotify audio features and metadata in
 prediction of song's popularity. Predicting the success  of a musical track
 based on solely the lyrics or acoustic features turned out to be diffifcult and
@@ -246,7 +246,7 @@ Based on the feature importance and beeswarm plots produced by SHAP
 several differences between regression and classification model can
 be observed:
 \begin{itemize}
-  \item Lyrics embeddings(TF-IDF and Word2Vec) played a slightly bigger role in
+  \item Lyrics embeddings (TF-IDF and Word2Vec) played a slightly bigger role in
     the classification model;
   \item Classification model seemed to pay much less attention to Spotify audio
     features, like \textit{danceability}, \textit{energy} and
@@ -450,7 +450,7 @@ may carry less positive emotion.
 \end{center}
 
 This section tackles the problem of song lyrics sentiment prediction. The
-binary sentiment labels(positive (1) and negative (0)) were derived from the
+binary sentiment labels (positive (1) and negative (0)) were derived from the
 variable \textit{sentiment polarity}. Songs with polarity values below 0 were
 labeled as negative, while those above 0 were labeled as positive.
 
@@ -709,7 +709,7 @@ topic.\cite{pylda}
 LDA  revealed distinct themes found in the corpus of  lyrics in the dataset. It
 identified five well separated, with overlaps only in related themes, such as
 existentialism (Topic 1) and emotional conflict (Topic 3). Their similarity 
-is visualized on the intertopic(fig~\ref{Figure:intertopicdistancemap})
+is visualized on the intertopic (fig~\ref{Figure:intertopicdistancemap})
 distance map. Topics with overlap have  many terms in common. The model has
 successfully captured distinct clusters of related terms, and based on the
 visualization we can observe that:
@@ -775,8 +775,8 @@ extracted with the LDA model. Key observations include:
 Based on the heatmap topics 1 and 3 show more diverse genre distribution,
 indicating thematic universality or overlap. This observation aligns with the
 conclusions drawn from the  distance
-map(fig.~\ref{Figure:intertopicdistancemap}) and the analysis of their most
-relevant terms(fig.~\ref{Figure:t1}, (fig.~\ref{Figure:t3}). Topics 2 and
+map (fig.~\ref{Figure:intertopicdistancemap}) and the analysis of their most
+relevant terms (fig.~\ref{Figure:t1}, (fig.~\ref{Figure:t3}). Topics 2 and
 5 display strong dominance by specific genres, showing more focused thematic
 expressions.
 

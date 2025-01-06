@@ -7,7 +7,7 @@
 \section{Sampling Method}
 \label{sec:samplingmethod}
 
-Spotify’s catalog contains approximately 100 million songs and over 6000 distinct genres.
+Spotify’s catalog contains approximately 100 million songs and over 6,000 distinct genres.
 Collecting an actual random sample from this huge and diverse population presents great
 challenges. A completely random sampling approach would result in a dataset very
 skewed towards rare genres and imbalanced release year distribution. This would lead to
@@ -16,7 +16,7 @@ and an overwhelming diversity of genres. \textbf{}
 This kind of diversity would make it almost impossible to get valuable insights and relationships, since less represented genres and rare tracks would be the dominant ones, which would shift the focus from more prominent trends and patterns in music.
 
 
-To address these issues, a smaller and more organized sample of 3500 songs was
+To address these issues, a smaller and more organized sample of 3,500 songs was
 selected. To ensure a balanced dataset, a stratified sampling approach was designed, which focuses on two key factors genre and release year The sampling process utilized Spotify’s query parametrization tool, which allows to specify preferred genres and release
 year ranges for musical tracks. Release years were grouped into 10-year intervals, starting
 from 1950 and up to 2020, guaranteeing the dataset represents different time periods in
@@ -37,24 +37,39 @@ evolution.
 \section{Dataset Description}
 \label{sec:datasetdescription}
 
-The dataset consists of around 3500 songs in English. For each song metadata, audio
+The dataset consists of around 3,500 songs in English. For each song metadata, audio
 recording, lyrics and spotify audio features were fetched.
 
 \section{Data Collection Methods}
 \label{sec:datacollectionmethods}
 
 \subsection{Sources}
-The data was collected from various sources, metadata and audio features were fetched from
-Spotify API. The lyrics were scraped from LetrasMus, MakeItPersonal or Lyrics Fandom, or
-fetched via the Genius API, depending on the availability. Finally, audio files were downloaded from YouTube using youtube-dl library and saved as mp3 files.\cite{spotify_api} \cite{makeitpersonal} \cite{genius} \cite{letras_mus} \cite{lyricsfandom} \cite{ytdl} 
+The data was collected from various sources, metadata and audio features were
+fetched from Spotify API. The lyrics were scraped from LetrasMus,
+MakeItPersonal or Lyrics Fandom, or fetched via the Genius API, depending on
+the availability. Finally, audio files were downloaded from YouTube using
+youtube-dl library and saved as mp3
+files.\cite{spotify_api,makeitpersonal,genius,letras_mus,lyricsfandom,ytdl} 
 
 \subsection{Methodology}
-For efficiency, the data collection process was automated using a script that leveraged Spotify API’s search query parametrization to fetch an equal number of songs from each genre and in released in each decade. The starting point for this process was a list of different genres and decades. Then, the lyrics were searched based on artist name and title of each song, using different lyrics providers depending on what was available. The system would query different sources until it found lyrics in at least one of them. If it failed to retrieve lyrics, the song was discarded and would not make it to the final dataset.
+For efficiency, the data collection process was automated using a script that
+leveraged Spotify API’s search query parametrization to fetch an equal number
+of songs from each genre and in released in each decade. The starting point for
+this process was a list of different genres and decades. Then, the lyrics were
+searched based on artist name and title of each song, using different lyrics
+providers depending on what was available. The system would query different
+sources until it found lyrics in at least one of them. If it failed to retrieve
+lyrics, the song was discarded and would not make it to the final dataset.
 
 
-Finally, the script searched each song on Youtube  and downloaded the first relevant result, then saved it to an mp3 file. All data was saved into a CSV file named after the playlist and stored alongside the recordings. 
+Finally, the script searched each song on Youtube  and downloaded the first
+relevant result, then saved it to an mp3 file. All data was saved into a CSV
+file named after the playlist and stored alongside the recordings. 
 
-The whole process was parallelized so that the data acquisition process would be significantly faster It was designed in a robust manner, with careful error handling and ability to stop the process at any time and pick up where it left off.
+The whole process was parallelized so that the data acquisition process would
+be significantly faster. It was designed in a robust manner, with careful error
+handling and ability to stop the process at any time and pick up where it left
+off.
 
 %---------------------------------------------------------------------------
 
@@ -78,7 +93,7 @@ Metadata included song's information downloaded from Spotify API, precisely:
 
 \subsection{Spotify Audio Features}
 \label{sec:spotifyaudiofeatures}
-Those features were fetched from the Spotify API.They describe different
+Those features were fetched from the Spotify API. They describe different
 acoustic properties of the songs:
 \begin{itemize}
   \item \textbf{Speechiness} - relative measure of spoken words in a track;
@@ -99,8 +114,8 @@ acoustic properties of the songs:
   \item \textbf{Liveness} - probability of the song being recorded during a
     live performance;
   \item \textbf{Key} - key of the song, e.g. C\#;
-  \item \textbf{Mode} - indicates the modality of a track(major / minor);
-  \item \textbf{Tempo} - estimated tempo of a track in beats per minute(BPM);
+  \item \textbf{Mode} - indicates the modality of a track (major / minor);
+  \item \textbf{Tempo} - estimated tempo of a track in beats per minute (BPM);
   \item \textbf{Time Signature} - specifies how many beats there are in each
     bar;
   \item \textbf{Duration} - duration of the track in milliseconds.
@@ -116,7 +131,7 @@ acoustic properties of the songs:
  \begin{itemize}
   \item \textbf{Standardization} - lyrics were converted to lowercase;
   \item \textbf{Noise Removal} - unnecessary characters, numbers and
-    punctuation, as well as additional comments used by lyrics providers(e.g.
+    punctuation, as well as additional comments used by lyrics providers (e.g.
     'chorus') were removed;
   \item \textbf{Stopwords Filtration} - exclusion of frequently occuring words
     that carry little information, like 'the' in English;
@@ -131,17 +146,18 @@ acoustic properties of the songs:
 
 %---------------------------------------------------------------------------
 
-\section{Tools and Libraries Used}
+\section{Tools and Libraries}
 \label{sec:toolsandlibrariesused}
-The python libraries used to for data acquisition were:
+The Python libraries used to for data acquisition were\cite{spotipy, ytdl, beautifulsoup}:
 \begin{itemize}
-  \item \textit{Spotipy} - a lightweight python library for
-    Spotify API;
-  \item \textit{youtube-dl}  - library used to find and download
-    YouTube videos;
-  \item \textit{BeautifulSoup}  - library used for
-    extracting information from HTML, commonly used for web scraping.
+  \item \textit{Spotipy} - a lightweight Python library for Spotify API. It was
+    used to sample songs and fetch their metadata and audio features;
+  \item \textit{youtube-dl}  - library used to find and download YouTube
+    videos. It greatly facilitated the process of acquiring mp3 tracks for
+    audio feature extraction;
+  \item \textit{BeautifulSoup}  - library used for extracting information from
+    HTML, commonly used for web scraping. It was used to parse websites with
+    lyrics in order to extract relevant data.
 \end{itemize}
 
-References: \cite{spotipy} \cite{ytdl} \cite{beautifulsoup}
 

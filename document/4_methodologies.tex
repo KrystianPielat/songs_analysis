@@ -37,26 +37,31 @@ for processing large amounts of data. \cite{librosa}
 MFCCs are used to analyze the short-term power spectrum of a song on a
 mel-scale. They're also used for timbre analysis, and they capture the tonal
 quality of the audio, which helps differentiate between different instruments
-and vocal characteristics.
+and vocal characteristics. After some trial and error and taking into
+consideration the resources available for the extraction of those features and
+model training, thirteen MFCC coefficients were calculated for each track.
+
+
 
 
 \subsubsection*{Chroma}
-Chroma vectors represent the intensity of each pitch class (e.g., C, C#, D, etc.) in the audio.
-These features provide a harmonic representation of the song and are useful for analyzing
-chord progressions and harmonic structures.
+Chroma vectors represent the intensity of each pitch class (e.g., C, C#, D,
+etc.) in the audio. These features provide a harmonic representation of the
+song and are useful for analyzing chord progressions and harmonic structures.
+For each track 12 Chroma features were extracted.
 
 \subsubsection*{Spectral Contrast}
 Spectral contrast measures the difference in amplitude between peaks and
 valleys in the spectrum. It provides insights into the harmonic and timbral
 content of a song, particularly useful for distinguishing between smooth and
-complex textures.
+complex textures. Seven features were extracted for every song.
 
 \subsubsection*{Other Features}
 Two additional features were extracted:
 \begin{itemize}
   \item \textbf{Tempo} - speed of the song, measured in
-    \textit{Beats Per Minute(BPM)};
-  \item \textbf{Zero Crossing Rate(ZCR)} - measures the rate at which the audio
+    \textit{Beats Per Minute (BPM)};
+  \item \textbf{Zero Crossing Rate (ZCR)} - measures the rate at which the audio
     signal changes sign. Commonly used as a measure of noisiness or
     percussive nature of signal.
 \end{itemize}
@@ -73,7 +78,7 @@ stylistic  attributes. In the cleaning and extraction  process various NLP
 libraries like \textit{NLTK}, \textit{spaCy} and \textit{TextBlob} were used,
 alongside with custom ad-hoc algorithms. Before extraction the lyrics  had to
 be carefully cleaned, removing unnecessary characters and stopwords, performing
-stemming etc.\cite{nltk} \cite{spacy} \cite{textblob} 
+stemming etc.\cite{nltk,spacy,textblob} 
 
 Similarily to acoustic features the implementation allowed for simple and
 intuitive usage  with parallelization of the computation process for increased
@@ -95,7 +100,7 @@ The features extracted can be grouped as follows:
 
 \subsubsection*{Sentiment and Emotional Tone}
 \begin{itemize}
-  \item \textbf{Sentiment Polarity} - a measure of overall sentiment(positive
+  \item \textbf{Sentiment Polarity} - a measure of overall sentiment (positive
     vs. negative) of the text;
   \item \textbf{Sentiment Subjectivity} - represents the degree of subjectivity
     in the lyrics;
@@ -188,7 +193,7 @@ the Inverse Document Frequency (IDF) for a word \( w \):
 TF\text{-}IDF(w, d) = TF(w, d) \cdot IDF(w)  
 \]  
 
-Terms that occur frequently in a specific document(high TF) and rarely appear
+Terms that occur frequently in a specific document (high TF) and rarely appear
 in other documents (high IDF) receive a higher score.
 
 \subsubsection*{Word2Vec}
@@ -325,8 +330,8 @@ complex datasets, following techniques were employed:
     model's reliability, at the cost of increased computational time;
   \item \textbf{Class Weights} - due to natural imbalances or skweness in the
     data that was collected, in most classification tasks discussed in this
-    paper the target variable(e.g. explicitness) had different number of samples
-    representing each value(e.g. there were many more non-explicit songs). That
+    paper the target variable (e.g. explicitness) had different number of samples
+    representing each value (e.g. there were many more non-explicit songs). That
     kind of imbalance would lead to model favouring the majority class, and
     therefore performing poorly. Catboost offers a built-in mechanism to handle
     class imbalance by assigning different penalties for misclassifications
@@ -399,7 +404,7 @@ coefficient is a value between -1 to 1 and is computed as follows:
 r = \frac{\sum{(x_i - \bar{x})(y_i - \bar{y})}}{\sqrt{\sum{(x_i - \bar{x})^2} \sum{(y_i - \bar{y})^2}}}
 \]
 
-\noindent \noindent Where:
+\noindent \noindent where:
 \begin{itemize}
     \item \( x_i \) and \( y_i \): The data points of the two variables;
     \item \( \bar{x} \) and \( \bar{y} \): The mean values of the variables.
@@ -420,7 +425,7 @@ r = \frac{\sum{(x_i - \bar{x})(y_i - \bar{y})}}{\sqrt{\sum{(x_i - \bar{x})^2} \s
 
 Bootstrap testing was used to verify hypotheses specified in the research
 objectives. It's a resampling-based statistical technique that estimates the
-variability of a statistic(e.g. mean or median)  by repeatedly sampling its
+variability of a statistic (e.g. mean or median)  by repeatedly sampling its
 values from the dataset with replacement. It's highly versatile since it
 doesn't rely on strong distributional assumptions.
 
@@ -445,8 +450,8 @@ alternative hypothesis that at least one group mean is different.
 
 \subsubsection*{Hypotheses}
 \begin{itemize}
-  \item \textbf{Null Hypothesis($H_0$)}: All group means are equal;
-  \item \textbf{Alternative Hypothesis($H_a$)}: At least one group mean is
+  \item \textbf{Null Hypothesis ($H_0$)}: All group means are equal;
+  \item \textbf{Alternative Hypothesis ($H_a$)}: At least one group mean is
     different.
 \end{itemize}
 
@@ -461,7 +466,7 @@ captures how much the group means differ from the overall mean.
 \text{Between-group \  variation} = \sum_{i=1}^{k} n_i (\bar{x}_i - \bar{x})^2
 \]
 
-\noindent \noindent Where:
+\noindent \noindent where:
 \begin{itemize}
     \item \(n_i\): Number of samples in group \(i\);
     \item \(\bar{x}_i\): Mean of group \(i\);
@@ -476,7 +481,7 @@ It measures the variability of data points within each group.
 \text{Within-group  \ variation} = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (x_{ij} - \bar{x}_i)^2
 \]
 
-\noindent \noindent Where:
+\noindent \noindent where:
 \begin{itemize}
     \item \(x_{ij}\): Individual data point in group \(i\);
     \item \(\bar{x}_i\): Mean of group \(i\).
@@ -495,9 +500,9 @@ the MSB and MSW have to be calculated:
     \[
     \text{MSB} = \frac{\text{Between-group variation}}{\text{df}_{\text{between}}}
     \]
-    \noindent \noindent Where:
+    \noindent \noindent where:
     \begin{itemize}
-        \item \( \text{df}_{\text{between}} = k - 1 \): Degrees of freedom(in
+        \item \( \text{df}_{\text{between}} = k - 1 \): Degrees of freedom (in
           that case number of groups minus one).
     \end{itemize}
 \end{itemize}
@@ -509,7 +514,7 @@ the MSB and MSW have to be calculated:
     \[
     \text{MSW} = \frac{\text{Within-group \ variation}}{\text{df}_{\text{within}}}
     \]
-    \noindent \noindent Where:
+    \noindent \noindent where:
     \begin{itemize}
         \item \( \text{df}_{\text{within}} = N - k \): Total number of observations minus the number of groups.
     \end{itemize}
