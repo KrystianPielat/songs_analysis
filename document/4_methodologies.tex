@@ -265,7 +265,7 @@ visualization of relationships between the features and target variable.
 \begin{center}
   \begin{figure}[H]
   \centering
-  \includegraphics[width=4in]{img/shap_intro.png}
+  \includegraphics[width=5in]{img/shap_intro.png}
   \caption{SHAP}
   \label{Figure:fig_beh}
 \end{figure}
@@ -309,7 +309,7 @@ In order to further optimize the performance of the models, the
 hyperparameter tuning library \textit{Optuna} was used. Optuna is an
 efficient optimization framework that allows to systematically test different
 sets of hyperparameter configurations, ensuring the final model achieves
-optimal performance.\cite{optuna} 
+near-optimal performance.\cite{optuna} 
 
 To address the challenges commonly encountered when training ML models on
 complex datasets, following techniques were employed:
@@ -375,11 +375,11 @@ for topic modeling to uncovering the central topics and their distributions
 across the dataset.\cite{lda}
 
 In this study LDA was applied on the lyrics to identify commonly occuring
-topics in songs. The algorithm found optimal number of topics and they were
-visualized using \textit{pyldavis}\cite{pylda} library. For each topic its most
-representative words were extracted that in combination with other features
-allowed to better characterize them and understand frequently occuring themes
-in the lyrics.
+topics in songs. The algorithm automatically found the best number of topics
+and they were visualized using \textit{pyldavis}\cite{pylda} library. For each
+topic its most representative words were extracted that in combination with
+other features allowed to better characterize them and understand frequently
+occuring themes in the lyrics.
 
 
 
