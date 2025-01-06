@@ -31,8 +31,8 @@
 \end{center}
 
 \subsection*{Observations}
-As shown on Fig.~\ref{Figure:corr_heatmap_spotify_features} and
-Fig.~\ref{Figure:dendrogram_spotify_features}, Spotify audio features show high
+As shown on fig.~\ref{Figure:corr_heatmap_spotify_features} and
+fig.~\ref{Figure:dendrogram_spotify_features}, Spotify audio features show high
 level of correlation between each other, especially:
 \begin{itemize}
   \item \textit{Energy} and \textit{Loudness}: A high correlation (0.74) suggest
@@ -43,7 +43,7 @@ level of correlation between each other, especially:
   \item \textit{Energy} and \textit{Acousticness}: there is a strong negative
     correlation between those features, suggesting that high-energy tracks are
     less likely to have acoustic elements;
-  \item The dendrogram (Fig.~\ref{Figure:dendrogram_spotify_features}) shows relations
+  \item The dendrogram (fig.~\ref{Figure:dendrogram_spotify_features}) shows relations
     between features and allows us to compare which features correlate with
     each other. In addition to the relationships seen in the correlation
     heatmap, we observe that \textit{popularity} appears to have a weak
@@ -83,8 +83,8 @@ level of correlation between each other, especially:
 
 
 \subsection*{Observations}
-Based on the figures Fig.~\ref{Figure:corr_heatmap_lyrical} and
-Fig.~\ref{Figure:dendrogram_lyrical}, it can be observed that:
+Based on the figures fig.~\ref{Figure:corr_heatmap_lyrical} and
+fig.~\ref{Figure:dendrogram_lyrical}, it can be observed that:
 \begin{itemize}
   \item \textit{Flesch Reading Ease}, \textit{Gunning Fog} and \textit{Dale
     Chall} scores exhibit strong positive correlations, highlighting their
@@ -138,8 +138,8 @@ Fig.~\ref{Figure:dendrogram_lyrical}, it can be observed that:
 
 
 \subsection*{Observations}
-The figures Fig.~\ref{Figure:corr_heatmap_audio} and
-Fig.~\ref{Figure:dendrogram_audio} show that:
+The figures fig.~\ref{Figure:corr_heatmap_audio} and
+fig.~\ref{Figure:dendrogram_audio} show that:
 \begin{itemize}
   \item \textit{MFCC Features} are strongly correlated among themselves (e.g.
     \textit{mfcc\_4}, \textit{mfcc\_6}, \textit{mfcc\_8}, etc.);
@@ -187,8 +187,8 @@ Fig.~\ref{Figure:dendrogram_audio} show that:
 
 
 \subsection*{Observations}
-The correlation heatmap (Fig.~\ref{Figure:corr_heatmap_empath}) and 
-hierarchical clustering dendrogram (Fig.~\ref{Figure:dendrogram_empath}) of
+The correlation heatmap (fig.~\ref{Figure:corr_heatmap_empath}) and 
+hierarchical clustering dendrogram (fig.~\ref{Figure:dendrogram_empath}) of
 empath features provide the following information:
 \begin{itemize}
   \item \textbf{High Correlations Reflect Logical Groupings}: high correlation
@@ -227,12 +227,12 @@ empath features provide the following information:
 \end{figure}
 \end{center}
 
-The dendrogram (Fig.~\ref{Figure:genres_dendrogram}) illustrates hierarchical clustering of genres based on their
+The dendrogram (fig.~\ref{Figure:genres_dendrogram}) illustrates hierarchical clustering of genres based on their
 lyrical and audio features. The similarities between genres align with their
 general cultural and musical understandings, e.g. rap and hip hop are closely
 related, indicating that they're quite similar. 
 
-The heatmap (Fig.~\ref{Figure:genres_similarity_heatmap}) further supports this observation. The euclidean distances of rap
+The heatmap (fig.~\ref{Figure:genres_similarity_heatmap}) further supports this observation. The euclidean distances of rap
 and hip hop with other genres stand out as the highest, meaning that those two
 genres are similar to each other and very different to all other genres
 included in this study. 
@@ -251,7 +251,7 @@ dendrogram.
 \end{figure}
 \end{center}
 
-The heatmap on figure Fig.~\ref{Figure:heatmap_empath} displays scaled mean
+The heatmap on figure fig.~\ref{Figure:heatmap_empath} displays scaled mean
 values of \textit{Empath features} for different musical genres. It visualizes
 the thematic  differences in their lyrics. It can be observed that:
 \begin{itemize}
@@ -292,7 +292,7 @@ elbow method (which suggested four clusters). This operation clusters the most
 similar genres together, additionally enhancing the visualization.
 
 
-The resulting scatterplot (Fig.~\ref{Figure:tsne_genres}) shows that:
+The resulting scatterplot (fig.~\ref{Figure:tsne_genres}) shows that:
 \begin{itemize}
   \item \textit{Hip hop} and \textit{rap} form a distinct cluster, indicating
     strong lyrical and thematic similarity and dissimilarity with other genres;
@@ -315,7 +315,7 @@ The resulting scatterplot (Fig.~\ref{Figure:tsne_genres}) shows that:
   \label{Figure:heatmap_max_feature_values_by_genre}
 \end{figure}
 \end{center}
-On the figure Fig.~\ref{Figure:heatmap_max_feature_values_by_genre} each filled
+On the figure fig.~\ref{Figure:heatmap_max_feature_values_by_genre} each filled
 cell represents the genre that exhibits the highest mean value for the
 corresponding feature, calculated using scaled feature values. This
 visualization emphasizes distinctive characteristics of each genre, and allows
@@ -351,6 +351,6 @@ to see ``in  which genre the feature achieved its highest mean``.
 Lastly, we switch perspectives, focusing not on individual features but instead
 examining each genre to identify the top 5 features that characterize it. Each
 filled cell on the resulting
-heatmap (Fig.~\ref{Figure:heatmap_top_feature_values_by_genre}) shows one of the
+heatmap (fig.~\ref{Figure:heatmap_top_feature_values_by_genre}) shows one of the
 five most prominent characteristics exhibited by that genre.
 
