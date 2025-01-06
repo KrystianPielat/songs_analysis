@@ -66,11 +66,11 @@ Metadata included song's information downloaded from Spotify API, precisely:
 \begin{itemize}
   \item \textbf{Popularity} - relative measure with values ranging from 0 to
     100 describing the popularity of the song, estimated based on total
-    number of plays and how recent  those plays are.
+    number of plays and how recent  those plays are;
   \item \textbf{Explicitness} - whether or not the song includes explicit
-    lyrics.
+    lyrics;
   \item \textbf{Genre} - the genre specified in the search query that returned
-    this song.
+    this song;
   \item \textbf{Album Release Year} - the release year of the album that the
     song belongs to.
 \end{itemize}
@@ -81,28 +81,28 @@ Metadata included song's information downloaded from Spotify API, precisely:
 Those features were fetched from the Spotify API.They describe different
 acoustic properties of the songs:
 \begin{itemize}
-  \item \textbf{Speechiness} - relative measure of spoken words in a track.
+  \item \textbf{Speechiness} - relative measure of spoken words in a track;
   \item \textbf{Acousticness} - confidence measure of whether the song is
-    acoustic or not.
+    acoustic or not;
   \item \textbf{Danceability} - measure of how suitable the song is for
     dancing. Its based on parameters like tempo, rhythm stability, beat
-    strength etc.
+    strength etc.;
   \item \textbf{Energy} - measure of perceived intensity of songs. Energetic
-    tracks are usually louder, faster, feel more intense.
+    tracks are usually louder, faster, feel more intense;
   \item \textbf{Loudness} - general loudness of the  track in dB averaged
-    across the entire track.
+    across the entire track;
   \item \textbf{Valence} - relative measure describing musical positiveness of
-    a track.
+    a track;
   \item \textbf{Instrumentalness} - likelihood of the track not containing
     vocals. Since lyrics are mandatory in this paper, it's used to discard
-    instrumental tracks.
+    instrumental tracks;
   \item \textbf{Liveness} - probability of the song being recorded during a
-    live performance.
-  \item \textbf{Key} - key of the song, e.g. C\#.
-  \item \textbf{Mode} - indicates the modality of a track(major / minor).
-  \item \textbf{Tempo} - estimated tempo of a track in beats per minute(BPM).
+    live performance;
+  \item \textbf{Key} - key of the song, e.g. C\#;
+  \item \textbf{Mode} - indicates the modality of a track(major / minor);
+  \item \textbf{Tempo} - estimated tempo of a track in beats per minute(BPM);
   \item \textbf{Time Signature} - specifies how many beats there are in each
-    bar.
+    bar;
   \item \textbf{Duration} - duration of the track in milliseconds.
 \end{itemize}
 
@@ -114,12 +114,12 @@ acoustic properties of the songs:
  and prepare them to be processed by the text features extraction class. The
  process consisted of:
  \begin{itemize}
-  \item \textbf{Standardization} - lyrics were converted to lowercase.
+  \item \textbf{Standardization} - lyrics were converted to lowercase;
   \item \textbf{Noise Removal} - unnecessary characters, numbers and
     punctuation, as well as additional comments used by lyrics providers(e.g.
-    'chorus') were removed.
+    'chorus') were removed;
   \item \textbf{Stopwords Filtration} - exclusion of frequently occuring words
-    that carry little information, like 'the' in English.
+    that carry little information, like 'the' in English;
   \item \textbf{Stemming} - words were reduced to their root forms for enhancing
     uniformity and reducing corpus size.
  \end{itemize}
@@ -136,9 +136,9 @@ acoustic properties of the songs:
 The python libraries used to for data acquisition were:
 \begin{itemize}
   \item \textit{Spotipy} - a lightweight python library for
-    Spotify API.
+    Spotify API;
   \item \textit{youtube-dl}  - library used to find and download
-    YouTube videos.
+    YouTube videos;
   \item \textit{BeautifulSoup}  - library used for
     extracting information from HTML, commonly used for web scraping.
 \end{itemize}

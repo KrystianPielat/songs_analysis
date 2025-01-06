@@ -10,7 +10,7 @@ that influence the success of music tracks. This problem has two approaches:
 \begin{itemize}
   \item \textbf{Regression} - Spotify's popularity is a value on scale of
     0-100. This approach involves training a regression model trying to predict
-    that value.
+    that value;
   \item \textbf{Classification} - assigning binary label to the songs(popular
     vs. unpopular) and training a classification model to predict it.
 \end{itemize}
@@ -28,9 +28,9 @@ imbalance and categorical features out of the box.
 Baseline models were also implemented to serve as a reference point:
 \begin{itemize}
   \item \textit{Baseline Mean Model}: baseline model for regression that always
-    predicts the mean.
+    predicts the mean;
   \item \textit{Baseline Majority Model}: baseline model for classification
-    that always predicts the majority class.
+    that always predicts the majority class;
   \item \textit{Baseline Random Model}: baseline model for classification that
     predicts random class.
 \end{itemize}
@@ -114,11 +114,11 @@ features. Key insights:
   \item \textbf{Dominance of \textit{Genre} and \textit{Album Release Year}.}:
     these two features account for the majority of the predictive power in the
     model. Genre captures the musical style and release year reflects trends
-    and cultural preferences over time.
+    and cultural preferences over time;
   \item Spotify's audio features like \textit{loudness} and
     \textit{speechiness} showed moderate contribution to model's performance.
     Their score highlights their relevance in describing popular tracks' audio
-    characteristics.
+    characteristics;
   \item Lyric-based features like \textit{word count} and \textit{unique word
     count} were significantly less impactful, however still contributed to
     model's performance to some degree.
@@ -136,7 +136,7 @@ features. Key insights:
 \begin{itemize}
   \item Higher values of \textit{Release Year} correlate with higher values of
     \textit{Popularity}, showing that on average newer songs are more
-    popular.
+    popular;
   \item Higher \textit{loudness} and lower \textit{speechiness}
     usually resulted in lower \textit{popularity}.
 \end{itemize}
@@ -247,10 +247,10 @@ several differences between regression and classification model can
 be observed:
 \begin{itemize}
   \item Lyrics embeddings(TF-IDF and Word2Vec) played a slightly bigger role in
-    the classification model.
+    the classification model;
   \item Classification model seemed to pay much less attention to Spotify audio
     features, like \textit{danceability}, \textit{energy} and
-    \textit{speechiness} in comparison to the regression one.
+    \textit{speechiness} in comparison to the regression one;
   \item Unlike in regression, in classification a sentiment metric,
     \textit{VADER compound} contributed to the prediction of popularity. More
     popular songs tend to have more positive lyrics.
@@ -338,15 +338,15 @@ turned out to be:
   \item \textbf{Album Release Year}: this feature had  highest feature
     importance, reflecting temporal trends in explicit content. Newer songs are
     statistically more likely to contain explicit language, reflecting changing
-    societal norms and artistic expressions over time.
+    societal norms and artistic expressions over time;
   \item \textbf{Empath Swearing Terms}: As expected, the presence of swearing
-    terms was a strong indicator of explicitness.
+    terms was a strong indicator of explicitness;
   \item \textbf{Genre} was the third most important feature, showing that
-    certain genres  are more likely to contain explicit content than others.
+    certain genres  are more likely to contain explicit content than others;
   \item \textbf{TF-IDF}: several vectors created using TF-IDF and later reduced
     via PCA significantly contributed to the model's predictions. Similar to
     the Empath feature, TF-IDF likely captured swear words and related patterns
-    in the lyrics, reinforcing its importance.
+    in the lyrics, reinforcing its importance;
   \item \textbf{Speechiness}: songs with higher values of
     speechiness—indicating a greater presence of spoken-word elements—were more
     likely to be labeled as explicit.
@@ -599,13 +599,13 @@ SHAP global feature importance plot shows that:
 \begin{itemize}
   \item \textit{Popularity} and \textit{album release year} are the strongest
     predictors of \textit{genre}.  Possibly they capture trends and listener
-    preferences linked to specific genres.  
+    preferences linked to specific genres;
   \item Other key features included \textit{danceability},
     \textit{speechiness}, and \textit{unique word count}, which describe the
-    style of the music and the content of the lyrics
+    style of the music and the content of the lyrics;
   \item Audio features like \textit{acousticness} and
     \textit{spectral contrast} also played a significant role, showing
-    that the sound of the music indicates its genre. 
+    that the sound of the music indicates its genre;
   \item The \textit{explicit} flag also had a noticeable effect, which makes
     sense given its strong connection to genres like rap and hip-hop.
 
@@ -637,9 +637,9 @@ topic.\cite{pylda}
 \begin{itemize}
   \item The bubble chart shows the intertopic distance map using
     multidimensional scaling (MDS). Each bubble represents a topic extracted by
-    the LDA model.
+    the LDA model;
   \item The position of the bubbles represents the relationship between topics.
-    Topics closer together share more words or themes.
+    Topics closer together share more words or themes;
   \item The size of the bubbles represents the popularity of the topic within
     the entire dataset. The larger the bubble the higher the proportion of
     terms in the dataset.
@@ -717,18 +717,18 @@ visualization we can observe that:
 \begin{itemize}
      \item Topic 1 represents \textbf{philosophical and existential} themes in lyrics.
       Top words in that topic include ``world``, ``life``, ``time``, ``die``,
-      ``live``, and ``dream``.
+      ``live``, and ``dream``;
     \item Topic 2 is characterized by \textbf{colloquial and explicit
       language}. It likely represents themes related to \textbf{rap and hip hop culture}
-      and seems to be strongly tied to urban and street culture themes.
+      and seems to be strongly tied to urban and street culture themes;
     \item Topic 3 revolves around themes of \textbf{love, heartbreak, emotional
       conflict and relationships}, as indicated by words like ``love``,
-      ``heart``, ``hurt, ``break``.
+      ``heart``, ``hurt, ``break``;
     \item Topic 4 focuses on themes of \textbf{romantic affection, celebration,
       and festives}. Words such as ``baby``, ``tonight``, ``girl``, ``wanna``,
       and ``kiss`` indicate intimate emotions and the presence of
       ``Christmas``, ``Santa`` and other related words strongly suggests a
-      Christmas-themed music.
+      Christmas-themed music;
     \item Topic 5 appears to center around themes of \textbf{music, rhythm and
       energetic expressions}. Most prominent words identified for that topic
       are ``hey``, ``yeah``, ``rock``, ``music`` and ``beat``. They suggest a
@@ -757,17 +757,17 @@ extracted with the LDA model. Key observations include:
 
 \begin{itemize}
   \item \textbf{Topic 1} has a balanced distribution across multiple genres,
-    with slight overhead of \textit{metal}. 
+    with slight overhead of \textit{metal};
   \item \textbf{Topic 2} is dominated by \textit{rap} and \textit{hip hop}
     genres, which aligns with its themes of urban culture and colloquial
-    language.
+    language;
   \item \textbf{Topic 3} focuses on love and heartbreak, a common theme in
     music across many genres. The heatmap doesn't show any dominant genre, with
     \textit{R\&B}, \textit{rock}, \textit{pop}, and \textit{country} making the
-    highest contributions.
+    highest contributions;
   \item \textbf{Topic 4} has a significant representation in \textit{R\&B},
     \textit{pop} and \textit{country}, which suggests its romantic and festive
-    focus.
+    focus;
   \item \textbf{Topic 5} seems to be linked to \textit{reggae} and
     \textit{rock}.
 \end{itemize}
@@ -802,17 +802,17 @@ the significanace of specific lyrical themes within each topic.
   \item \textbf{Topic 1}: high values of \textit{night}, \textit{body},
     \textit{pain} and \textit{shame} suggest lyrics focusing on darker or more
     aggresive themes, which aligns well with the dominance of metal as the main
-    genre.
+    genre;
   \item \textbf{Topic 2}: strong connection with \textit{violence},
     \textit{movement}, \textit{speaking} and \textit{youth}, which are themes
-    frequently occurring themes in rap and hip hop music.
+    frequently occurring themes in rap and hip hop music;
   \item \textbf{Topic 3}: Strong emphasis on \textit{love}, \textit{affection},
     \textit{negative emotions}, and \textit{friends} indicates themes of
-    relationships, heartbreak, and emotional conflict.
+    relationships, heartbreak, and emotional conflict;
   \item \textbf{Topic 4}: High values for \textit{family}, \textit{children},
     \textit{positive emotions}, and \textit{youth} suggest themes of affection
     and relationships with loved ones, aligning well with previously identified
-    possible relation to festives like Christmas.   
+    possible relation to festives like Christmas;
   \item \textbf{Topic 5}: High values in \textit{music}, \textit{movement}, and
     \textit{violence} suggest rhythmic and energetic themes.
 \end{itemize}
@@ -851,18 +851,18 @@ unique musical attributes:
 \begin{itemize}
   \item \textbf{Topic 1}: High values in \textit{acousticness},
     \textit{instrumentalness} and low \textit{danceability} and
-    \textit{valance} suggest calmer, more instrumental tracks.
+    \textit{valance} suggest calmer, more instrumental tracks;
   \item \textbf{Topic 2}: High values in \textit{explicitness},
     \textit{speechiness}, \textit{liveness}, \textit{energy} and
     \textit{loudness} suggest tracks with strong vocal content, high energy
     and explicit language, aligning well with the dominant genres in this
-    topic.
+    topic;
   \item \textbf{Topic 3}: High \textit{popularity} and \textit{acousticness},
     with low \textit{energy} and  \textit{danceability} suggest slower,
-    more emotional, acoustic tracks.
+    more emotional, acoustic tracks;
   \item \textbf{Topic 4}: High \textit{acousticness},  \textit{popularity},
     relatively high \textit{valence} and \textit{tempo} indicate softer and
-    very acoustic songs.
+    very acoustic songs;
   \item \textbf{Topic 5}: High values in \textit{tempo}, \textit{valence}, and
     \textit{danceability}, along with moderate \textit{energy}, suggest
     energetic and possibly danceable tracks.
@@ -889,7 +889,7 @@ two tests were conducted:
   \item \textbf{Linear Regression Analysis}: Simple linear regression models
     were trained for each feature using the decade as the independent variable.
     The values of coefficient of determination ($R^2$) indicated how well the
-    decade explained the variance in each feature.
+    decade explained the variance in each feature;
   \item \textbf{ANOVA Testing}: Analysis of variance (ANOVA) was conducted for
     each feature to verify if the feature mean in at least one of the decades
     was different.
@@ -980,19 +980,19 @@ Based on those plots it can be observed that:
 \begin{itemize}
   \item \textbf{There is a clear, strong upward trend in explicit content from
     the 1980s onward}. It reflects a cultural shift  towards more openness in
-    lyrical expression and increase in popularity of genres such as rap.
+    lyrical expression and increase in popularity of genres such as rap;
   \item \textbf{ There is a steady increase in popularity over the decades.
     Potentially it might reflect increased focus on  producing music for mass
-  appeal}, much like most of content created in the internet era.
+  appeal}, much like most of content created in the internet era;
   \item Speechiness peaks in the 1990s and 2000s, likely reflecting the rise of
-    rap and spoken-word music during this period.
+    rap and spoken-word music during this period;
   \item Music seems to have shifted to less  positive songs over the decades, as
-    indicated by the decrease in vader compound and valence. 
+    indicated by the decrease in vader compound and valence;
   \item \textbf{There is a significant decrease in acousticness and
       an increase in energy over the decades, showing a clear
       shift in musical trends. This change could possibly correspond to
       the move away from acoustic to electronically produced music, with the
-      rise of genres like EDM and modern pop.}
+      rise of genres like EDM and modern pop};
   \item Loudness increased consistently over the decades, likely also
     influenced by the shift toward electronic music, which often includes
     amplified and dynamically intense production techniques.

@@ -34,13 +34,13 @@
 Spotify audio features show high level of correlation between each other, especially:
 \begin{itemize}
   \item \textit{Energy} and \textit{Loudness}: A high correlation(0.74) suggest
-    that energetic songs are typically louder.
+    that energetic songs are typically louder;
   \item \textit{Danceability} and \textit{Valence}: high correlation between
     them indicates that songs perceived as positive and happy are usually more
-    danceable.
+    danceable;
   \item \textit{Energy} and \textit{Acousticness}: there is a strong negative
     correlation between those features, suggesting that high-energy tracks are
-    less likely to have acoustic elements.
+    less likely to have acoustic elements;
   \item The dendrogram(Fig.~\ref{Figure:dendrogram_spotify_features}) shows relations
     between features and allows us to compare which features correlate with
     each other. In addition to the relationships seen in the correlation
@@ -85,18 +85,18 @@ Spotify audio features show high level of correlation between each other, especi
 \begin{itemize}
   \item \textit{Flesch Reading Ease}, \textit{Gunning Fog} and \textit{Dale
     Chall} scores exhibit strong positive correlations, highlighting their
-    shared focus on measuring lyrical complexity.
+    shared focus on measuring lyrical complexity;
   \item \textit{Lexical Richness} correlates with \textit{Word Count},
     indicating that more lexically rich lyrics tend to have  greater variety
-    of words.
+    of words;
   \item On the dendrogram we can distinguish three major clusters of features:
     \begin{itemize}
       \item \textbf{Lyrical Complexity Metrics} - \textit{Flesch Reading Ease},
         \textit{Gunning Fog}, \textit{Dale Chall} and \textit{Syntactic
-        Complexity } quantify how difficult and complex the lyrics are.
+        Complexity } quantify how difficult and complex the lyrics are;
       \item  \textbf{Lexical Features} - features such as \textit{Type-Token
         Ratio}, \textit{Lexical Richness} and \textit{Unique Word Count} form a
-        cohesive cluster.
+        cohesive cluster;
       \item \textbf{Sentiment-Related Features} - it includes \textit{Sentiment
         Polarity}, \textit{VADER Compound} and \textit{Semantic Depth}, which
         reflect emotional aspects of the lyrics.
@@ -137,18 +137,18 @@ Spotify audio features show high level of correlation between each other, especi
 \subsection*{Observations}
 \begin{itemize}
   \item \textit{MFCC Features} are strongly correlated among themselves(e.g.
-    \textit{mfcc\_4}, \textit{mfcc\_6}, \textit{mfcc\_8}, etc.).
+    \textit{mfcc\_4}, \textit{mfcc\_6}, \textit{mfcc\_8}, etc.);
   \item Similarily \textit{chroma} features show high correlation with each
-    other, indicating that they capture similar aspects of audio tracks.
+    other, indicating that they capture similar aspects of audio tracks;
   \item \textit{spectral\_contrast} features show relatively small
     correlations with \textit{mfcc} and  \textit{chroma} features, indicating 
-    their uniqueness.
+    their uniqueness;
   \item All \textit{chroma} features are grouped together in the same cluster
     on the dendrogram, supporting the conclusion drawn from the heatmap about
-    strong correlations between them.
-  \item \textit{zcr} and \textit{tempo\_extracted} are relatively independent.
+    strong correlations between them;
+  \item \textit{zcr} and \textit{tempo\_extracted} are relatively independent;
   \item Some of the \textit{mfcc} and \textit{spectral\_contrast} features
-    are to some degree correlated
+    are to some degree correlated.
 \end{itemize}
 
 %---------------------------------------------------------------------------
@@ -187,9 +187,9 @@ Spotify audio features show high level of correlation between each other, especi
   \item \textbf{High Correlations Reflect Logical Groupings}: high correlation
     between features like \textit{empath\_optimism}, \textit{empath\_love} and
     \textit{empath\_affection} align with the intuitive understanding that
-    these aspects are closely related.
+    these aspects are closely related;
   \item Observed patters in correlations confirm that Empath was designed to
-    group semantically related concepts together.
+    group semantically related concepts together;
   \item The visualizations align with the intended design of Empath as a tool
     for interpretable feature extraction.
 \end{itemize}
@@ -250,14 +250,14 @@ the thematic  differences in their lyrics. It can be observed that:
 \begin{itemize}
   \item \textbf{Country} music lyrics often involve topics related to family,
     love and  positive emotions. It seems to align well with genre's tendency
-    to narrate personal, heartfelt and often nostalgic stories.
-  \item \textbf{EDM} lyrics seem to often talk about love and optimism.
+    to narrate personal, heartfelt and often nostalgic stories;
+  \item \textbf{EDM} lyrics seem to often talk about love and optimism;
   \item For both \textbf{Hip Hop} and \textbf{Rap} according to Empath  the
-    most prominent topic is \textit{speaking}.
+    most prominent topic is \textit{speaking};
   \item For \textbf{Metal} high values in \textit{negative emotion} and
-    \textit{pain} reflects the genre's focus on intense, darker themes.
+    \textit{pain} reflects the genre's focus on intense, darker themes;
   \item Higher values in \textit{love} and \textit{positive emotion}
-    aligns with \textbf{Pop} music’s focus on themes of love and relationships.
+    aligns with \textbf{Pop} music’s focus on themes of love and relationships;
   \item High values in \textit{friends} and \textit{optimism} categories
     reflect \textbf{Reggae's} focus on positivity, social connection, and
     uplifting messages.
@@ -287,13 +287,13 @@ together, additionally enhancing the visualization.
 
 \begin{itemize}
   \item \textit{Hip hop} and \textit{rap} form a distinct cluster, indicating
-    strong lyrical and thematic similarity and dissimilarity with other genres.
+    strong lyrical and thematic similarity and dissimilarity with other genres;
   \item \textit{Reggae} is slightly separate from other genres but still
     belongs to the cluster that includes \textit{rock}, \textit{pop},
     \textit{country}, and \textit{R\&B}, suggesting moderate similarity in
-    lyrical and thematic content of songs belonging to those genres.
+    lyrical and thematic content of songs belonging to those genres;
   \item \textit{Metal} and \textit{indie} are closely positioned, sharing
-    overlapping themes and forming a  separate cluster.
+    overlapping themes and forming a  separate cluster;
   \item \textit{EDM} is positioned furthest from other genres and belongs to
     its own cluster, highlighting its unique lyrical and thematic style.
 \end{itemize}
@@ -313,16 +313,16 @@ visualization emphasizes distinctive characteristics of each genre, and allows
 to see ``in  which genre the feature achieved its highest mean``.
 
 \begin{itemize}
-  \item \textbf{Country}: Highest in acousticness and rhyme density.
+  \item \textbf{Country}: Highest in acousticness and rhyme density;
   \item \textbf{EDM}: Dominated in tempo, loudness, and featured the most
-    recent songs.
+    recent songs;
   \item \textbf{Hip Hop}: Excelled in unique word count, lexical richness, and
-    semantic depth.
-  \item \textbf{Metal}: Stood out for energy and longer song durations.
+    semantic depth;
+  \item \textbf{Metal}: Stood out for energy and longer song durations;
   \item \textbf{Pop}: Showed the highest positivity (VADER compound) and
-    subjectivity in lyrics.
-  \item \textbf{Rap}: Highest in repetition count and reading ease.
-  \item \textbf{Reggae}: Highlighted by high valence and danceability.
+    subjectivity in lyrics;
+  \item \textbf{Rap}: Highest in repetition count and reading ease;
+  \item \textbf{Reggae}: Highlighted by high valence and danceability;
   \item \textbf{Rock}: Scored highest in in popularity.
     
 \end{itemize}

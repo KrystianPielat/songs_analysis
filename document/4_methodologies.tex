@@ -55,7 +55,7 @@ complex textures.
 Two additional features were extracted:
 \begin{itemize}
   \item \textbf{Tempo} - speed of the song, measured in
-    \textit{Beats Per Minute(BPM)}.
+    \textit{Beats Per Minute(BPM)};
   \item \textbf{Zero Crossing Rate(ZCR)} - measures the rate at which the audio
     signal changes sign. Commonly used as a measure of noisiness or
     percussive nature of signal.
@@ -84,10 +84,10 @@ The features extracted can be grouped as follows:
 \subsubsection*{Basic Linguistic Metrics}
 \begin{itemize}
   \item \textbf{Unique Word Count} - measures number of unique words in the
-    lyrics, indicating diversity.
+    lyrics, indicating diversity;
   \item \textbf{Type-Token Ratio} - measures of lexical richness: ratio of
-    unique words to total words.
-  \item \textbf{Word Count} - total  number of words
+    unique words to total words;
+  \item \textbf{Word Count} - total  number of words;
   \item \textbf{Noun and Verb Ratios} - proportions of nous and verbs relative
     to the total word count.
 \end{itemize}
@@ -96,10 +96,10 @@ The features extracted can be grouped as follows:
 \subsubsection*{Sentiment and Emotional Tone}
 \begin{itemize}
   \item \textbf{Sentiment Polarity} - a measure of overall sentiment(positive
-    vs. negative) of the text.
+    vs. negative) of the text;
   \item \textbf{Sentiment Subjectivity} - represents the degree of subjectivity
-    in the lyrics
-  \item \textbf{VADER Compound} - a sentiment score obtained using VADER
+    in the lyrics;
+  \item \textbf{VADER Compound} - a sentiment score obtained using VADER;
   \item \textbf{Sentiment Variability} - standard deviation of sentiment on
     subsets of lyrics. This metric aims to capture changes in sentiment
     throughout the song.
@@ -108,9 +108,9 @@ The features extracted can be grouped as follows:
 
 \subsubsection*{Stylistic Features}
 \begin{itemize}
-  \item \textbf{Repetition Count} - the frequency of repeated words.
+  \item \textbf{Repetition Count} - the frequency of repeated words;
   \item \textbf{Rhyme Density} - a measure of how often rhymes occur in the
-    text.
+    text;
   \item \textbf{Linguistic Uniqueness} - ratio of rarely used words to all the
     words in the song.
 \end{itemize}
@@ -119,9 +119,9 @@ The features extracted can be grouped as follows:
 \subsubsection*{Semantic and Complexity Features}
 \begin{itemize}
   \item \textbf{Semantic Depth} - represents the richness and variety of
-    meaning of the lyrics.
+    meaning of the lyrics;
   \item \textbf{Syntactic Complexity} - captures the sophistication of
-    sentence structures.
+    sentence structures;
   \item \textbf{Lexical Richness} - quantifies the variety and richness of the
     vocabulary.
 \end{itemize}
@@ -131,9 +131,9 @@ The features extracted can be grouped as follows:
 \subsubsection*{Readability and Accessibility}
 \begin{itemize}
   \item \textbf{Flesch Reading Ease} - indicates how easy the lyrics are to
-    read.
+    read;
   \item \textbf{Gunning Fog} - a metric that estimates the  years of education
-    required to understand the text.
+    required to understand the text;
   \item \textbf{Dale Chall} - a metric that accounts for familiar and
     unfamiliar words in the text.
 \end{itemize}
@@ -165,7 +165,7 @@ It can be broken down into two parts:
   where:
   \begin{itemize}
     \item \( f_{w, d} \): The number of times the word \( w \) appears in the
-      document \( d \).
+      document \( d \);
     \item \( N_d \): The total number of words in the document \( d \).
   \end{itemize}
 
@@ -176,7 +176,7 @@ It can be broken down into two parts:
   \]
   where:
   \begin{itemize}
-    \item \( N \): The total number of documents in the corpus.
+    \item \( N \): The total number of documents in the corpus;
     \item \( n_w \): The number of documents containing the word \( w \).
   \end{itemize}
 \end{itemize}
@@ -202,7 +202,7 @@ based on their usage within the corpus.\cite{w2v}
 Two primary approaches are used in Word2Vec: 
 \begin{itemize} 
   \item \textbf{Continuous Bag of Words}: Predicts a target word based
-    on its surrounding context words. 
+    on its surrounding context words;
   \item \textbf{Skip-Gram}: Predicts context words given a target word.
 \end{itemize}
 
@@ -322,7 +322,7 @@ complex datasets, following techniques were employed:
     on all folds but one, and evaluated on the one that didn't participate in
     training. In each iteration a different fold is chosen as the evaluation
     fold. This method ensures robust evaluation across the dataset and improved
-    model's reliability, at the cost of increased computational time.
+    model's reliability, at the cost of increased computational time;
   \item \textbf{Class Weights} - due to natural imbalances or skweness in the
     data that was collected, in most classification tasks discussed in this
     paper the target variable(e.g. explicitness) had different number of samples
@@ -330,7 +330,7 @@ complex datasets, following techniques were employed:
     kind of imbalance would lead to model favouring the majority class, and
     therefore performing poorly. Catboost offers a built-in mechanism to handle
     class imbalance by assigning different penalties for misclassifications
-    of specific classes, improving model's performance across all classes.
+    of specific classes, improving model's performance across all classes;
   \item \textbf{Out of sample evaluation} - model's performance was evaluated
     on data that was completely excluded from the training process, ensuring
     reliable measurement of model's ability to generalize on unseen data.
@@ -401,16 +401,16 @@ r = \frac{\sum{(x_i - \bar{x})(y_i - \bar{y})}}{\sqrt{\sum{(x_i - \bar{x})^2} \s
 
 \noindent \noindent Where:
 \begin{itemize}
-    \item \( x_i \) and \( y_i \): The data points of the two variables.
+    \item \( x_i \) and \( y_i \): The data points of the two variables;
     \item \( \bar{x} \) and \( \bar{y} \): The mean values of the variables.
 \end{itemize}
 
 \noindent \noindent Interpretation:
 \begin{itemize}
   \item An \textit{r} value close to 1 indicates very strong positive linear
-    relationship.
+    relationship;
   \item An \textit{r} value close to -1 suggests very strong negative linear
-    relationship.
+    relationship;
   \item An \textit{r} value close to 0 means there is little to no relationship.
 \end{itemize}
 
@@ -445,7 +445,7 @@ alternative hypothesis that at least one group mean is different.
 
 \subsubsection*{Hypotheses}
 \begin{itemize}
-  \item \textbf{Null Hypothesis($H_0$)}: All group means are equal.
+  \item \textbf{Null Hypothesis($H_0$)}: All group means are equal;
   \item \textbf{Alternative Hypothesis($H_a$)}: At least one group mean is
     different.
 \end{itemize}
@@ -463,8 +463,8 @@ captures how much the group means differ from the overall mean.
 
 \noindent \noindent Where:
 \begin{itemize}
-    \item \(n_i\): Number of samples in group \(i\).
-    \item \(\bar{x}_i\): Mean of group \(i\).
+    \item \(n_i\): Number of samples in group \(i\);
+    \item \(\bar{x}_i\): Mean of group \(i\);
     \item \(\bar{x}\): Overall mean.
 \end{itemize}
 
@@ -478,7 +478,7 @@ It measures the variability of data points within each group.
 
 \noindent \noindent Where:
 \begin{itemize}
-    \item \(x_{ij}\): Individual data point in group \(i\).
+    \item \(x_{ij}\): Individual data point in group \(i\);
     \item \(\bar{x}_i\): Mean of group \(i\).
 \end{itemize}
 
