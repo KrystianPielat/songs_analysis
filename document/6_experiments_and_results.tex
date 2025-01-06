@@ -21,8 +21,9 @@ sets of features, including Spotify metadata, lyrical attributes, and audio
 features, with the aim of investigating the predictive power of those features
 and their impact on popularity.
 
-Catboost models were used as the primary predictive tool due to their
-robustness and performance in handling complex relationships. 
+Catboost models were used  due to their robustness and performance in handling
+complex relationships, as well as ease of use and ability to handle class
+imbalance and categorical features out of the box.
 
 Baseline models were also implemented to serve as a reference point:
 \begin{itemize}
@@ -84,11 +85,12 @@ achieved \textbf{55.3\%} better MAE score than the baseline model.
 Despite feature selection, the model trained on all features performed slightly
 worse than the model trained on Spotify features alone. This likely occurred
 because adding less important or redundant features reduced the model's ability
-to focus on the most relevant Spotify features. The additional features may
-have introduced noise, making it harder to identify clear patterns. This
-behavior might also hint at slight overfitting on the redundant features,
-despite the use of cross-validation. Increased regularization could potentially
-mitigate this issue in future experiments.
+to focus on the most relevant Spotify features. Additional noise introduced by
+those unnecessary features made it harder to identify clear patterns. This
+behavior might also be an indicator of slight overfitting of the model on the
+redundant features, even though cross-validation was used to mitigate the risk
+of that. Increased regularization could potentially solve this issue in
+future experiments.
 
 
 SHAP analysis was conducted to interpret the predictions of the regression
@@ -132,12 +134,11 @@ features. Key insights:
 \end{center}
 
 \begin{itemize}
-  \item Higher values of \textit{Release Year} strongly correlate with higher
-    \textit{Popularity}, indicating that newer songs are generally more
+  \item Higher values of \textit{Release Year} correlate with higher values of
+    \textit{Popularity}, showing that on average newer songs are more
     popular.
   \item Higher \textit{loudness} and lower \textit{speechiness}
-    were associated with increased \textit{popularity}, reflecting their
-    influence on listener preferences and music trends.
+    usually resulted in lower \textit{popularity}.
 \end{itemize}
 
 
@@ -158,12 +159,12 @@ features. Key insights:
 The task of predicting song popularity was reformulated as a binary
 classification problem, where the target was to determine whether a song is
 ``popular`` (1) or ``not popular`` (0). In order to create those labels from an
-integer variable with range 0-100, the \textbf{70th percentile of the
-popularity values was used as the threshold}. Songs with popularity greater or
-equal  than this  threshold were  labeled as popular, and the rest was labeled
-as unpopular. This thresholding approach based on quantile ensures a balanced
-representation of popular songs in the dataset while accounting for the
-naturally skewed distribution of  popularity scores.
+integer variable with range 0-100, the \textbf{value of 70th percentile of
+popularity was used as the threshold}. Songs with popularity higher than the
+threshold were labeled as popular and given a value of 1, and the rest was
+labeled as unpopular with value 0. This approach based on percentile ensures a
+balanced representation of popular songs in the dataset despite the naturally
+skewed distribution of popularity scores.
 
 % \usepackage{tabularray}
 \begin{table}[H]
@@ -183,47 +184,44 @@ naturally skewed distribution of  popularity scores.
 \end{table}
 
 
-The classification models were evaluated using accuracy and weighted F1-score.
-\textit{Baseline Majority Model} (which predicts the majority class for all
-samples) achieved an accuracy of 65.93\% and an F1-score of 52.39\%. This
-reflects the class imbalance introduced by the thresholding, with a higher
-proportion of songs being labeled as ``not popular``.
+The models were evaluated based on accuracy and weighted F1-score.
+\textit{Baseline Majority Model} (it predicts the majority class for all
+samples) achieved an accuracy of 65.93\% and an F1-score of 52.39\%. 
+Lower value of F1-score shows that it wasn't able to correctly handle the
+class imbalance introduced by the thresholding.
 
-The \textit{Baseline Random Model}, which guesses classes randomly, performed
-worse in accuracy (48.27\%) and achieved a slightly higher F1-score of 49.57\%
-compared to accuracy due to its balanced attempts to handle both classes.
+The \textit{Baseline Random Model} (guesses classes randomly), performed worse
+than the previous one, with accuracy of 48.27\% and F1-score of 49.57\%.
 
-The CatBoost model significantly outperformed both baselines, achieving an
-overall accuracy of 84.68\% and a weighted F1-score of 84.71\% when trained on
-all features.This result demonstrates the effectiveness of the full feature set
-in capturing the complexity of popularity prediction.
+CatBoost model significantly outperformed both baselines, achieving an overall
+accuracy of 84.68\% and a weighted F1-score of 84.71\% when trained on all
+features. Its superior performance shows the strong predictive power of all the
+features combined and the ability to handle imbalanced data.
 
-
-The CatBoost model trained on Spotify data performed well, with an accuracy of
+The CatBoost model trained on Spotify data performed quite well, with an accuracy of
 82.06\% and an F1-score of 82.32\%, showing that Spotify features alone provide
-strong predictive power. However, the model trained on all features slightly
-surpassed it, suggesting that additional features offer some complementary
-information.
+strong predictive power. Nevertheless, the model trained on all features
+managed to slightly outperform it, suggesting that additional features apart from
+the Spotify data  provide some complementary information.
 
-The model using only lyrical features achieved an accuracy of 65.79\%, lower
-than the \textit{Baseline Majority Model}, but a higher F1-score of 64.77\%,
-reflecting its ability to handle class imbalance better than the majority
-model. This confirms that lyrical features are limited in their ability to
-predict song popularity.
+The model using only lyrical features achieved an accuracy of 65.79\%, which is
+slightly lower than the \textit{Baseline Majority Model}, but a higher F1-score
+of 64.77\%, reflecting its ability to handle class imbalance better than the
+majority model. This confirms that lyrical features are limited in their
+ability to predict song popularity.
 
 
 The performance of the model trained on features extracted from audio files was
-similar to the lyrical one, demonstrating that isolated audio features are not
-sufficient to fully predict popularity.
+similarly bad as of the lyrical one, showing that audio features alone are 
+poor predictors of song's popularity.
 
 
-SHAP analysis revealed that key features such as \textit{genre}, \textit{album
-release year} and \textit{loudness} were the most
-significant predictors of popularity. These findings were consistent with the
-regression task, reinforcing the robustness of these features across different
-modeling approaches. This consistency highlights their central role in
-understanding and predicting song success.
-
+SHAP analysis revealed that \textit{genre}, \textit{album release year} and
+\textit{loudness} were the most significant predictors of popularity. The
+results are similar to the ones obtained in the regression approach,
+highlighting the utility of  these features across different modelling
+approaches. This finding confirms their central role in understanding and
+predicting song success.
 
 \begin{center}
 \begin{figure}[H]
@@ -244,20 +242,15 @@ understanding and predicting song success.
 \end{center}
 
 
-
-The SHAP analysis for the classification model highlights similar dependencies
-to the regression model. Key features like \textit{genre} and
-\textit{album release year} remain the most important, emphasizing their role
-in shaping song popularity. 
-
-Several differences can be observed between feature importance in the
-regression and classification model, notably:
+Based on the feature importance and beeswarm plots produced by SHAP 
+several differences between regression and classification model can
+be observed:
 \begin{itemize}
-  \item Lyrics embeddings(TF-IDF and Word2Vec) seemed to play a bigger role in
+  \item Lyrics embeddings(TF-IDF and Word2Vec) played a slightly bigger role in
     the classification model.
   \item Classification model seemed to pay much less attention to Spotify audio
     features, like \textit{danceability}, \textit{energy} and
-    \textit{speechiness}.
+    \textit{speechiness} in comparison to the regression one.
   \item Unlike in regression, in classification a sentiment metric,
     \textit{VADER compound} contributed to the prediction of popularity. More
     popular songs tend to have more positive lyrics.
@@ -300,22 +293,24 @@ content.
 \end{table}
 
 
-The table presents the results of the models in terms of accuracy and weighted
-F1 score. The \textit{Baseline Majority Model} achieved accuracy of 84\% and
-significantly lower F1 weighted average of 76.69\%, which reflects its inability
-to handle class imbalance effectively. The \textit{Baseline Random Model}
-performed very poorly, with an accuracy of 47.03\% and F1 weighted average of
-53.91\%.
+The table presents the results of the models evaluation with accuracy and
+weighted F1 score. The Baseline Majority Model achieved accuracy of 84\% and
+significantly lower F1 weighted average of 76.69\%, which is due to the
+imbalance in the data. The \textit{Baseline Random Model} performed very
+poorly, with an accuracy of 47.03\% and F1 weighted average of 53.91\%.
 
 In contrast, the CatBoost model outperformed both baselines achieving accuracy
 of \textbf{92.41\%} and weighted average score of \textbf{92.4\%} when trained
-on all features. Interestingly, the model trained only using lyrical features
-performed nearly as well, indicating that explicitness can largely be predicted
-based on lyrical content. Models that relied on Spotify metadata and features
-extracted from audio files had lower performance, achieving accuracy close to
-\textit{Baseline Majority Model}, but with higher F1 scores, due to their
-ability to address class imbalance. These observations emphasize the centrality
-of lyrical information in prediction of explicit content.
+on all features. The model trained on lyrical features only performed nearly as
+well, hinting that explicitness can largely be predicted based on lyrical
+content. 
+
+Models that relied on Spotify metadata and features extracted from
+audio files achieved lower performance, with accuracy close to \textit{Baseline
+Majority Model}, but with higher F1 scores, due to their ability to address
+class imbalance. These observations show that the features that these models
+were trained on are not sufficient to predict presence of explicit content
+in songs.
 
 
 \begin{center}
@@ -380,18 +375,13 @@ lyrical or contextual information when modeling explicit content.
 \subsection{Impact of Explicit Language on Popularity and Sentiment}
 \label{sec:explicitmorepopular}
 
-The relationship between explicit content and song popularity is a topic of
-interest in understanding the cultural and commercial dynamics of music.
-Explicit songs often reflect bold themes, which may resonate more strongly with
-certain audiences. 
+To investigate the relationship between explicitness and song's popularity, a
+bootstrap test was conducted. Bootstrap was chosen for this purpose due to its
+flexibility, because unlike other, traditional parametric tests, bootstrap does
+not rely on strong assumptions about the underlying data distribution. That's
+why its well-suited for analyses on real-world datasets, that may not meet
+strict requirements.
 
-To investigate this, a bootstrap test was conducted to determine whether
-explicit songs are, on average, more popular than non-explicit songs. Bootstrap
-was chosen for this analysis due to its robustness and flexibility. Unlike
-traditional parametric tests, the bootstrap method does not rely on strong
-assumptions about the underlying data distribution, making it well-suited for
-analyzing real-world datasets that may not meet normality or other strict
-requirements.
 
 
 \begin{center}
@@ -435,18 +425,17 @@ Sentiment~ Polarity & non-explicit           & explicit                 & \textb
 }
 \end{table}
 
-
-The analysis reveals that explicit songs are, on average, \textbf{2.96\% more
-popular} than non-explicit songs. The confidence interval of [0.08\%, 5.79\%]
+The analysis reveals that explicit songs are, on average, \textbf{2.96\%} more
+popular than non-explicit songs. The confidence interval of [0.08\%, 5.79\%]
 suggests statistically significant but modest increase in popularity for
 explicit songs.
 
 For sentiment polarity, explicit songs turned out to be on average
-\textbf{87.10\% less positive} than non-explicit songs. The confidence interval
-of [-100.69\%, -73.63\%] suggests a very significant difference. This
-observation aligns with the notion that bold songs that contain explicit
-language often reflect intense or provocative themes, which may carry less
-positive emotion.
+\textbf{87.10\%} less positive than non-explicit songs. The confidence interval
+of [-100.69\%-73.63\%] confirms it to be a very significant difference.
+Explicit songs may reflect more intense, provocative or aggresive themes, which
+may carry less positive emotion.
+
 
 %---------------------------------------------------------------------------
 \section{Sentiment}
@@ -465,19 +454,19 @@ binary sentiment labels(positive (1) and negative (0)) were derived from the
 variable \textit{sentiment polarity}. Songs with polarity values below 0 were
 labeled as negative, while those above 0 were labeled as positive.
 
+
 This process resulted in an unbalanced target variable, where the positive
 class was overrepresented. Additionally, due to the left-skewed distribution of
 \textit{sentiment polarity}, songs labeled as \textit{positive} were, on
-average, more strongly positive compared to the relatively moderate negativity
-of songs in the \textit{negative} class.
+average, more strongly positive compared to the relatively moderate
+\textit{negativity} of songs in the negative class. 
 
-While this imbalance and class definition might pose challenges for traditional
-predictive modeling, it is not a major concern for this study. The primary
-objective is to understand which factors contribute to a song's sentiment
-rather than achieving perfect predictive accuracy. Chosen approach
+While this bias in class definition might pose challenges for traditional
+predictive modeling, it's not a major concern for this study. The primary
+objective of this experiment is to understand which factors contribute to
+song’s positivity, not achieving perfect predictive accuracy. Chosen approach
 provides sufficient insight into the relationship between song features and
 sentiment.
-
 
 
 \begin{table}[H]
@@ -497,33 +486,25 @@ sentiment.
 \end{table}
 
 
+The Catboost models outperformed the baselines significantly. Among  them, the
+one trained only on lyrical features performed the best, with accuracy of
+71.86\% and weighted F1-score of 70.72\%. The result shows the importance of
+lyrical features in sentiment prediction. The dominance of lyrical features
+might be caused by the fact that the target variable was derived from lyrics,
+and songs with positive lyrics don't necessarily have to be positive overall.
 
+The model trained on all features followed the one trained on lyrical features
+closely, but performed slightly worse due to large amount of redundant
+features, despite the presence of feature selection step in the pipeline that
+attempted to discard them. Models trained on only Spotify or audio features
+performed worse, achieving accuracies of 67.44\% and 65.10\%, respectively.
 
-The \textit{Baseline Majority Model}, which simply predicted the most common
-class for all samples, achieved an accuracy of 69.65\% and an F1-score of
-57.19\%, reflecting the class imbalance in the dataset. The \textit{Baseline
-Random Model}, which predicted classes randomly, performed worse in terms of
-accuracy (52.55\%) but slightly better in F1-score (54.46\%).
-
-Among the CatBoost models, the one trained solely on lyrical features performed
-the best, achieving an accuracy of 71.86\% and a weighted F1-score of 70.72\%.
-This highlights the importance of lyrical features in capturing sentiment. The
-model trained on all features followed closely, but performed slightly worse
-due to large amount of redundant features, despite the presence of feature
-selection step in the pipeline that attempted to discard them.
-
-Models trained on only Spotify or audio features performed worse, achieving
-accuracies of 67.44\% and 65.10\%, respectively. These results suggest that
-while Spotify and audio features capture useful information, they are less
-indicative of sentiment compared to lyrical data. 
-
-The results indicate that features extracted directly from MP3 files are not
-strong predictors of a song's sentiment, despite the intuitive assumption that
-audio characteristics should play a role. This outcome suggests that the
-current set of extracted audio features may not sufficiently capture the
-nuanced aspects of sentiment. Future work could focus on advanced feature
-engineering or exploring additional audio-based descriptors to improve the
+These results suggest that Spotify features and the features extracted from MP3
+files are to some extent indicative of the sentiment, but much less in
+comparison to the lyrical data. Future work could focus on advanced feature
+engineering or exploring additional audio-based properties to improve the
 performance of audio-based sentiment prediction models.
+
 
 \begin{center}
 \begin{figure}[H]
@@ -545,8 +526,7 @@ performance of audio-based sentiment prediction models.
 \end{figure}
 \end{center}
 
-The SHAP analysis showed that lyrical features, like \textit{empath negative
-emotion}, \textit{empath optimism}, and \textit{empath swearing terms}, were
+The SHAP analysis showed that lyrical features, like were
 the most influential in predicting sentiment, with negative emotions and
 swearing linked to negative sentiment, and optimism and positive emotion tied
 to positive sentiment. TF-IDF and Word2Vec embeddings also contributed,
@@ -554,13 +534,20 @@ reflecting patterns in lyrics. Audio features, however, had minimal impact,
 emphasizing the need for improved audio feature engineering to capture
 sentiment.
 
+The feature importance and beeswarm plots show that empath features, like
+\textit{empath negative emotion}, \textit{empath optimism}, and \textit{empath
+swearing terms}, were the most important in prediction of sentiment. TF-IDF and
+Word2Vec embeddings also contributed significantly, reflecting patterns in
+lyrics. Audio features had minimal impact, emphasizing the need to extend audio
+feature engineering to find features that better capture sentiment.
+
 %---------------------------------------------------------------------------
 \section{Genre}
 \label{sec:genre}
 
-This task aimed to predict song's genre using  various  feature subsets. The
-dataset included 10 distinct genres, covering a diverse range of musical
-styles.
+The objective of this experiment is classification of song's genre on different
+feature subsets. The dataset includes 10 genres, covering a diverse range of
+musical styles.
 
 \begin{table}[H]
 \centering
@@ -608,18 +595,17 @@ highlighting the complementary nature of these data sources.
 \end{figure}
 \end{center}
 
-Looking at the SHAP global feature importance plot(values averaged across all
-classes) we can observe that:
+SHAP global feature importance plot shows that:
 \begin{itemize}
-  \item \textit{Popularity} and \textit{album release year} emerged as the most
-    critical predictors of \textit{genre}. These two features likely capture
-    trends and listener preferences linked to specific genres.
+  \item \textit{Popularity} and \textit{album release year} are the strongest
+    predictors of \textit{genre}.  Possibly they capture trends and listener
+    preferences linked to specific genres.  
   \item Other key features included \textit{danceability},
-    \textit{speechiness}, and \textit{unique word count}, which relate to the
-    style of the music and the content of the lyrics, helping to distinguish
-    between genres. \item Audio features like \textit{acousticness} and
-    \textit{spectral contrast} also played a significant role, highlighting
-    that the sound of the music reflects its genre. 
+    \textit{speechiness}, and \textit{unique word count}, which describe the
+    style of the music and the content of the lyrics
+  \item Audio features like \textit{acousticness} and
+    \textit{spectral contrast} also played a significant role, showing
+    that the sound of the music indicates its genre. 
   \item The \textit{explicit} flag also had a noticeable effect, which makes
     sense given its strong connection to genres like rap and hip-hop.
 
@@ -635,9 +621,9 @@ classes) we can observe that:
 
 Latent Dirichlet Allocation (LDA) was applied to the song lyrics dataset to
 identify thematic clusters and analyze the distribution of topics across songs.
-The analysis leveraged the \textit{pyLDAvis} library to generate
-visualizations, including intertopic distance maps and term relevance plots,
-providing insights into the distinct themes present in the lyrics.\cite{pylda}
+The \textit{pyLDAvis} library that was used for this analysis generates topic
+visualizations and facilitates uncovering the most prominent words in each
+topic.\cite{pylda}
 
 \begin{center}
 \begin{figure}[H]
@@ -649,13 +635,14 @@ providing insights into the distinct themes present in the lyrics.\cite{pylda}
 \end{center}
 
 \begin{itemize}
-  \item The bubble chart shows the intertopic distance map using multidimensional
-scaling (MDS). Each bubble represents a topic extracted by the LDA model.
-  \item The position of the bubbles reflects the relationship between topics.
-    Topics closer together share more words or themes in common.
-  \item The size of the bubbles represents the prevalence of the topic within
-    the entire dataset. Larger bubbles correspond to topics with a higher
-    proportion of terms in the dataset.
+  \item The bubble chart shows the intertopic distance map using
+    multidimensional scaling (MDS). Each bubble represents a topic extracted by
+    the LDA model.
+  \item The position of the bubbles represents the relationship between topics.
+    Topics closer together share more words or themes.
+  \item The size of the bubbles represents the popularity of the topic within
+    the entire dataset. The larger the bubble the higher the proportion of
+    terms in the dataset.
 \end{itemize}
 
 
@@ -719,43 +706,34 @@ scaling (MDS). Each bubble represents a topic extracted by the LDA model.
 \end{figure}
 \end{center}
 
-
-The topic modeling results reveal distinct themes found in the analyzed song
-lyrics. The intertopic distance map(fig~\ref{Figure:intertopicdistancemap}) shows
-that the five topics are well separated(except for 1 and 3, that have a
-significant overlap). The model has successfully captured distinct clusters of
-related terms, providing valuable insight and observations:
+LDA  revealed distinct themes found in the corpus of  lyrics in the dataset. It
+identified five well separated, with overlaps only in related themes, such as
+existentialism (Topic 1) and emotional conflict (Topic 3). Their similarity 
+is visualized on the intertopic(fig~\ref{Figure:intertopicdistancemap})
+distance map. Topics with overlap have  many terms in common. The model has
+successfully captured distinct clusters of related terms, and based on the
+visualization we can observe that:
 
 \begin{itemize}
-    \item Topic 1 appears to revolve around \textbf{existential and philosophical
-      themes}, with frequent use of words like ``world``, ``life``, ``time``,
-      ``die``, ``live``, and ``dream``.
+     \item Topic 1 represents \textbf{philosophical and existential} themes in lyrics.
+      Top words in that topic include ``world``, ``life``, ``time``, ``die``,
+      ``live``, and ``dream``.
     \item Topic 2 is characterized by \textbf{colloquial and explicit
-      language}, exhibiting themes related to \textbf{rap and hip hop culture}.
-      This topic is strongly tied to urban and street culture themes.
+      language}. It likely represents themes related to \textbf{rap and hip hop culture}
+      and seems to be strongly tied to urban and street culture themes.
     \item Topic 3 revolves around themes of \textbf{love, heartbreak, emotional
       conflict and relationships}, as indicated by words like ``love``,
       ``heart``, ``hurt, ``break``.
     \item Topic 4 focuses on themes of \textbf{romantic affection, celebration,
       and festives}. Words such as ``baby``, ``tonight``, ``girl``, ``wanna``,
-      and ``kiss`` highlight intimate emotions and the inclusion of
+      and ``kiss`` indicate intimate emotions and the presence of
       ``Christmas``, ``Santa`` and other related words strongly suggests a
       Christmas-themed music.
     \item Topic 5 appears to center around themes of \textbf{music, rhythm and
       energetic expressions}. Most prominent words identified for that topic
       are ``hey``, ``yeah``, ``rock``, ``music`` and ``beat``. They suggest a
-      focus on the sound and feel of music. Inclusion of terms such as
-      ``regga``(stemmed version of ``reggae``) indicates possible inclusion of
-      reggae songs.
+      focus on the sound and feel of music. 
 \end{itemize}
-
-The topic modeling analysis effectively uncovered five distinct thematic
-clusters within the song lyrics dataset, each representing unique aspects of
-lyrical expression, ranging from love and affection, to urban culture, and
-Christmas themes. The intertopic distance map
-(fig.Figure~\ref{Figure:intertopicdistancemap}) confirms that the identified topics
-are well-separated, with overlaps only in related themes such as existentialism
-(Topic 1) and emotional conflict (Topic 3).
 
 
 \subsection{Genre Distribution Across Topics}
@@ -774,26 +752,24 @@ topic can be checked.
 \end{figure}
 \end{center}
 
-The heatmap provides a detailed representation of the percentage distribution
-of genres within each topic derived from the LDA model. Key observations
-include:
+The heatmap shows the percentage distribution of genres within each topic
+extracted with the LDA model. Key observations include:
 
 \begin{itemize}
   \item \textbf{Topic 1} has a balanced distribution across multiple genres,
-    with slight overhead of \textit{metal}, that makes up for over 20\% of the
-    songs in that topic.
-  \item \textbf{Topic 2} is dominated by \textit{rap} and \textit{hip hop} genres, which
-    aligns with its themes of urban culture and colloquial language.
+    with slight overhead of \textit{metal}. 
+  \item \textbf{Topic 2} is dominated by \textit{rap} and \textit{hip hop}
+    genres, which aligns with its themes of urban culture and colloquial
+    language.
   \item \textbf{Topic 3} focuses on love and heartbreak, a common theme in
     music across many genres. The heatmap doesn't show any dominant genre, with
     \textit{R\&B}, \textit{rock}, \textit{pop}, and \textit{country} making the
     highest contributions.
   \item \textbf{Topic 4} has a significant representation in \textit{R\&B},
-    \textit{pop} and \textit{country}, suggesting its romantic and festive
-    focus, including elements like celebrations and intimate moments.
-  \item \textbf{Topic 5}: strongly linked to \textit{reggae} and
-    \textit{rock}, reflecting the energetic and rhythmic themes of music and
-    sound.
+    \textit{pop} and \textit{country}, which suggests its romantic and festive
+    focus.
+  \item \textbf{Topic 5} seems to be linked to \textit{reggae} and
+    \textit{rock}.
 \end{itemize}
 
 Based on the heatmap topics 1 and 3 show more diverse genre distribution,
@@ -817,25 +793,26 @@ expressions.
 \end{center}
 
 
-This heatmap visualizes the scaled average Empath features by topic,
-highlighting the significanace of specific lyrical themes within each topic.
-Key observations include:
+This heatmap shows the scaled average Empath features by topic. It visualizes
+the significanace of specific lyrical themes within each topic. 
+
+\noindent \noindent Key observations:
 
 \begin{itemize}
   \item \textbf{Topic 1}: high values of \textit{night}, \textit{body},
     \textit{pain} and \textit{shame} suggest lyrics focusing on darker or more
-    aggresive themes,  aligning well with the dominance of metal as the main
+    aggresive themes, which aligns well with the dominance of metal as the main
     genre.
-  \item \textbf{Topic 2}: strong association with \textit{violence},
+  \item \textbf{Topic 2}: strong connection with \textit{violence},
     \textit{movement}, \textit{speaking} and \textit{youth}, which are themes
     frequently occurring themes in rap and hip hop music.
   \item \textbf{Topic 3}: Strong emphasis on \textit{love}, \textit{affection},
-    \textit{negative emotions}, and \textit{friends} reflects themes of
+    \textit{negative emotions}, and \textit{friends} indicates themes of
     relationships, heartbreak, and emotional conflict.
   \item \textbf{Topic 4}: High values for \textit{family}, \textit{children},
     \textit{positive emotions}, and \textit{youth} suggest themes of affection
-    and relationships with loved ones, possibly relating to Christmas or other
-    festive occasions.
+    and relationships with loved ones, aligning well with previously identified
+    possible relation to festives like Christmas.   
   \item \textbf{Topic 5}: High values in \textit{music}, \textit{movement}, and
     \textit{violence} suggest rhythmic and energetic themes.
 \end{itemize}
@@ -850,12 +827,10 @@ Key observations include:
 \end{figure}
 \end{center}
 
-The bar chart illustrates the average sentiment polarity for each topic. Topics
-3 and 4 exhibit the highest sentiment polarity, indicating more positive
-themes, while Topic 2 has the lowest polarity, reflecting more neutral or
-potentially negative sentiment, which intuitively aligns with previous
-findings.
-
+The average sentiment polarity bar chart illustrates the positiveness for each
+topic. Topics 3 and 4 have the highest sentiment polarity, which indicates more
+positive themes. Topic 2 has the lowest average, indicating more negative
+lyrics sentiment, which aligns with previous findings.
 
 \subsection{Spotify Features Across Topics}
 
@@ -869,29 +844,28 @@ findings.
 \end{figure}
 \end{center}
 
-The heatmap provides a visualization of the average scaled Spotify features
-across topics. It shows distinct patterns for each topic, highlighting their
+The heatmap shows a visualization of the average scaled Spotify features
+across topics. It shows patterns for each topic and describes their
 unique musical attributes:
 
 \begin{itemize}
-  \item \textbf{Topic 1}: High values in \textit{acousticness} and
-    \textit{instrumentalness}, paired with low \textit{danceability} and
+  \item \textbf{Topic 1}: High values in \textit{acousticness},
+    \textit{instrumentalness} and low \textit{danceability} and
     \textit{valance} suggest calmer, more instrumental tracks.
-  \item \textbf{Topic 2}: High scores in \textit{explicitness},
+  \item \textbf{Topic 2}: High values in \textit{explicitness},
     \textit{speechiness}, \textit{liveness}, \textit{energy} and
-    \textit{loudness} indicate tracks with s trong vocal content, high energy
+    \textit{loudness} suggest tracks with strong vocal content, high energy
     and explicit language, aligning well with the dominant genres in this
     topic.
   \item \textbf{Topic 3}: High \textit{popularity} and \textit{acousticness},
-    paired with low \textit{energy} and  \textit{danceability} suggest slower,
+    with low \textit{energy} and  \textit{danceability} suggest slower,
     more emotional, acoustic tracks.
   \item \textbf{Topic 4}: High \textit{acousticness},  \textit{popularity},
-    relatively high \textit{valence} and \textit{tempo} indicate softer,
-    somewhat upbeat  tracks that include both instrumental and vocal
-    components.
+    relatively high \textit{valence} and \textit{tempo} indicate softer and
+    very acoustic songs.
   \item \textbf{Topic 5}: High values in \textit{tempo}, \textit{valence}, and
-    \textit{danceability}, along with moderate \textit{energy}, suggest lively,
-    upbeat, and energetic and possibly danceable tracks.
+    \textit{danceability}, along with moderate \textit{energy}, suggest
+    energetic and possibly danceable tracks.
 \end{itemize}
 
 
@@ -907,27 +881,24 @@ that each time period had sufficient representation.
 
 \subsection{Identification of Features Affected by Release Year}
 
-The process for identifying features influenced by release year involved two
-main steps:
+In order to identify the features that changed significantly over the decades
+two tests were conducted:
+
 
 \begin{itemize}
   \item \textbf{Linear Regression Analysis}: Simple linear regression models
     were trained for each feature using the decade as the independent variable.
-    The coefficient of determination ($R^2$) values were extracted to quantify
-    how well the decade explained the variance in each feature.
-  \item \textbf{ANOVA Testing}: Analysis of variance (ANOVA) was conducted to
-    assess the statistical significance of differences in feature means across
-    decades. The resulting p-values were used to identify features where
-    temporal variation was statistically significant.
+    The values of coefficient of determination ($R^2$) indicated how well the
+    decade explained the variance in each feature.
+  \item \textbf{ANOVA Testing}: Analysis of variance (ANOVA) was conducted for
+    each feature to verify if the feature mean in at least one of the decades
+    was different.
 \end{itemize}
-Features exhibiting high $R^2$ values and statistically significant p-values
-($\alpha = 0.05$) were selected as candidates for further analysis.
 
-
-A total of 24 features were identified as having a meaningful dependency on the
-decade of release. These  features demonstrated statistically significant
-p-values and relatively high $R^2$ coefficients, indicating notable changes in
-their values over time.
+Features with high $R^2$ values and statistically significant p-values ($\alpha
+= 0.05$) from ANOVA were selected as candidates for further analysis. In total
+24 features were identified as having meaningful relationship with the decade
+of release. Their $R^2$ and p-values can be seen in the  following table:
 
 
 % \usepackage{color}
@@ -972,8 +943,8 @@ instrumentalness       & 0.016573    & 0.000118                   & 4.748720    
 
 
 \subsection{Plots and Results}
-The following plots display the trends of these features across decades, along
-with 95\% confidence intervals to illustrate the variability of the trends:
+The following plots display the trends of these features across decades,with
+95\% confidence intervals to illustrate the variability of the trends:
 
 \begin{center}
 \begin{figure}[H]
@@ -1010,21 +981,19 @@ Based on those plots it can be observed that:
   \item \textbf{There is a clear, strong upward trend in explicit content from
     the 1980s onward}. It reflects a cultural shift  towards more openness in
     lyrical expression and increase in popularity of genres such as rap.
-  \item \textbf{There is a steady increase in popularity over the decades. Potentially
-    it might reflect the increased emphasis on producing music for mass appeal.}
+  \item \textbf{ There is a steady increase in popularity over the decades.
+    Potentially it might reflect increased focus on  producing music for mass
+  appeal}, much like most of content created in the internet era.
   \item Speechiness peaks in the 1990s and 2000s, likely reflecting the rise of
     rap and spoken-word music during this period.
-  \item The observed decrease in vader compound and valence suggests a shift
-    towards less positive or more emotionally nuanced lyrical content over the
-    decades.
-  \item \textbf{There is a substantial decrease in acousticness and a
-      corresponding increase in energy over the decades, reflecting a clear
-      shift in musical trends. This transition highlights the move away from
-      traditional, acoustic-oriented compositions to electronically produced
-      music, driven by the rise of genres like EDM and modern pop. The increase
-    in energy further underscores the growing preference for high-tempo,
-  dynamic, and engaging tracks.}
-  \item Loudness exhibited a consistent increase over the decades, likely
-    also influenced by the shift toward electronic music, which often employs
+  \item Music seems to have shifted to less  positive songs over the decades, as
+    indicated by the decrease in vader compound and valence. 
+  \item \textbf{There is a significant decrease in acousticness and
+      an increase in energy over the decades, showing a clear
+      shift in musical trends. This change could possibly correspond to
+      the move away from acoustic to electronically produced music, with the
+      rise of genres like EDM and modern pop.}
+  \item Loudness increased consistently over the decades, likely also
+    influenced by the shift toward electronic music, which often includes
     amplified and dynamically intense production techniques.
 \end{itemize}

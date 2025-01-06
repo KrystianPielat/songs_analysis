@@ -136,22 +136,19 @@ Spotify audio features show high level of correlation between each other, especi
 
 \subsection*{Observations}
 \begin{itemize}
-  \item \textit{MFCC Features} show strong correlations among themselves(e.g.
+  \item \textit{MFCC Features} are strongly correlated among themselves(e.g.
     \textit{mfcc\_4}, \textit{mfcc\_6}, \textit{mfcc\_8}, etc.).
-  \item Similarily \textit{chroma} features are highly correlated with each
-    other, indicating that  they capture similar aspects of tonal energy
-    distribution.
-  \item \textit{spectral\_contrast} features exhibit relatively small
-    correlations with \textit{mfcc} and  \textit{chroma} features, suggesting
-    that they capture different characteristics of audio.
+  \item Similarily \textit{chroma} features show high correlation with each
+    other, indicating that they capture similar aspects of audio tracks.
+  \item \textit{spectral\_contrast} features show relatively small
+    correlations with \textit{mfcc} and  \textit{chroma} features, indicating 
+    their uniqueness.
   \item All \textit{chroma} features are grouped together in the same cluster
     on the dendrogram, supporting the conclusion drawn from the heatmap about
     strong correlations between them.
   \item \textit{zcr} and \textit{tempo\_extracted} are relatively independent.
-  \item A certain degree of overlap between \textit{mfcc} and
-    \textit{spectral\_contrast} features is observed in the dendrogram,
-    indicating potential shared information in capturing specific audio
-    properties.
+  \item Some of the \textit{mfcc} and \textit{spectral\_contrast} features
+    are to some degree correlated
 \end{itemize}
 
 %---------------------------------------------------------------------------
@@ -188,13 +185,13 @@ Spotify audio features show high level of correlation between each other, especi
 
 \begin{itemize}
   \item \textbf{High Correlations Reflect Logical Groupings}: high correlation
-    between features such as \textit{empath\_optimism}, \textit{empath\_love} and
+    between features like \textit{empath\_optimism}, \textit{empath\_love} and
     \textit{empath\_affection} align with the intuitive understanding that
     these aspects are closely related.
   \item Observed patters in correlations confirm that Empath was designed to
     group semantically related concepts together.
   \item The visualizations align with the intended design of Empath as a tool
-    for interpretable feature  extraction.
+    for interpretable feature extraction.
 \end{itemize}
 
 
@@ -224,42 +221,45 @@ Spotify audio features show high level of correlation between each other, especi
 \end{center}
 
 The dendrogram illustrates hierarchical clustering of genres based on their
-lyrical and  audio features. The clustering aligns with general cultural and
-musical understandings of  these genres. For instance, closely related  genres
-like hip hop and rap are grouped  together, indicating that they're highly
-similar.
+lyrical and audio features. The similarities between genres align with their
+general cultural and musical understandings, e.g. rap and hip hop are closely
+related, indicating that they're quite similar. 
 
-The heatmap further supports this observation. The euclidean distances of
-\textit{rap} and \textit{hip hop} with other genres stand  out as the highest.
+The heatmap further supports this observation. The euclidean distances of rap
+and hip hop with other genres stand out as the highest, meaning that those two
+genres are similar to each other and very different to all other genres
+included in this study. 
 
-Interestingly, genres such as \textit{metal} and \textit{indie}, while distinct
-in sound, share some overlap in features, which is reflected on the dendrogram.
+Interestingly, genres such as metal and indie, while
+distinct in sound, share some overlap in features, which is reflected on the
+dendrogram.
+
 
 \begin{center}
 \begin{figure}[H]
   \centering
   \includegraphics[width=6in]{img/heatmap_of_empath.png}
   \caption{Heatmap of mean values of empath features in each genre.}
-  \label{Figure:dendrogram_spotify_features}
+  \label{Figure:heatmap_empath}
 \end{figure}
 \end{center}
 
-The heatmap displays scaled mean values of \textit{Empath features} for
-different musical genres, highlighting thematic  differences in their lyrics.
-It can be observed that:
+The heatmap on figure Fig.~\ref{Figure:heatmap_empath} displays scaled mean
+values of \textit{Empath features} for different musical genres. It visualizes
+the thematic  differences in their lyrics. It can be observed that:
 \begin{itemize}
   \item \textbf{Country} music lyrics often involve topics related to family,
     love and  positive emotions. It seems to align well with genre's tendency
     to narrate personal, heartfelt and often nostalgic stories.
-  \item \textbf{EDM} lyrics seem to often touch upon love and optimism.
+  \item \textbf{EDM} lyrics seem to often talk about love and optimism.
   \item For both \textbf{Hip Hop} and \textbf{Rap} according to Empath  the
     most prominent topic is \textit{speaking}.
   \item For \textbf{Metal} high values in \textit{negative emotion} and
-    \textit{pain} underscore the genre's focus on intense, darker themes.
-  \item Elevated values in \textit{love} and \textit{positive emotion}
-    highlight \textbf{Pop} music’s focus on themes of love and relationships.
-  \item High values in \textit{friends } and \textit{optimism} categories
-    reflect \textbf{Reggae's} emphasis on positivity, social connection, and
+    \textit{pain} reflects the genre's focus on intense, darker themes.
+  \item Higher values in \textit{love} and \textit{positive emotion}
+    aligns with \textbf{Pop} music’s focus on themes of love and relationships.
+  \item High values in \textit{friends} and \textit{optimism} categories
+    reflect \textbf{Reggae's} focus on positivity, social connection, and
     uplifting messages.
 \end{itemize}
 
@@ -268,35 +268,34 @@ It can be observed that:
 \begin{figure}[H]
   \centering
   \includegraphics[width=6in]{img/tsne_genres.png}
-  \caption{Heatmap highlighting the maximum feature values across genres.}
+  \caption{Lyrical Genre Similarity Based on Embeddings.}
   \label{Figure:dendrogram_spotify_features}
 \end{figure}
 \end{center}
-
-\textit{t-SNE (t-Distributed Stochastic Neighbor Embedding)} was applied to the
-euclidean distance matrix of mean standardized Word2Vec and TF-IDF embeddings
-for each genre. This dimensionality reduction technique allows to project
-high-dimensional data into a 2D space while preserving the relative distances
-and similarities between data points as much as possible. This enables to
+\textbf{t-SNE (t-Distributed Stochastic Neighbor Embedding)} is a statistical method for
+visualizing high-dimensional data by reducing it to lower- dimensional spaces,
+while preserving the relative distances and similarities between data points as
+much as possible. It was applied to the euclidean distance matrix of mean
+standardized Word2Vec and TF-IDF embeddings for each genre in order to
 visualize lyrical similarities between different genres.
 
-In order to further  explore lyrical relationships between the genres K-means
-clustering was applied on the mean standardized embeddings per genre. Optimal
-number of clusters was determined using the elbow method, which suggested four
-distinct clusters. This additional operation clusters the most similar genres
-together.
+\textbf{K-means clustering} was applied as well on the mean standardized embeddings per
+genre with optimal number of clusters determined using the elbow method(which
+suggested four clusters). This operation clusters the most similar genres
+together, additionally enhancing the visualization.
+
 
 \begin{itemize}
   \item \textit{Hip hop} and \textit{rap} form a distinct cluster, indicating
-    strong lyrical and thematic similarity.
-  \item \textit{Reggae} is slightly separate from other genres but still part
-    of a larger cluster that includes \textit{rock}, \textit{pop},
+    strong lyrical and thematic similarity and dissimilarity with other genres.
+  \item \textit{Reggae} is slightly separate from other genres but still
+    belongs to the cluster that includes \textit{rock}, \textit{pop},
     \textit{country}, and \textit{R\&B}, suggesting moderate similarity in
     lyrical and thematic content of songs belonging to those genres.
   \item \textit{Metal} and \textit{indie} are closely positioned, sharing
-    overlapping themes while forming a separate cluster.
-  \item \textit{EDM} is positioned furthest from other genres, highlighting
-    its unique lyrical and thematic style.
+    overlapping themes and forming a  separate cluster.
+  \item \textit{EDM} is positioned furthest from other genres and belongs to
+    its own cluster, highlighting its unique lyrical and thematic style.
 \end{itemize}
 
 \subsection{Top Genre Characteristics}
@@ -311,7 +310,7 @@ together.
 Each filled cell represents the genre that exhibits the highest mean value for
 the corresponding feature, calculated using scaled feature values. This
 visualization emphasizes distinctive characteristics of each genre, and allows
-to find out ``in  which genre the feature achieved its highest mean``.
+to see ``in  which genre the feature achieved its highest mean``.
 
 \begin{itemize}
   \item \textbf{Country}: Highest in acousticness and rhyme density.
@@ -333,9 +332,9 @@ to find out ``in  which genre the feature achieved its highest mean``.
   \centering
   \includegraphics[width=6in]{img/heatmap_top_feature_values_by_genre.png}
   \caption{Heatmap highlighting the top 5 features by genre. Each filled cell
-  represents one of the five highest mean feature values for a given genre,
-calculated on scaled data. This visualization focuses on identifying the most
-distinctive traits for each genre.}
+    represents one of the five highest mean feature values for a given genre,
+    calculated on scaled data. This visualization shows what are ``the top 5
+    most characteristic properties of each genre``. }
   \label{Figure:dendrogram_spotify_features}
 \end{figure}
 \end{center}

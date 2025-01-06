@@ -7,44 +7,31 @@
 \section{Sampling Method}
 \label{sec:samplingmethod}
 
-
-Spotify’s catalog contains approximately 100 million songs and over 6000
-distinct genres. Collecting a truly random sample from this huge and diverse
-population presents significant challenges. A purely random sampling approach
-would likely result in a dataset heavily skewed towards obscure genres and
-imbalanced release year distribution. This would lead to poor data quality for
-meeting the research objectives, with sparse meaningful relationships and an
-overwhelming diversity of genres. Such diversity would make it nearly
-impossible to extract actionable insights and relationships, as less
-represented genres and rare tracks would dominate, shifting the focus from more
-prominent trends and patterns in music.
+Spotify’s catalog contains approximately 100 million songs and over 6000 distinct genres.
+Collecting an actual random sample from this huge and diverse population presents great
+challenges. A completely random sampling approach would result in a dataset very
+skewed towards rare genres and imbalanced release year distribution. This would lead to
+poor data quality for meeting the research objectives, with sparse meaningful relationships
+and an overwhelming diversity of genres. \textbf{}
+This kind of diversity would make it almost impossible to get valuable insights and relationships, since less represented genres and rare tracks would be the dominant ones, which would shift the focus from more prominent trends and patterns in music.
 
 
-To address these challenges, a smaller and more organized sample of 3500 songs
-was selected. The stratified sampling approach was designed to ensure a
-balanced dataset by focusing on two key factors: genre and release year. The
-sampling process utilized Spotify's query parametrization tool, which allows
-for the specification of desired genres and release year ranges for musical
-tracks. Release years were grouped into 10-year intervals, starting from 1950
-and extending to 2020, ensuring the dataset represents different time periods
-in modern music. The selection of genres was arbitrary and aimed to include a
-mix of popular and diverse styles, providing a robust representation of
-mainstream musical styles.
-
-Additionally, in order to enable more precise and insightful topics extraction
-and uniformity of the data, all songs whose lyrics weren't identified to be in
-English were discarded.
- 
-While this approach introduces some degree of selection bias, favoring tracks
-that Spotify's search algorithm prioritizes, this bias is acceptable given the
-research objectives. By explicitly focusing on popular genres and balancing
-across release years, the sample aims to capture relationships and patterns
-that are representative of mainstream trends and music evolution. The
-structured stratification ensures that each genre and time period is adequately
-represented, providing a comprehensive and interpretable dataset for  the
-analysis.
+To address these issues, a smaller and more organized sample of 3500 songs was
+selected. To ensure a balanced dataset, a stratified sampling approach was designed, which focuses on two key factors genre and release year The sampling process utilized Spotify’s query parametrization tool, which allows to specify preferred genres and release
+year ranges for musical tracks. Release years were grouped into 10-year intervals, starting
+from 1950 and up to 2020, guaranteeing the dataset represents different time periods in
+modern music. The selection of genres was arbitrary and aimed to include a mix of popular
+and diverse styles, providing a solid representation of mainstream musical styles.
 
 
+Additionally, to permit more precise and insightful topics extraction and uniformity of the data, all songs whose lyrics weren’t identified to be in English were discarded.
+Even though this approach introduces some degree of selection bias, favoring tracks that
+Spotify’s search algorithm prioritizes, this bias is acceptable given the research objectives.
+
+
+By explicitly focusing on popular genres and balancing across release years, the sample tries
+to capture relationships and patterns that are representative of mainstream trends and music
+evolution.
 %---------------------------------------------------------------------------
 
 \section{Dataset Description}
@@ -57,34 +44,17 @@ recording, lyrics and spotify audio features were fetched.
 \label{sec:datacollectionmethods}
 
 \subsection{Sources}
-The data was collected from various sources. Metadata and audio features were
-fetched from Spotify API. The lyrics were scraped from LetrasMus,
-MakeItPersonal or Lyrics Fandom, or fetched via the Genius API, depending on
-the availability. Audio files were downloaded from YouTube using youtube-dl
-library and saved as mp3 files.\cite{spotify_api} \cite{makeitpersonal}
-\cite{genius} \cite{letras_mus} \cite{lyricsfandom} \cite{ytdl} 
+The data was collected from various sources, metadata and audio features were fetched from
+Spotify API. The lyrics were scraped from LetrasMus, MakeItPersonal or Lyrics Fandom, or
+fetched via the Genius API, depending on the availability. Finally, audio files were downloaded from YouTube using youtube-dl library and saved as mp3 files.\cite{spotify_api} \cite{makeitpersonal} \cite{genius} \cite{letras_mus} \cite{lyricsfandom} \cite{ytdl} 
 
 \subsection{Methodology}
-The data collection process was automated for efficiency. The starting point
-was a list of genres and decades. The script leveraged Spotify API's search
-query parametrization to fetch equal number of songs from each genre and in
-released in  each decade. For every song its metadata and audio featurers were
-fetched.
+For efficiency, the data collection process was automated using a script that leveraged Spotify API’s search query parametrization to fetch an equal number of songs from each genre and in released in each decade. The starting point for this process was a list of different genres and decades. Then, the lyrics were searched based on artist name and title of each song, using different lyrics providers depending on what was available. The system would query different sources until it found lyrics in at least one of them. If it failed to retrieve lyrics, the song was discarded and would not make it to the final dataset.
 
-Lyrics were then searched based on \textit{artist name} and \textit{title} of
-each song, using multiple lyrics providers. The system continued to query
-different sources until it found lyrics in at least one of them. If it failed
-to retrieve lyrics for the song, it was discarded and wouldn't make it to the
-final dataset.
 
-Finally, the script  searched YouTube for each song and downloaded the first
-relevant result, saving it to an mp3 file. All data was saved into a CSV
-file named after the playlist and stored alongside the recordings.
+Finally, the script searched each song on Youtube  and downloaded the first relevant result, then saved it to an mp3 file. All data was saved into a CSV file named after the playlist and stored alongside the recordings. 
 
-The entire process was parallelized to significantly enhance the speed of data
-acquisition. It was designed in a robust manner, with careful error handling
-and ability to stop the process at any  time and pick up where it left off.
-
+The whole process was parallelized so that the data acquisition process would be significantly faster It was designed in a robust manner, with careful error handling and ability to stop the process at any time and pick up where it left off.
 
 %---------------------------------------------------------------------------
 
@@ -95,14 +65,14 @@ Metadata included song's information downloaded from Spotify API, precisely:
 
 \begin{itemize}
   \item \textbf{Popularity} - relative measure with values ranging from 0 to
-    100 describing how popular the song is, estimated mostly based on total
+    100 describing the popularity of the song, estimated based on total
     number of plays and how recent  those plays are.
-  \item \textbf{Explicitness} - whether or not the song contains explicit
+  \item \textbf{Explicitness} - whether or not the song includes explicit
     lyrics.
   \item \textbf{Genre} - the genre specified in the search query that returned
     this song.
   \item \textbf{Album Release Year} - the release year of the album that the
-    song originates from.
+    song belongs to.
 \end{itemize}
 
 
@@ -112,28 +82,28 @@ Those features were fetched from the Spotify API.They describe different
 acoustic properties of the songs:
 \begin{itemize}
   \item \textbf{Speechiness} - relative measure of spoken words in a track.
-  \item \textbf{Acousticness} - a confidence measure of whether the song is
-    acoustic.
-  \item \textbf{Danceability} - a measure of how suitable the song is for
+  \item \textbf{Acousticness} - confidence measure of whether the song is
+    acoustic or not.
+  \item \textbf{Danceability} - measure of how suitable the song is for
     dancing. Its based on parameters like tempo, rhythm stability, beat
     strength etc.
-  \item \textbf{Energy} - a measure of perceived intensity of songs. Energetic
+  \item \textbf{Energy} - measure of perceived intensity of songs. Energetic
     tracks are usually louder, faster, feel more intense.
-  \item \textbf{Loudness} - overall loudness of the  track in dB averaged
+  \item \textbf{Loudness} - general loudness of the  track in dB averaged
     across the entire track.
   \item \textbf{Valence} - relative measure describing musical positiveness of
     a track.
   \item \textbf{Instrumentalness} - likelihood of the track not containing
-    vocals. In this paper since lyrics are mandatory it's used to discard
+    vocals. Since lyrics are mandatory in this paper, it's used to discard
     instrumental tracks.
   \item \textbf{Liveness} - probability of the song being recorded during a
     live performance.
-  \item \textbf{Key} - the key of the song, e.g. C\#.
+  \item \textbf{Key} - key of the song, e.g. C\#.
   \item \textbf{Mode} - indicates the modality of a track(major / minor).
   \item \textbf{Tempo} - estimated tempo of a track in beats per minute(BPM).
   \item \textbf{Time Signature} - specifies how many beats there are in each
     bar.
-  \item \textbf{Duration} - the duration of the track in milliseconds.
+  \item \textbf{Duration} - duration of the track in milliseconds.
 \end{itemize}
 
 
@@ -150,8 +120,8 @@ acoustic properties of the songs:
     'chorus') were removed.
   \item \textbf{Stopwords Filtration} - exclusion of frequently occuring words
     that carry little information, like 'the' in English.
-  \item \textbf{Stemming} - words were reduced to their root forms to enhance
-    uniformity and reduce corpus size.
+  \item \textbf{Stemming} - words were reduced to their root forms for enhancing
+    uniformity and reducing corpus size.
  \end{itemize}
 
  This process laid foundation for further extraction of textual features used
@@ -163,13 +133,13 @@ acoustic properties of the songs:
 
 \section{Tools and Libraries Used}
 \label{sec:toolsandlibrariesused}
-Python libraries used to for data acquisition were:
+The python libraries used to for data acquisition were:
 \begin{itemize}
   \item \textit{Spotipy} - a lightweight python library for
     Spotify API.
-  \item \textit{youtube-dl}  - a library used to find and download
+  \item \textit{youtube-dl}  - library used to find and download
     YouTube videos.
-  \item \textit{BeautifulSoup}  - a library used for
+  \item \textit{BeautifulSoup}  - library used for
     extracting information from HTML, commonly used for web scraping.
 \end{itemize}
 
