@@ -263,16 +263,18 @@ SHAP values attribute to each feature the change in the expected model
 prediction when conditioning on that feature, providing a unified measure
 of feature importance.\cite{shap}
 
-In this study SHAP values were used to explain the predictive process
-of trained Catboost models, by exploring the feature importance and
-visualization of relationships between the features and target variable.
+In this study, SHAP values, as shown on Fig.~\ref{Figure:shap_intro}, were used to
+explain the predictive process of trained Catboost models, by exploring the
+feature importance and visualization of relationships between the features and
+target variable. Example plots created with this method can be seen on
+Fig.~\ref{Figure:shap_beeswarm} and Fig.~\ref{Figure:shap_feature_importance}.
 
 \begin{center}
   \begin{figure}[H]
   \centering
   \includegraphics[width=6in]{img/shap_intro.png}
   \caption{SHAP}
-  \label{Figure:fig_beh}
+  \label{Figure:shap_intro}
 \end{figure}
 \end{center}
 
@@ -282,7 +284,7 @@ visualization of relationships between the features and target variable.
   \includegraphics[width=6in]{img/shap_beeswarm.png}
   \caption{Example SHAP beeswarm plot showing impact of some lyrical features
   on the classifier of \textit{explicitness}.}
-  \label{Figure:fig_beh}
+  \label{Figure:shap_beeswarm}
 \end{figure}
 \end{center}
 
@@ -292,7 +294,7 @@ visualization of relationships between the features and target variable.
   \includegraphics[width=6in]{img/shap_feature_importance.png}
   \caption{Example SHAP feature importance plot showing impact of some lyrical features
   on the classifier of \textit{explicitness}.}
-  \label{Figure:fig_beh}
+  \label{Figure:shap_feature_importance}
 \end{figure}
 \end{center}
 %---------------------------------------------------------------------------
@@ -350,7 +352,7 @@ converting potentially correlated variables in to smaller sets of less correlate
 variables, in a way that preserves as much of the variance from the original
 data as possible. It's often applied on large datasets to reduce dimensionality
 and improve generalization and performance by reducing noise and redundancy
-in the data.\cite{pca}
+in the data. Fig.~\ref{Figure:pca} illustrates how PCA works. \cite{pca} 
 
 In this study it was applied to the TF-IDF and Word2Vec vectors extracted from
 the song lyrics. The vectors in their original form were problematic due  to
@@ -367,7 +369,7 @@ XAI.
   \includegraphics[width=6in]{img/pca.png}
   \caption{A scatterplot showing the relationship between PC1 and PC2 when PCA
   is applied to a dataset. PC1 and PC2 axis are perpendicular to each other.\cite{pca}}
-  \label{Figure:fig_beh}
+  \label{Figure:pca}
 \end{figure}
 \end{center}
 
@@ -427,7 +429,8 @@ Bootstrap testing was used to verify hypotheses specified in the research
 objectives. It's a resampling-based statistical technique that estimates the
 variability of a statistic (e.g. mean or median)  by repeatedly sampling its
 values from the dataset with replacement. It's highly versatile since it
-doesn't rely on strong distributional assumptions.
+doesn't rely on strong distributional assumptions. Fig.~\ref{Figure:bootstrap}
+shows an example result of a bootstrap test.
 
 
 \begin{center}
@@ -438,7 +441,7 @@ doesn't rely on strong distributional assumptions.
   statistic (e.g., mean) of the target variable for two different samples
 (called groups). This demonstrates the variability of the statistic across
 resampled datasets.}
-  \label{Figure:fig_beh}
+  \label{Figure:bootstrap}
 \end{figure}
 \end{center}
 

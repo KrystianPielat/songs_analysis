@@ -47,18 +47,20 @@ assess feature importance and interpretability of the models.
   \includegraphics[width=6in]{img/reg_pipeline.png}
   \caption{Regression model pipeline. It involves preprocessing, feature
   selection and CatBoost model.}
-  \label{Figure:fig_beh}
+  \label{Figure:reg_pipeline}
 \end{figure}
 \end{center}
 
-The pipeline was fit with all available features, that includes Spotify audio
-features and metadata, lyrical features and features extracted from the audio
-files. The feature selection step chose the subset of most valuable features
-based on the feature importance from initial Random Forest model.
+The pipeline (Fig.~\ref{reg_pipeline}) was fit with all available features, that
+includes Spotify audio features and metadata, lyrical features and features
+extracted from the audio files. The feature selection step chose the subset of
+most valuable features based on the feature importance from initial Random
+Forest model.
 
 \begin{table}[H]
 \centering
 \caption{Results of regression of popularity.}
+\label{Table:regression_popularity}
 \begin{tblr}{
   hline{2} = {-}{},
 }
@@ -71,16 +73,17 @@ based on the feature importance from initial Random Forest model.
 \end{tblr}
 \end{table}
 
-As seen in the results table, the CatBoost model trained on Spotify data only
-achieved the best performance, with \textbf{Mean Absolute Error (MAE) of
-\textbf{6.04} and and $R^2$ of 0.77}, closely followed by the model trained on
-all features that achieved \textbf{MAE of 6.33 and $R^2$ of 0.74}. The results
-clearly indicate the importance of Spotify audio features and metadata in
-prediction of song's popularity. Predicting the success  of a musical track
-based on solely the lyrics or acoustic features turned out to be diffifcult and
-models trained on those subsets of features showed only slight improvement in
-comparison to the baseline model. In contrast, the model trained on Spotify data only
-achieved \textbf{55.3\%} better MAE score than the baseline model.
+As seen in the results table(Tab.~\ref{Table:regression_popularity}), the
+CatBoost model trained on Spotify data only achieved the best performance, with
+\textbf{Mean Absolute Error (MAE) of \textbf{6.04} and and $R^2$ of 0.77},
+closely followed by the model trained on all features that achieved \textbf{MAE
+of 6.33 and $R^2$ of 0.74}. The results clearly indicate the importance of
+Spotify audio features and metadata in prediction of song's popularity.
+Predicting the success  of a musical track based on solely the lyrics or
+acoustic features turned out to be diffifcult and models trained on those
+subsets of features showed only slight improvement in comparison to the
+baseline model. In contrast, the model trained on Spotify data only achieved
+\textbf{55.3\%} better MAE score than the baseline model.
 
 Despite feature selection, the model trained on all features performed slightly
 worse than the model trained on Spotify features alone. This likely occurred
@@ -103,13 +106,13 @@ song's popularity.
   \centering
   \includegraphics[width=6in]{img/feature_importance_popularity_reg.png}
   \caption{SHAP feature importance plot of the regression model for popularity trained on all features.}
-  \label{Figure:fig_beh}
+  \label{Figure:feature_importance_popularity_reg}
 \end{figure}
 \end{center}
 
 
 The mean absolute SHAP values were used to rank the overall importance of input
-features. Key insights:
+features (Fig.~\ref{Figure:feature_importance_popularity_reg}). Key insights:
 \begin{itemize}
   \item \textbf{Dominance of \textit{Genre} and \textit{Album Release Year}.}:
     these two features account for the majority of the predictive power in the
@@ -129,10 +132,11 @@ features. Key insights:
   \centering
   \includegraphics[width=6in]{img/beeswarm_popularity_reg.png}
   \caption{SHAP beeswarm plot of the regression model for popularity trained on all features.}
-  \label{Figure:fig_beh}
+  \label{Figure:beeswarm_popularity_reg}
 \end{figure}
 \end{center}
 
+Based on the beeswarm plot (Fig.~\ref{Figure:beeswarm_popularity_reg}):
 \begin{itemize}
   \item Higher values of \textit{Release Year} correlate with higher values of
     \textit{Popularity}, showing that on average newer songs are more
@@ -152,24 +156,26 @@ features. Key insights:
   \includegraphics[width=6in]{img/clf_pipeline.png}
   \caption{Classification model pipeline. It involves preprocessing, feature
   selection and CatBoost model.}
-  \label{Figure:fig_beh}
+  \label{Figure:clf_pipeline}
 \end{figure}
 \end{center}
 
 The task of predicting song popularity was reformulated as a binary
-classification problem, where the target was to determine whether a song is
-``popular`` (1) or ``not popular`` (0). In order to create those labels from an
-integer variable with range 0-100, the \textbf{value of 70th percentile of
-popularity was used as the threshold}. Songs with popularity higher than the
-threshold were labeled as popular and given a value of 1, and the rest was
-labeled as unpopular with value 0. This approach based on percentile ensures a
-balanced representation of popular songs in the dataset despite the naturally
-skewed distribution of popularity scores.
+classification problem (Fig.~\ref{Figure:clf_pipeline}) shows the pipeline used
+for this task), where the target was to determine whether a song is ``popular``
+(1) or ``not popular`` (0). In order to create those labels from an integer
+variable with range 0-100, the \textbf{value of 70th percentile of popularity
+was used as the threshold}. Songs with popularity higher than the threshold
+were labeled as popular and given a value of 1, and the rest was labeled as
+unpopular with value 0. This approach based on percentile ensures a balanced
+representation of popular songs in the dataset despite the naturally skewed
+distribution of popularity scores.
 
 % \usepackage{tabularray}
 \begin{table}[H]
 \centering
 \caption{Results of classification of popularity.}
+\label{Table:results_classification_popularity}
 \begin{tblr}{
   hline{2} = {-}{},
 }
@@ -184,11 +190,12 @@ skewed distribution of popularity scores.
 \end{table}
 
 
-The models were evaluated based on accuracy and weighted F1-score.
-\textit{Baseline Majority Model} (it predicts the majority class for all
-samples) achieved an accuracy of 65.93\% and an F1-score of 52.39\%. 
-Lower value of F1-score shows that it wasn't able to correctly handle the
-class imbalance introduced by the thresholding.
+The models, as shown in the table
+Tab.~\ref{Table:results_classification_popularity} were evaluated based on
+accuracy and weighted F1-score. \textit{Baseline Majority Model} (it predicts
+the majority class for all samples) achieved an accuracy of 65.93\% and an
+F1-score of 52.39\%. Lower value of F1-score shows that it wasn't able to
+correctly handle the class imbalance introduced by the thresholding.
 
 The \textit{Baseline Random Model} (guesses classes randomly), performed worse
 than the previous one, with accuracy of 48.27\% and F1-score of 49.57\%.
@@ -217,18 +224,18 @@ poor predictors of song's popularity.
 
 
 SHAP analysis revealed that \textit{genre}, \textit{album release year} and
-\textit{loudness} were the most significant predictors of popularity. The
-results are similar to the ones obtained in the regression approach,
-highlighting the utility of  these features across different modelling
-approaches. This finding confirms their central role in understanding and
-predicting song success.
+\textit{loudness} were the most significant predictors of
+popularity (Fig.~\ref{Figure:feature_importance_popularity_clf}). The results are
+similar to the ones obtained in the regression approach, highlighting the
+utility of  these features across different modelling approaches. This finding
+confirms their central role in understanding and predicting song success.
 
 \begin{center}
 \begin{figure}[H]
   \centering
   \includegraphics[width=6in]{img/feature_importance_popularity_clf.png}
   \caption{SHAP feature importance plot of the classification model for popularity trained on all features.}
-  \label{Figure:fig_beh}
+  \label{Figure:feature_importance_popularity_clf}
 \end{figure}
 \end{center}
 
@@ -237,14 +244,17 @@ predicting song success.
   \centering
   \includegraphics[width=6in]{img/beeswarm_popularity_clf.png}
   \caption{SHAP beeswarm plot of the classification model for popularity trained on all features.}
-  \label{Figure:fig_beh}
+  \label{Figure:beeswarm_popularity_clf}
 \end{figure}
 \end{center}
 
 
-Based on the feature importance and beeswarm plots produced by SHAP 
-several differences between regression and classification model can
-be observed:
+Based on the feature
+importance (Fig.~\ref{Figure:feature_importance_popularity_reg} and
+Fig.~\ref{Figure:feature_importance_popularity_clf}) and beeswarm
+plots (Fig.~\ref{Figure:beeswarm_popularity_reg} and
+Fig.~\ref{Figure:beeswarm_popularity_clf}) produced by SHAP, several differences
+between regression and classification model can be observed:
 \begin{itemize}
   \item Lyrics embeddings (TF-IDF and Word2Vec) played a slightly bigger role in
     the classification model;
@@ -279,6 +289,7 @@ content.
 \begin{table}[H]
 \centering
 \caption{Results of classification of explicitness.}
+\label{Table:results_classification_explicitness}
 \begin{tblr}{
   hline{2} = {-}{},
 }
@@ -293,11 +304,12 @@ content.
 \end{table}
 
 
-The table presents the results of the models evaluation with accuracy and
-weighted F1 score. The Baseline Majority Model achieved accuracy of 84\% and
-significantly lower F1 weighted average of 76.69\%, which is due to the
-imbalance in the data. The \textit{Baseline Random Model} performed very
-poorly, with an accuracy of 47.03\% and F1 weighted average of 53.91\%.
+The table(Tab.~\ref{Table:results_classification_explicitness}) presents the
+results of the models evaluation with accuracy and weighted F1 score. The
+Baseline Majority Model achieved accuracy of 84\% and significantly lower F1
+weighted average of 76.69\%, which is due to the imbalance in the data. The
+\textit{Baseline Random Model} performed very poorly, with an accuracy of
+47.03\% and F1 weighted average of 53.91\%.
 
 In contrast, the CatBoost model outperformed both baselines achieving accuracy
 of \textbf{92.41\%} and weighted average score of \textbf{92.4\%} when trained
@@ -317,8 +329,9 @@ in songs.
 \begin{figure}[H]
   \centering
   \includegraphics[width=6in]{img/beeswarm_explicitness.png}
-  \caption{SHAP beeswarm plot of the classification model for explicitness trained on all features.}
-  \label{Figure:fig_beh}
+  \caption{SHAP beeswarm plot of the classification model for explicitness
+  trained on all features.}
+  \label{Figure:beeswarm_explicitness}
 \end{figure}
 \end{center}
 
@@ -326,14 +339,16 @@ in songs.
 \begin{figure}[H]
   \centering
   \includegraphics[width=6in]{img/feature_importance_explicitness.png}
-  \caption{SHAP beeswarm plot of the classification model for explicitness  trained on all features.}
-  \label{Figure:fig_beh}
+  \caption{SHAP feature importance plot of the classification model for
+  explicitness  trained on all features.}
+  \label{Figure:feature_importance_explicitness}
 \end{figure}
 \end{center}
 
 
-Based on the SHAP analysis we can observe that the key features for this task
-turned out to be:
+Based on the SHAP analysis (Fig.~\ref{Figure:beeswarm_explicitness},
+Fig.~\ref{Figure:feature_importance_explicitness}) we can observe that the key
+features for this task turned out to be:
 \begin{itemize}
   \item \textbf{Album Release Year}: this feature had  highest feature
     importance, reflecting temporal trends in explicit content. Newer songs are
@@ -390,7 +405,7 @@ strict requirements.
   \includegraphics[width=6in]{img/explicitness_bootstrap.png}
   \caption{Bootstrap Test to check if explicit songs are on average more
   popular.}
-  \label{Figure:fig_bh}
+  \label{Figure:explicitness_bootstrap}
 \end{figure}
 \end{center}
 
@@ -402,7 +417,7 @@ strict requirements.
   \includegraphics[width=6in]{img/explicitness_bootstrap_2.png}
   \caption{Bootstrap Test to check if explicit songs are on average more
   positive or negative than non-explicit songs.}
-  \label{Figure:fig_bh}
+  \label{Figure:explicitness_bootstrap_2}
 \end{figure}
 \end{center}
 
@@ -411,6 +426,7 @@ strict requirements.
 \begin{table}[H]
 \centering
 \caption{Results of the Bootstrap Test.}
+\label{Table:bootstrap_results}
 \resizebox{\linewidth}{!}{%
 \begin{tblr}{
   cell{2}{4} = {fg=green},
@@ -425,14 +441,16 @@ Sentiment~ Polarity & non-explicit           & explicit                 & \textb
 }
 \end{table}
 
-The analysis reveals that explicit songs are, on average, \textbf{2.96\%} more
-popular than non-explicit songs. The confidence interval of [0.08\%, 5.79\%]
-suggests statistically significant but modest increase in popularity for
-explicit songs.
+The analysis results (Tab.~\ref{Table:bootstrap_results},
+Fig.~\ref{Figure:explicitness_bootstrap}) reveal that explicit songs are, on
+average, \textbf{2.96\%} more popular than non-explicit songs. The confidence
+interval of [0.08\%, 5.79\%] suggests statistically significant but modest
+increase in popularity for explicit songs.
 
-For sentiment polarity, explicit songs turned out to be on average
+For sentiment polarity, the results (Tab.~\ref{Table:bootstrap_results},
+Fig.~\ref{Figure:explicitness_bootstrap_2}) show that explicit songs are on average
 \textbf{87.10\%} less positive than non-explicit songs. The confidence interval
-of [-100.69\%-73.63\%] confirms it to be a very significant difference.
+of [-100.69\%, 73.63\%] confirms it to be a very significant difference.
 Explicit songs may reflect more intense, provocative or aggresive themes, which
 may carry less positive emotion.
 
@@ -445,14 +463,16 @@ may carry less positive emotion.
   \centering
   \includegraphics[width=7in]{img/wordclouds.png}
   \caption{Wordclouds of Positive and Negative Sentiment Songs.}
-  \label{Figure:fig_bh}
+  \label{Figure:wordclouds}
 \end{figure}
 \end{center}
 
 This section tackles the problem of song lyrics sentiment prediction. The
 binary sentiment labels (positive (1) and negative (0)) were derived from the
 variable \textit{sentiment polarity}. Songs with polarity values below 0 were
-labeled as negative, while those above 0 were labeled as positive.
+labeled as negative, while those above 0 were labeled as positive. The wordclouds
+on figure Fig.~\ref{Figure:wordclouds} show most promiment words for 
+songs labeled as positive and negative.
 
 
 This process resulted in an unbalanced target variable, where the positive
@@ -472,6 +492,7 @@ sentiment.
 \begin{table}[H]
 \centering
 \caption{Results of classification of sentiment.}
+\label{Table:results_sentiment}
 \begin{tblr}{
   hline{2} = {-}{},
 }
@@ -486,12 +507,13 @@ sentiment.
 \end{table}
 
 
-The Catboost models outperformed the baselines significantly. Among  them, the
-one trained only on lyrical features performed the best, with accuracy of
-71.86\% and weighted F1-score of 70.72\%. The result shows the importance of
-lyrical features in sentiment prediction. The dominance of lyrical features
-might be caused by the fact that the target variable was derived from lyrics,
-and songs with positive lyrics don't necessarily have to be positive overall.
+The results(Tab.~\ref{Table:results_sentiment}) show that the Catboost models
+outperformed the baselines significantly. Among  them, the one trained only on
+lyrical features performed the best, with accuracy of 71.86\% and weighted
+F1-score of 70.72\%. The result shows the importance of lyrical features in
+sentiment prediction. The dominance of lyrical features might be caused by the
+fact that the target variable was derived from lyrics, and songs with positive
+lyrics don't necessarily have to be positive overall.
 
 The model trained on all features followed the one trained on lyrical features
 closely, but performed slightly worse due to large amount of redundant
@@ -512,7 +534,7 @@ performance of audio-based sentiment prediction models.
   \includegraphics[width=6in]{img/beeswarm_sentiment.png}
   \caption{SHAP beeswarm plot of the classification model for sentiment
   trained on all features.}
-  \label{Figure:fig_bh}
+  \label{Figure:beeswarm_sentiment}
 \end{figure}
 \end{center}
 
@@ -522,24 +544,26 @@ performance of audio-based sentiment prediction models.
   \includegraphics[width=6in]{img/feature_importance_sentiment.png}
   \caption{SHAP feature importance plot of the classification model for
   sentiment trained on all features.}
-  \label{Figure:fig_eh}
+  \label{Figure:feature_importance_sentiment}
 \end{figure}
 \end{center}
 
-The SHAP analysis showed that lyrical features, like were
-the most influential in predicting sentiment, with negative emotions and
-swearing linked to negative sentiment, and optimism and positive emotion tied
-to positive sentiment. TF-IDF and Word2Vec embeddings also contributed,
+The SHAP analysis showed that lyrical features,
+like were the most influential in predicting sentiment, with negative emotions
+and swearing linked to negative sentiment, and optimism and positive emotion
+tied to positive sentiment. TF-IDF and Word2Vec embeddings also contributed,
 reflecting patterns in lyrics. Audio features, however, had minimal impact,
 emphasizing the need for improved audio feature engineering to capture
 sentiment.
 
-The feature importance and beeswarm plots show that empath features, like
-\textit{empath negative emotion}, \textit{empath optimism}, and \textit{empath
-swearing terms}, were the most important in prediction of sentiment. TF-IDF and
-Word2Vec embeddings also contributed significantly, reflecting patterns in
-lyrics. Audio features had minimal impact, emphasizing the need to extend audio
-feature engineering to find features that better capture sentiment.
+The feature importance (Fig.~\ref{Figure:feature_importance_sentiment}) and
+beeswarm (Fig.~\ref{Figure:beeswarm_sentiment}) plots show that empath
+features, like \textit{empath negative emotion}, \textit{empath optimism}, and
+\textit{empath swearing terms}, were the most important in prediction of
+sentiment. TF-IDF and Word2Vec embeddings also contributed significantly,
+reflecting patterns in lyrics. Audio features had minimal impact, emphasizing
+the need to extend audio feature engineering to find features that better
+capture sentiment.
 
 %---------------------------------------------------------------------------
 \section{Genre}
@@ -552,6 +576,7 @@ musical styles.
 \begin{table}[H]
 \centering
 \caption{Results of classification of genre.}
+\label{Table:results_genre}
 \resizebox{\linewidth}{!}{%
 \begin{tblr}{
   hline{2} = {-}{},
@@ -567,13 +592,15 @@ musical styles.
 }
 \end{table}
 
-The baseline models achieved very poor performance. The \textit{Baseline
-Majority Model} achieved accuracy of 11.17\% and weighted F1 of 2.24\%, and the
-\textit{Baseline Random Model} accuracy of 10.20\% and F1 of 10.38\%.The
-CatBoost model trained on all features significantly outperformed the
-baselines, achieving 61.24\% accuracy and 60.27\% weighted F1-score. This
-highlights the importance of combining diverse feature sets (lyrics, Spotify
-data, audio features, embeddings) for genre prediction.
+The results of the experiment are presented in table
+Tab.~\ref{Table:results_genre}. The baseline models achieved very poor
+performance. The \textit{Baseline Majority Model} achieved accuracy of 11.17\%
+and weighted F1 of 2.24\%, and the \textit{Baseline Random Model} accuracy of
+10.20\% and F1 of 10.38\%.The CatBoost model trained on all features
+significantly outperformed the baselines, achieving 61.24\% accuracy and
+60.27\% weighted F1-score. This highlights the importance of combining diverse
+feature sets (lyrics, Spotify data, audio features, embeddings) for genre
+prediction.
 
 Among the individual feature subsets, Spotify features turned out to be the
 most predictive, resulting in a relatively well-performing model. While lyrical
@@ -591,11 +618,13 @@ highlighting the complementary nature of these data sources.
   \includegraphics[width=6in]{img/feature_importance_genre_clf.png}
   \caption{SHAP feature importance plot of the classification model for genre
   trained on all features. The scores were averaged across all classes.}
-  \label{Figure:fig_eh}
+  \label{Figure:feature_importance_genre_clf}
 \end{figure}
 \end{center}
 
-SHAP global feature importance plot shows that:
+SHAP global feature importance
+plot (Fig.~\ref{Figure:feature_importance_genre_clf}) for genre classification
+shows that:
 \begin{itemize}
   \item \textit{Popularity} and \textit{album release year} are the strongest
     predictors of \textit{genre}.  Possibly they capture trends and listener
@@ -614,8 +643,8 @@ SHAP global feature importance plot shows that:
 %---------------------------------------------------------------------------
 
 
-\section{Topics Modelling}
-\label{sec:topicsmodelling}
+\section{Topics Modeling}
+\label{sec:topicsmodeling}
 
 \subsection{Latent Dirichlet Allocation}
 
@@ -635,9 +664,9 @@ topic.\cite{pylda}
 \end{center}
 
 \begin{itemize}
-  \item The bubble chart shows the intertopic distance map using
-    multidimensional scaling (MDS). Each bubble represents a topic extracted by
-    the LDA model;
+  \item The bubble chart shows the intertopic distance map
+    (Fig.~\ref{Figure:intertopicdistancemap}) using multidimensional scaling
+    (MDS). Each bubble represents a topic extracted by the LDA model;
   \item The position of the bubbles represents the relationship between topics.
     Topics closer together share more words or themes;
   \item The size of the bubbles represents the popularity of the topic within
@@ -653,13 +682,14 @@ topic.\cite{pylda}
   \includegraphics[width=6in]{img/topics/png/general.png}
   \caption{Top-30 Most Salient Terms across the entire corpus. The bars
   represent how often each term appears in the entire corpus.}
-  \label{Figure:fig_eh}
+  \label{Figure:lda_general}
 \end{figure}
 \end{center}
 
- \textbf{Blue bars show overall frequency of the terms in the entire corpus.
- Red bars indicate estimated frequency of the terms in that topic.} Now we can
- look at the results in each topic:
+\textbf{Blue bars on figure Fig.~\ref{Figure:lda_general} show overall
+frequency of the terms in the entire corpus. Red bars indicate estimated
+frequency of the terms in that topic.} Now we can look at the results in each
+topic:
 
 \begin{center}
 \begin{figure}[H]
@@ -675,7 +705,7 @@ topic.\cite{pylda}
   \centering
   \includegraphics[width=6in]{img/topics/png/t2_censored.png}
   \caption{Top-30 Most Relevant Terms in Topic 2.}
-  \label{Figure:fig_eh}
+  \label{Figure:t2}
 \end{figure}
 \end{center}
 
@@ -693,7 +723,7 @@ topic.\cite{pylda}
   \centering
   \includegraphics[width=6in]{img/topics/png/t4.png}
   \caption{Top-30 Most Relevant Terms in Topic 4.}
-  \label{Figure:fig_eh}
+  \label{Figure:t4}
 \end{figure}
 \end{center}
 
@@ -702,17 +732,18 @@ topic.\cite{pylda}
   \centering
   \includegraphics[width=6in]{img/topics/png/t5.png}
   \caption{Top-30 Most Relevant Terms in Topic 5.}
-  \label{Figure:fig_eh}
+  \label{Figure:t5}
 \end{figure}
 \end{center}
 
-LDA  revealed distinct themes found in the corpus of  lyrics in the dataset. It
-identified five well separated, with overlaps only in related themes, such as
-existentialism (Topic 1) and emotional conflict (Topic 3). Their similarity 
-is visualized on the intertopic (fig~\ref{Figure:intertopicdistancemap})
-distance map. Topics with overlap have  many terms in common. The model has
-successfully captured distinct clusters of related terms, and based on the
-visualization we can observe that:
+LDA revealed distinct themes found in the corpus of  lyrics in the dataset. It
+identified five well separated themes, with overlaps only in highly related
+topics, such as existentialism (Topic 1) and emotional conflict (Topic 3).
+Their similarity is visualized on the intertopic
+(Fig~\ref{Figure:intertopicdistancemap}) distance map. Topics with overlap have
+many terms in common. Based on the visualizations (Fig.~\ref{Figure:t1},
+Fig.~\ref{Figure:t2}, Fig.~\ref{Figure:t3}, Fig.~\ref{Figure:t4},
+Fig.~\ref{Figure:t5}) we can observe that:
 
 \begin{itemize}
      \item Topic 1 represents \textbf{philosophical and existential} themes in lyrics.
@@ -748,12 +779,13 @@ topic can be checked.
   \centering
   \includegraphics[width=6in]{img/lda_genres_distribution.png}
   \caption{Heatmap showing percentage of genres in each topic.}
-  \label{Figure:fig_eh}
+  \label{Figure:lda_genres_distribution}
 \end{figure}
 \end{center}
 
-The heatmap shows the percentage distribution of genres within each topic
-extracted with the LDA model. Key observations include:
+The heatmap (Fig.~\ref{Figure:lda_genres_distribution}) shows the percentage
+distribution of genres within each topic extracted with the LDA model. Key
+observations include:
 
 \begin{itemize}
   \item \textbf{Topic 1} has a balanced distribution across multiple genres,
@@ -774,11 +806,11 @@ extracted with the LDA model. Key observations include:
 
 Based on the heatmap topics 1 and 3 show more diverse genre distribution,
 indicating thematic universality or overlap. This observation aligns with the
-conclusions drawn from the  distance
-map (fig.~\ref{Figure:intertopicdistancemap}) and the analysis of their most
-relevant terms (fig.~\ref{Figure:t1}, (fig.~\ref{Figure:t3}). Topics 2 and
-5 display strong dominance by specific genres, showing more focused thematic
-expressions.
+conclusions drawn from the  distance map
+(Fig.~\ref{Figure:intertopicdistancemap}) and the analysis of their most
+relevant terms (Fig.~\ref{Figure:t1}, Fig.~\ref{Figure:t3}). Topics 2
+(Fig.~\ref{Figure:t2}) and 5 (Fig.~\ref{Figure:t5}) display strong dominance by
+specific genres, showing more focused thematic expressions.
 
 
 \subsection{Empath Features Distributions Across Topics}
@@ -788,13 +820,14 @@ expressions.
   \centering
   \includegraphics[width=6in]{img/lda_empath_features.png}
   \caption{Heatmap showing the distribution of scaled empath features across topics.}
-  \label{Figure:fig_eh}
+  \label{Figure:lda_empath_features}
 \end{figure}
 \end{center}
 
 
-This heatmap shows the scaled average Empath features by topic. It visualizes
-the significanace of specific lyrical themes within each topic. 
+This heatmap (Fig.~\ref{Figure:lda_empath_features}) shows the scaled average
+Empath features by topic. It visualizes the significanace of specific lyrical
+themes within each topic. 
 
 \noindent \noindent Key observations:
 
@@ -823,11 +856,11 @@ the significanace of specific lyrical themes within each topic.
   \centering
   \includegraphics[width=6in]{img/lda_sentiment.png}
   \caption{Bar chart showing average sentiment polarity by topic.}
-  \label{Figure:fig_eh}
+  \label{Figure:lda_sentiment}
 \end{figure}
 \end{center}
 
-The average sentiment polarity bar chart illustrates the positiveness for each
+The average sentiment polarity bar chart (Fig.~\ref{Figure:lda_sentiment}) illustrates the positiveness for each
 topic. Topics 3 and 4 have the highest sentiment polarity, which indicates more
 positive themes. Topic 2 has the lowest average, indicating more negative
 lyrics sentiment, which aligns with previous findings.
@@ -840,13 +873,13 @@ lyrics sentiment, which aligns with previous findings.
   \includegraphics[width=6in]{img/lda_spotify_features.png}
   \caption{Heatmap showing average values of scaled spotify features in each
   topic.}
-  \label{Figure:fig_eh}
+  \label{Figure:lda_spotify_features}
 \end{figure}
 \end{center}
 
-The heatmap shows a visualization of the average scaled Spotify features
-across topics. It shows patterns for each topic and describes their
-unique musical attributes:
+The heatmap (Fig.~\ref{Figure:lda_spotify_features}) shows a visualization of
+the average scaled Spotify features across topics. It shows patterns for each
+topic and describes their unique musical attributes:
 
 \begin{itemize}
   \item \textbf{Topic 1}: High values in \textit{acousticness},
@@ -895,10 +928,11 @@ two tests were conducted:
     was different.
 \end{itemize}
 
-Features with high $R^2$ values and statistically significant p-values ($\alpha
-= 0.05$) from ANOVA were selected as candidates for further analysis. In total
-24 features were identified as having meaningful relationship with the decade
-of release. Their $R^2$ and p-values can be seen in the  following table:
+Based on the table Tab.~\ref{Table:trend_table}, features with high $R^2$
+values and statistically significant p-values ($\alpha = 0.05$) from ANOVA were
+selected as candidates for further analysis. In total 24 features were
+identified as having meaningful relationship with the decade of release. Their
+$R^2$ and p-values can be seen in the  following table:
 
 
 % \usepackage{color}
@@ -907,6 +941,7 @@ of release. Their $R^2$ and p-values can be seen in the  following table:
 \centering
 \caption{Features identified as having significant dependency on the decade of
 release.}
+\label{Table:trend_table}
 \begin{tblr}{
   column{even} = {r},
   column{3} = {r},
@@ -943,8 +978,10 @@ instrumentalness       & 0.016573    & 0.000118                   & 4.748720    
 
 
 \subsection{Plots and Results}
-The following plots display the trends of these features across decades,with
-95\% confidence intervals to illustrate the variability of the trends:
+The following plots (Fig.~\ref{Figure:trends1}, Fig.~\ref{Figure:trends2},
+Fig.~\ref{Figure:trends3}) display the trends of these features across
+decades,with 95\% confidence intervals to illustrate the variability of the
+trends:
 
 \begin{center}
 \begin{figure}[H]
@@ -952,7 +989,7 @@ The following plots display the trends of these features across decades,with
   \includegraphics[width=6in]{img/temporal_trends_1.png}
   \caption{Plot showing temporal changes of features dependent on the decade in
   which the song was released.}
-  \label{Figure:fig_eh}
+  \label{Figure:trends1}
 \end{figure}
 \end{center}
 
@@ -962,7 +999,7 @@ The following plots display the trends of these features across decades,with
   \includegraphics[width=6in]{img/temporal_trends_2.png}
   \caption{Plot showing temporal changes of features dependent on the decade in
   which the song was released.}
-  \label{Figure:fig_eh}
+  \label{Figure:trends2}
 \end{figure}
 \end{center}
 
@@ -972,7 +1009,7 @@ The following plots display the trends of these features across decades,with
   \includegraphics[width=6in]{img/temporal_trends_3.png}
   \caption{Plot showing temporal changes of features dependent on the decade in
   which the song was released.}
-  \label{Figure:fig_eh}
+  \label{Figure:trends3}
 \end{figure}
 \end{center}
 
