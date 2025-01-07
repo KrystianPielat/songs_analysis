@@ -78,7 +78,7 @@ stylistic  attributes. In the cleaning and extraction  process various NLP
 libraries like \textit{NLTK}, \textit{spaCy} and \textit{TextBlob} were used,
 alongside with custom ad-hoc algorithms. Before extraction the lyrics  had to
 be carefully cleaned, removing unnecessary characters and stopwords, performing
-stemming etc.\cite{nltk,spacy,textblob} 
+stemming etc. \cite{nltk,spacy,textblob} 
 
 Similarily to acoustic features the implementation allowed for simple and
 intuitive usage  with parallelization of the computation process for increased
@@ -155,15 +155,15 @@ The features extracted can be grouped as follows:
 
 TF-IDF is a measure that can quantifies the relevance of tokens in a
 document in a collection of documents. It's used to highlight words that are unique or
-meaningful while giving less importance to very common words like 'the' or
-'and'.\cite{tfidf}
+meaningful while giving less importance to very common words like ``the'' or
+``and''. \cite{tfidf}
 
 It can be broken down into two parts:
 
 
 \begin{itemize}
-  \item \textbf{TF - Term Frequency} - Measures the frequency of a term within
-    a document:
+  \item \textbf{TF - Term Frequency} - Measures the frequency of a term
+    within~a document:
   \[
   TF(w, d) = \frac{f_{w, d}}{N_d}
   \]
@@ -175,7 +175,7 @@ It can be broken down into two parts:
   \end{itemize}
 
   \item \textbf{IDF - Inverse Document Frequency} - Measures the rarity of a
-    term across a collection of documents:
+    term across~a collection of documents:
   \[
   IDF(w) = \log{\frac{N}{1 + n_w}}
   \]
@@ -202,7 +202,7 @@ Word2Vec is a neural network-based technique in NLP for creating dense vector
 representations of words. These vectors capture information about the meaning
 of words based on the surrounding words. Unlike bag-of-words or TF-IDF methods,
 Word2Vec generates embeddings that preserve the contextual meaning of words
-based on their usage within the corpus.\cite{w2v}
+based on their usage within the corpus. \cite{w2v}
 
 Two primary approaches are used in Word2Vec: 
 \begin{itemize} 
@@ -223,7 +223,7 @@ semantic, thematic and emotional features from text by analyzing words based on
 predefined categories. It classifies words into over 200 built-in categories,
 such as \textit{sadness}, \textit{food} and \textit{music}. It  identifies
 relationships between words and these categories, offering a higher-level
-representation of text content beyond simple word frequency.\cite{empath}
+representation of text content beyond simple word frequency. \cite{empath}
 
 In this study Empath was used to analyze song lyrics by extraction of 
 interpretable features describing song's thematic and emotional content.
@@ -261,7 +261,7 @@ SHAP (SHapley Additive exPlanations) is a framework used to interpret
 predictions made by various predictive models based on game-theoretic approach.
 SHAP values attribute to each feature the change in the expected model
 prediction when conditioning on that feature, providing a unified measure
-of feature importance.\cite{shap}
+of feature importance. \cite{shap}
 
 In this study, SHAP values, as shown on fig.~\ref{Figure:shap_intro}, were used to
 explain the predictive process of trained Catboost models, by exploring the
@@ -309,14 +309,14 @@ The trained models were then subjected to SHAP analysis, uncovering their
 decision processes and helping to understand the interactions between the
 features and the target variable. Catboost's flexibility, robustness,
 compatibility with SHAP and ability to automatically handle categorical
-variables and class imbalance.\cite{catboost}
+variables and class imbalance. \cite{catboost}
 
 
 In order to further optimize the performance of the models, the
 hyperparameter tuning library \textit{Optuna} was used. Optuna is an
 efficient optimization framework that allows to systematically test different
 sets of hyperparameter configurations, ensuring the final model achieves
-near-optimal performance.\cite{optuna} 
+near-optimal performance. \cite{optuna} 
 
 To address the challenges commonly encountered when training ML models on
 complex datasets, following techniques were employed:
@@ -368,7 +368,7 @@ XAI.
   \centering
   \includegraphics[width=6in]{img/pca.png}
   \caption{A scatterplot showing the relationship between PC1 and PC2 when PCA
-  is applied to a dataset. PC1 and PC2 axis are perpendicular to each other.\cite{pca}}
+  is applied to a dataset. PC1 and PC2 axis are perpendicular to each other. \cite{pca}}
   \label{Figure:pca}
 \end{figure}
 \end{center}
@@ -379,11 +379,11 @@ XAI.
 
 Latent Dirichlet allocation is an unsupervised machine learning algorithm used
 for topic modeling to uncovering the central topics and their distributions
-across the dataset.\cite{lda}
+across the dataset. \cite{lda}
 
 In this study LDA was applied on the lyrics to identify commonly occuring
 topics in songs. The algorithm automatically found the best number of topics
-and they were visualized using \textit{pyldavis}\cite{pylda} library. For each
+and they were visualized using \textit{pyldavis} \cite{pylda} library. For each
 topic its most representative words were extracted that in combination with
 other features allowed to better characterize them and understand frequently
 occuring themes in the lyrics.
@@ -426,7 +426,7 @@ r = \frac{\sum{(x_i - \bar{x})(y_i - \bar{y})}}{\sqrt{\sum{(x_i - \bar{x})^2} \s
 \subsection{Bootstrap Testing}
 
 Bootstrap testing was used to verify hypotheses specified in the research
-objectives. It's a resampling-based statistical technique that estimates the
+objectives. It's~a resampling-based statistical technique that estimates the
 variability of a statistic (e.g. mean or median)  by repeatedly sampling its
 values from the dataset with replacement. It's highly versatile since it
 doesn't rely on strong distributional assumptions. fig.~\ref{Figure:bootstrap}

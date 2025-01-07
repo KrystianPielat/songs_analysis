@@ -73,7 +73,7 @@ Forest model.
 \end{tblr}
 \end{table}
 
-As seen in the results table(Tab.~\ref{Table:regression_popularity}), the
+As seen in the results table (tab.~\ref{Table:regression_popularity}), the
 CatBoost model trained on Spotify data only achieved the best performance, with
 \textbf{Mean Absolute Error (MAE) of \textbf{6.04} and and $R^2$ of 0.77},
 closely followed by the model trained on all features that achieved \textbf{MAE
@@ -191,7 +191,7 @@ distribution of popularity scores.
 
 
 The models, as shown in the table
-Tab.~\ref{Table:results_classification_popularity} were evaluated based on
+~\ref{Table:results_classification_popularity} were evaluated based on
 accuracy and weighted F1-score. \textit{Baseline Majority Model} (it predicts
 the majority class for all samples) achieved an accuracy of 65.93\% and an
 F1-score of 52.39\%. Lower value of F1-score shows that it wasn't able to
@@ -249,12 +249,12 @@ confirms their central role in understanding and predicting song success.
 \end{center}
 
 
-Based on the feature
-importance (fig.~\ref{Figure:feature_importance_popularity_reg} and
-fig.~\ref{Figure:feature_importance_popularity_clf}) and beeswarm
-plots (fig.~\ref{Figure:beeswarm_popularity_reg} and
-fig.~\ref{Figure:beeswarm_popularity_clf}) produced by SHAP, several differences
-between regression and classification model can be observed:
+Based on the feature importance
+(figs.:~\ref{Figure:feature_importance_popularity_reg},~\ref{Figure:feature_importance_popularity_clf})
+and beeswarm plots
+(figs.:~\ref{Figure:beeswarm_popularity_reg},~\ref{Figure:beeswarm_popularity_clf})
+produced by SHAP, several differences between regression and classification
+model can be observed:
 \begin{itemize}
   \item Lyrics embeddings (TF-IDF and Word2Vec) played a slightly bigger role in
     the classification model;
@@ -304,7 +304,7 @@ content.
 \end{table}
 
 
-The table(Tab.~\ref{Table:results_classification_explicitness}) presents the
+The table~\ref{Table:results_classification_explicitness} presents the
 results of the models evaluation with accuracy and weighted F1 score. The
 Baseline Majority Model achieved accuracy of 84\% and significantly lower F1
 weighted average of 76.69\%, which is due to the imbalance in the data. The
@@ -346,9 +346,9 @@ in songs.
 \end{center}
 
 
-Based on the SHAP analysis (fig.~\ref{Figure:beeswarm_explicitness},
-fig.~\ref{Figure:feature_importance_explicitness}) we can observe that the key
-features for this task turned out to be:
+Based on the SHAP analysis
+(figs.~\ref{Figure:beeswarm_explicitness},~\ref{Figure:feature_importance_explicitness})
+we can observe that the key features for this task turned out to be:
 \begin{itemize}
   \item \textbf{Album Release Year}: this feature had  highest feature
     importance, reflecting temporal trends in explicit content. Newer songs are
@@ -441,13 +441,13 @@ Sentiment~ Polarity & non-explicit           & explicit                 & \textb
 }
 \end{table}
 
-The analysis results (Tab.~\ref{Table:bootstrap_results},
+The analysis results (tab.~\ref{Table:bootstrap_results},
 fig.~\ref{Figure:explicitness_bootstrap}) reveal that explicit songs are, on
 average, \textbf{2.96\%} more popular than non-explicit songs. The confidence
 interval of [0.08\%, 5.79\%] suggests statistically significant but modest
 increase in popularity for explicit songs.
 
-For sentiment polarity, the results (Tab.~\ref{Table:bootstrap_results},
+For sentiment polarity, the results (tab.~\ref{Table:bootstrap_results},
 fig.~\ref{Figure:explicitness_bootstrap_2}) show that explicit songs are on average
 \textbf{87.10\%} less positive than non-explicit songs. The confidence interval
 of [-100.69\%, 73.63\%] confirms it to be a very significant difference.
@@ -471,7 +471,7 @@ This section tackles the problem of song lyrics sentiment prediction. The
 binary sentiment labels (positive (1) and negative (0)) were derived from the
 variable \textit{sentiment polarity}. Songs with polarity values below 0 were
 labeled as negative, while those above 0 were labeled as positive. The wordclouds
-on figure fig.~\ref{Figure:wordclouds} show most promiment words for 
+on figure~\ref{Figure:wordclouds} show most promiment words for 
 songs labeled as positive and negative.
 
 
@@ -507,7 +507,7 @@ sentiment.
 \end{table}
 
 
-The results(Tab.~\ref{Table:results_sentiment}) show that the Catboost models
+The results (tab.~\ref{Table:results_sentiment}) show that the Catboost models
 outperformed the baselines significantly. Among  them, the one trained only on
 lyrical features performed the best, with accuracy of 71.86\% and weighted
 F1-score of 70.72\%. The result shows the importance of lyrical features in
@@ -592,8 +592,7 @@ musical styles.
 }
 \end{table}
 
-The results of the experiment are presented in table
-Tab.~\ref{Table:results_genre}. The baseline models achieved very poor
+The results of the experiment are presented in table~\ref{Table:results_genre}. The baseline models achieved very poor
 performance. The \textit{Baseline Majority Model} achieved accuracy of 11.17\%
 and weighted F1 of 2.24\%, and the \textit{Baseline Random Model} accuracy of
 10.20\% and F1 of 10.38\%.The CatBoost model trained on all features
@@ -652,7 +651,7 @@ Latent Dirichlet Allocation (LDA) was applied to the song lyrics dataset to
 identify thematic clusters and analyze the distribution of topics across songs.
 The \textit{pyLDAvis} library that was used for this analysis generates topic
 visualizations and facilitates uncovering the most prominent words in each
-topic.\cite{pylda}
+topic. \cite{pylda}
 
 \begin{center}
 \begin{figure}[H]
@@ -686,11 +685,10 @@ topic.\cite{pylda}
 \end{figure}
 \end{center}
 
-\textbf{Blue bars on figure fig.~\ref{Figure:lda_general} show overall
-frequency of the terms in the entire corpus. Red bars indicate estimated
-frequency of the terms in that topic.} The results for each topic are presented
-on figures fig.~\ref{Figure:t1}, fig.~\ref{Figure:t2}, fig.~\ref{Figure:t2},
-fig.~\ref{Figure:t3}, fig.~\ref{Figure:t4}, fig.~\ref{Figure:t5},:
+\textbf{Blue bars on figure~\ref{Figure:lda_general} show overall frequency of
+the terms in the entire corpus. Red bars indicate estimated frequency of the
+terms in that topic.} The results for each topic are presented on
+figures~\ref{Figure:t1},~\ref{Figure:t2},~\ref{Figure:t2},~\ref{Figure:t3},~\ref{Figure:t4},~\ref{Figure:t5}:
 
 \begin{center}
 \begin{figure}[H]
@@ -742,9 +740,9 @@ identified five well separated themes, with overlaps only in highly related
 topics, such as existentialism (Topic 1) and emotional conflict (Topic 3).
 Their similarity is visualized on the intertopic
 (fig~\ref{Figure:intertopicdistancemap}) distance map. Topics with overlap have
-many terms in common. Based on the visualizations (fig.~\ref{Figure:t1},
-fig.~\ref{Figure:t2}, fig.~\ref{Figure:t3}, fig.~\ref{Figure:t4},
-fig.~\ref{Figure:t5}) we can observe that:
+many terms in common. Based on the visualizations
+(figs.:~\ref{Figure:t1},~\ref{Figure:t2},~\ref{Figure:t3},~\ref{Figure:t4},~\ref{Figure:t5})
+we can observe that:
 
 \begin{itemize}
      \item Topic 1 represents \textbf{philosophical and existential} themes in lyrics.
@@ -759,7 +757,7 @@ fig.~\ref{Figure:t5}) we can observe that:
     \item Topic 4 focuses on themes of \textbf{romantic affection, celebration,
       and festives}. Words such as ``baby'', ``tonight'', ``girl'', ``wanna'',
       and ``kiss'' indicate intimate emotions and the presence of
-      ``Christmas'', ``Santa'' and other related words strongly suggests a
+      ``Christmas'', ``Santa'' and other related words strongly suggests~a
       Christmas-themed music;
     \item Topic 5 appears to center around themes of \textbf{music, rhythm and
       energetic expressions}. Most prominent words identified for that topic
@@ -809,7 +807,7 @@ Based on the heatmap, topics 1 and 3 show more diverse genre distribution,
 indicating thematic universality or overlap. This observation aligns with the
 conclusions drawn from the  distance map
 (fig.~\ref{Figure:intertopicdistancemap}) and the analysis of their most
-relevant terms (fig.~\ref{Figure:t1}, fig.~\ref{Figure:t3}). Topics 2
+relevant terms (figs.:~\ref{Figure:t1},~\ref{Figure:t3}). Topics 2
 (fig.~\ref{Figure:t2}) and 5 (fig.~\ref{Figure:t5}) display strong dominance by
 specific genres, showing more focused thematic expressions.
 
@@ -929,11 +927,11 @@ two tests were conducted:
     was different.
 \end{itemize}
 
-Based on the table Tab.~\ref{Table:trend_table}, features with high $R^2$
+Based on the table~\ref{Table:trend_table}, features with high $R^2$
 values and statistically significant p-values ($\alpha = 0.05$) from ANOVA were
 selected as candidates for further analysis. In total 24 features were
 identified as having meaningful relationship with the decade of release. Their
-$R^2$ and p-values can be seen in the table Tab.~\ref{Table:trend_table}:
+$R^2$ and p-values can be seen in the table~\ref{Table:trend_table}:
 
 
 % \usepackage{color}
@@ -979,10 +977,9 @@ instrumentalness       & 0.016573    & 0.000118                   & 4.748720    
 
 
 \subsection{Plots and Results}
-Figures fig.~\ref{Figure:trends1}, fig.~\ref{Figure:trends2} and
-fig.~\ref{Figure:trends3} show the trends of these features across
-decades,with 95\% confidence intervals to illustrate the variability of the
-trends:
+Figures ~\ref{Figure:trends1},~\ref{Figure:trends2} and~\ref{Figure:trends3}
+show the trends of these features across decades,with 95\% confidence intervals
+to illustrate the variability of the trends:
 
 \begin{center}
 \begin{figure}[H]
