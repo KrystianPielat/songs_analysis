@@ -13,21 +13,23 @@ from sklearn.preprocessing import MinMaxScaler
 
 _LOGGER = logging.getLogger(__name__)
 
+
 def winsorize_series(series, lower_percentile, upper_percentile):
     """
     Winsorizes a pandas Series by capping values at specified percentiles.
-    
+
     Args:
         series (pd.Series): The input series to be winsorized.
         lower_percentile (float): The lower percentile (e.g., 0.05 for the 5th percentile).
         upper_percentile (float): The upper percentile (e.g., 0.95 for the 95th percentile).
-        
+
     Returns:
         pd.Series: Winsorized series.
     """
     lower_bound = np.percentile(series, lower_percentile * 100)
     upper_bound = np.percentile(series, upper_percentile * 100)
     return series.clip(lower=lower_bound, upper=upper_bound)
+
 
 def variance_based_empath_cleaning(df, variance_threshold: float = 0.0001):
     empath_df = df[[col for col in df.columns if col.startswith("empath_")]]
@@ -36,6 +38,7 @@ def variance_based_empath_cleaning(df, variance_threshold: float = 0.0001):
     _LOGGER.info(f"Total empath features: {empath_df.shape[1]}")
     _LOGGER.info(f"Low-variance features to remove: {len(low_variance_features)}")
     return list(empath_df.drop(columns=low_variance_features).columns)
+
 
 def gather_data_from_folders(playlists_dir: str) -> pd.DataFrame:
     """Concatenates all CSV files from subfolders of a specified directory into one DataFrame.
@@ -50,20 +53,29 @@ def gather_data_from_folders(playlists_dir: str) -> pd.DataFrame:
 
     for root, dirs, files in os.walk(playlists_dir):
         for file in files:
-            if file.endswith('.csv') and '.ipynb' not in root and not file.startswith("_") and 'faulty' not in file:
+            if (
+                file.endswith(".csv")
+                and ".ipynb" not in root
+                and not file.startswith("_")
+                and "faulty" not in file
+            ):
                 csv_path = os.path.join(root, file)
                 _LOGGER.info(f"Loading CSV file: {csv_path}")
                 df = pd.read_csv(csv_path, index_col=None)
 
-                if 'csv_path' not in df.columns:
-                    _LOGGER.warning(f"'csv_path' column missing in {file}. Adding the column...")
-                    df['csv_path'] = csv_path
+                if "csv_path" not in df.columns:
+                    _LOGGER.warning(
+                        f"'csv_path' column missing in {file}. Adding the column..."
+                    )
+                    df["csv_path"] = csv_path
                     df.to_csv(csv_path, index=False)
                     _LOGGER.info(f"'csv_path' column added and saved to {csv_path}")
 
-                if 'Unnamed: 0' in df.columns:
-                    _LOGGER.warning(f"Found 'Unnamed: 0' in {file}, dropping the column.")
-                    df = df.drop(columns=['Unnamed: 0'])
+                if "Unnamed: 0" in df.columns:
+                    _LOGGER.warning(
+                        f"Found 'Unnamed: 0' in {file}, dropping the column."
+                    )
+                    df = df.drop(columns=["Unnamed: 0"])
 
                 all_dataframes.append(df)
 
@@ -71,7 +83,9 @@ def gather_data_from_folders(playlists_dir: str) -> pd.DataFrame:
     return combined_df
 
 
-def apply_function_to_csvs(playlists_dir: str, modify_function: Callable[[pd.DataFrame], pd.DataFrame]) -> None:
+def apply_function_to_csvs(
+    playlists_dir: str, modify_function: Callable[[pd.DataFrame], pd.DataFrame]
+) -> None:
     """Applies a specified function to all CSVs in subfolders of a given directory, modifies the DataFrames,
     and saves them back to their respective files.
 
@@ -81,7 +95,7 @@ def apply_function_to_csvs(playlists_dir: str, modify_function: Callable[[pd.Dat
     """
     for root, dirs, files in os.walk(playlists_dir):
         for file in files:
-            if file.endswith('.csv'):
+            if file.endswith(".csv"):
                 csv_path = os.path.join(root, file)
                 df = pd.read_csv(csv_path)
                 modified_df = modify_function(df)
@@ -98,7 +112,7 @@ def example_modify_function(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Modified DataFrame.
     """
-    df.loc[df.lyrics == "No lyrics found", 'lyrics'] = None
+    df.loc[df.lyrics == "No lyrics found", "lyrics"] = None
     return df
 
 
@@ -121,7 +135,9 @@ def is_mp3_valid(file_path: str) -> bool:
         return False
 
 
-def find_songs_to_drop(df_to_process: pd.DataFrame, allow_nan_cols: List[str]) -> pd.DataFrame:
+def find_songs_to_drop(
+    df_to_process: pd.DataFrame, allow_nan_cols: List[str]
+) -> pd.DataFrame:
     """Identifies songs to drop based on missing values in critical columns, invalid 'mp3_path', or lyrics shorter than 180 characters.
 
     Args:
@@ -138,17 +154,27 @@ def find_songs_to_drop(df_to_process: pd.DataFrame, allow_nan_cols: List[str]) -
     )
 
     invalid_mp3_rows = df_to_process.index[
-        ~df_to_process['mp3_path'].apply(lambda x: is_mp3_valid(x) if pd.notna(x) else False)
+        ~df_to_process["mp3_path"].apply(
+            lambda x: is_mp3_valid(x) if pd.notna(x) else False
+        )
     ]
-    
-    df_to_process['genre'] = df_to_process['genres'].apply(lambda x: reduce_genres_with_regex(eval(x), GENRE_MAPPING))
-    incorrect_genre_rows = df_to_process[(df_to_process.genre.isna()) | (df_to_process.genre == 'None')].index
+
+    df_to_process["genre"] = df_to_process["genres"].apply(
+        lambda x: reduce_genres_with_regex(eval(x), GENRE_MAPPING)
+    )
+    incorrect_genre_rows = df_to_process[
+        (df_to_process.genre.isna()) | (df_to_process.genre == "None")
+    ].index
 
     short_lyrics_rows = df_to_process.index[
-        df_to_process['lyrics'].apply(lambda x: len(x) < 180 if pd.notna(x) else True)
+        df_to_process["lyrics"].apply(lambda x: len(x) < 180 if pd.notna(x) else True)
     ]
 
-    rows_to_drop = rows_with_nan.union(invalid_mp3_rows).union(short_lyrics_rows).union(incorrect_genre_rows)
+    rows_to_drop = (
+        rows_with_nan.union(invalid_mp3_rows)
+        .union(short_lyrics_rows)
+        .union(incorrect_genre_rows)
+    )
 
     for idx in rows_to_drop:
         row = df_to_process.loc[idx]
@@ -161,7 +187,9 @@ def find_songs_to_drop(df_to_process: pd.DataFrame, allow_nan_cols: List[str]) -
             reason.append("short lyrics")
         if idx in incorrect_genre_rows:
             reason.append("incorrect or missing genre")
-        _LOGGER.warning(f"Dropping song '{row['title']}' by '{row['artist']}': {', '.join(reason)}.")
+        _LOGGER.warning(
+            f"Dropping song '{row['title']}' by '{row['artist']}': {', '.join(reason)}."
+        )
 
     return df_to_process.loc[rows_to_drop]
 
@@ -189,11 +217,13 @@ def clean_songs_to_drop(songs_to_drop: pd.DataFrame) -> None:
     Args:
         songs_to_drop (pd.DataFrame): DataFrame containing `mp3_path` and `csv_path` columns.
     """
-    if not {'mp3_path', 'csv_path', 'id'}.issubset(songs_to_drop.columns):
-        raise ValueError("The DataFrame must contain 'mp3_path' and 'csv_path' columns.")
+    if not {"mp3_path", "csv_path", "id"}.issubset(songs_to_drop.columns):
+        raise ValueError(
+            "The DataFrame must contain 'mp3_path' and 'csv_path' columns."
+        )
 
     for _, row in songs_to_drop.iterrows():
-        mp3_path = row['mp3_path']
+        mp3_path = row["mp3_path"]
         if pd.notna(mp3_path) and os.path.exists(mp3_path):
             try:
                 os.remove(mp3_path)
@@ -201,21 +231,22 @@ def clean_songs_to_drop(songs_to_drop: pd.DataFrame) -> None:
             except Exception as e:
                 _LOGGER.error(f"Error removing MP3 file {mp3_path}: {e}")
 
-        csv_path = row['csv_path']
+        csv_path = row["csv_path"]
         if pd.notna(csv_path) and os.path.exists(csv_path):
             try:
                 df = pd.read_csv(csv_path)
-                row_conditions = (df['id'] == row['id'])
+                row_conditions = df["id"] == row["id"]
                 updated_df = df[~row_conditions]
                 updated_df.to_csv(csv_path, index=False)
                 _LOGGER.info(f"Updated CSV file: {csv_path}")
             except Exception as e:
                 _LOGGER.error(f"Error updating CSV file {csv_path}: {e}")
 
+
 def reduce_genres_with_regex(genre_list: list, mapping: dict):
     """
     Dynamically match genres using regex patterns and assign them based on GENRE_MAPPING.
-    
+
     Args:
         genre_list (list): List of genres for a song.
         mapping (dict): Dictionary mapping general genres to specific subgenres.
@@ -226,51 +257,133 @@ def reduce_genres_with_regex(genre_list: list, mapping: dict):
     for genre in genre_list:
         for general, specifics in mapping.items():
             # Create a dynamic regex pattern to match subgenres (e.g., 'hip hop' in 'desi hip hop')
-            pattern = r'\b(?:' + '|'.join(re.escape(subgenre) for subgenre in specifics) + r')\b'
+            pattern = (
+                r"\b(?:"
+                + "|".join(re.escape(subgenre) for subgenre in specifics)
+                + r")\b"
+            )
             if re.search(pattern, genre, re.IGNORECASE):
                 return general
     return None
 
+
 def censor_swear_words(text):
     words = text.split()
-    censored_words = [SWEAR_WORD_MAPPING[word] if word in SWEAR_WORD_MAPPING else word for word in words]
-    return ' '.join(censored_words)
+    censored_words = [
+        SWEAR_WORD_MAPPING[word] if word in SWEAR_WORD_MAPPING else word
+        for word in words
+    ]
+    return " ".join(censored_words)
 
-def plot_temporal_shifts(df: pd.DataFrame, features: List[str], year_col: str = 'album_release_year') -> plt.Figure:
+
+def plot_temporal_shifts(
+    df: pd.DataFrame, features: List[str], year_col: str = "album_release_year"
+) -> plt.Figure:
     if not all([f in df.columns for f in features]):
         raise ValueError("One of the features is missing from the df")
-    
+
     df = df.copy()
-    df['decade'] = (df[year_col] // 10) * 10
-    
-    df_melted = df.melt(id_vars=['decade'], value_vars=features, var_name='feature', value_name='value')
-    
+    df["decade"] = (df[year_col] // 10) * 10
+
+    df_melted = df.melt(
+        id_vars=["decade"], value_vars=features, var_name="feature", value_name="value"
+    )
+
     scaler = MinMaxScaler()
-    df_melted['scaled_value'] = df_melted.groupby('feature')['value'].transform(
+    df_melted["scaled_value"] = df_melted.groupby("feature")["value"].transform(
         lambda x: scaler.fit_transform(x.values.reshape(-1, 1)).flatten()
     )
-    
+
     fig, ax = plt.subplots(figsize=(12, 8))
-    
+
     sns.lineplot(
         data=df_melted,
-        x='decade',
-        y='scaled_value',
-        hue='feature',
+        x="decade",
+        y="scaled_value",
+        hue="feature",
         ci=95,
-        marker='o',
-        ax=ax
+        marker="o",
+        ax=ax,
     )
-    
-    ax.set_title('Trend Shifts in Scaled Features Over Decades with Confidence Intervals')
-    ax.set_xlabel('Decade')
-    ax.set_ylabel('Scaled Feature Value')
-    ax.set_xticks(df_melted['decade'].unique())
-    ax.set_xticklabels(df_melted['decade'].unique(), rotation=45)
-    ax.legend(title='Features', loc='upper right')
+
+    ax.set_title(
+        "Trend Shifts in Scaled Features Over Decades with Confidence Intervals"
+    )
+    ax.set_xlabel("Decade")
+    ax.set_ylabel("Scaled Feature Value")
+    ax.set_xticks(df_melted["decade"].unique())
+    ax.set_xticklabels(df_melted["decade"].unique(), rotation=45)
+    ax.legend(title="Features", loc="upper right")
     plt.tight_layout()
 
     plt.close(fig)
 
     return fig
 
+
+
+def plot_temporal_shifts_bw(
+    df: pd.DataFrame, features: List[str], year_col: str = "album_release_year"
+) -> plt.Figure:
+    if not all([f in df.columns for f in features]):
+        raise ValueError("One of the features is missing from the df")
+
+    df = df.copy()
+    df["decade"] = (df[year_col] // 10) * 10
+
+    df_melted = df.melt(
+        id_vars=["decade"], value_vars=features, var_name="feature", value_name="value"
+    )
+
+    scaler = MinMaxScaler()
+    df_melted["scaled_value"] = df_melted.groupby("feature")["value"].transform(
+        lambda x: scaler.fit_transform(x.values.reshape(-1, 1)).flatten()
+    )
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Define distinct line styles for easy differentiation
+    line_styles = [
+        (0, (1, 1)),  # Dotted
+        (0, (5, 2)),  # Dashed
+        (0, (3, 3, 1, 3)),  # Dash-dot-dot
+        (0, (7, 3, 3, 3)),  # Long dash, short dash
+        (0, (10, 5)),  # Long dash
+        (0, (3, 5, 1, 5, 1, 5)),  # Complex mixed pattern
+        (0, (8, 2, 2, 2, 2, 2)),  # Long-short-short pattern
+    ]
+
+    markers = ["o", "s", "D", "^", "v", "P", "X"]  # Ensure different marker types
+
+    plt.rcParams.update({"font.size": 16})
+
+    # Plot each feature with a distinct pattern and color
+    for i, feature in enumerate(df_melted["feature"].unique()):
+        feature_data = df_melted[df_melted["feature"] == feature]
+        sns.lineplot(
+            data=feature_data,
+            x="decade",
+            y="scaled_value",
+            linestyle=line_styles[i % len(line_styles)],  # Cycle through styles
+            marker=markers[i % len(markers)],  # Ensure different markers
+            markersize=12,  # Large markers for readability
+            linewidth=2.5,  # Thicker lines for better visibility
+            label=feature,
+            ax=ax,
+        )
+
+    ax.set_title(
+        "Trend Shifts in Scaled Features Over Decades", fontsize=20, fontweight="bold"
+    )
+    ax.set_xlabel("Decade", fontsize=18)
+    ax.set_ylabel("Scaled Feature Value", fontsize=18)
+    ax.set_xticks(df_melted["decade"].unique())
+    ax.set_xticklabels(df_melted["decade"].unique(), rotation=45, fontsize=16)
+    ax.legend(title="Features", loc="upper right", fontsize=14)
+
+    plt.grid(True, linestyle="--", linewidth=0.7, color="gray")  # Improve readability
+    plt.tight_layout()
+
+    plt.close(fig)
+
+    return fig
